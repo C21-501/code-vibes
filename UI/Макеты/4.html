@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Все RFC - CAB System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Сайдбар */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 20px;
+        }
+        
+        .sidebar-menu li {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-menu li:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-menu li.active {
+            background-color: var(--secondary);
+            border-left: 4px solid white;
+        }
+        
+        /* Основной контент */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 250px;
+            overflow-y: auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        /* Карточки */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* Таблицы */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th, .table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Статусы */
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-new {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .status-waiting {
+            background-color: #fff8e1;
+            color: #f57c00;
+        }
+        
+        .status-approved {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-declined {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .status-done {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-cancelled {
+            background-color: #f5f5f5;
+            color: #616161;
+        }
+        
+        /* Формы */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        select.form-control {
+            background-color: white;
+        }
+        
+        /* Фильтры */
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+        
+        .date-range {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .date-range .form-control {
+            width: 150px;
+        }
+        
+        /* Представление карточек */
+        .cards-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .rfc-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .rfc-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .rfc-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .rfc-card-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .rfc-card-id {
+            color: var(--gray);
+            font-size: 13px;
+        }
+        
+        .rfc-card-body {
+            margin-bottom: 15px;
+        }
+        
+        .rfc-card-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .rfc-card-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--dark);
+        }
+        
+        .rfc-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Переключение представлений */
+        .view-toggle {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: auto;
+        }
+        
+        .view-toggle-btn {
+            padding: 8px 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .view-toggle-btn.active {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        /* Модальное окно просмотра RFC */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        /* Детали RFC */
+        .rfc-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .rfc-detail-item {
+            margin-bottom: 15px;
+        }
+        
+        .rfc-detail-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+        
+        .rfc-detail-value {
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .rfc-description {
+            grid-column: 1 / -1;
+        }
+        
+        .rfc-history {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+        }
+        
+        .history-item {
+            display: flex;
+            gap: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .history-date {
+            min-width: 120px;
+            font-weight: 500;
+        }
+        
+        .history-action {
+            flex: 1;
+        }
+        
+        .history-user {
+            color: var(--gray);
+            font-size: 13px;
+        }
+        
+        /* Дополнительные фильтры для "Всех RFC" */
+        .advanced-filters {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        .toggle-filters {
+            background: none;
+            border: none;
+            color: var(--secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+            
+            .sidebar-header span, .sidebar-menu li span {
+                display: none;
+            }
+            
+            .sidebar-header {
+                justify-content: center;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+            
+            .sidebar-menu li {
+                justify-content: center;
+            }
+            
+            .sidebar:hover {
+                width: 250px;
+                z-index: 100;
+            }
+            
+            .sidebar:hover .sidebar-header span,
+            .sidebar:hover .sidebar-menu li span {
+                display: inline;
+            }
+            
+            .sidebar:hover .sidebar-menu li {
+                justify-content: flex-start;
+            }
+            
+            .rfc-details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .filters {
+                flex-direction: column;
+            }
+            
+            .filter-item {
+                width: 100%;
+            }
+            
+            .date-range {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .date-range .form-control {
+                width: 100%;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .cards-view {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Утилиты */
+        .badge {
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .badge-light {
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        
+        .text-sm {
+            font-size: 13px;
+        }
+        
+        .text-gray {
+            color: var(--gray);
+        }
+        
+        .mt-20 {
+            margin-top: 20px;
+        }
+        
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Сайдбар -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-tasks fa-2x"></i>
+                <span>CAB System</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li><i class="fas fa-th-large"></i> <span>Дашборд</span></li>
+                <li><i class="fas fa-list"></i> <span>Мои RFC</span></li>
+                <li class="active"><i class="fas fa-layer-group"></i> <span>Все RFC</span></li>
+                <li><i class="fas fa-table-columns"></i> <span>Канбан-доска</span></li>
+                <li><i class="fas fa-book"></i> <span>Справочники</span></li>
+                <li><i class="fas fa-cog"></i> <span>Настройки</span></li>
+            </ul>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="main-content">
+            <div class="header">
+                <h1 class="page-title">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Все RFC</span>
+                </h1>
+                <div class="user-info">
+                    <div class="user-role">CAB Manager</div>
+                    <div class="user-avatar">ИП</div>
+                    <div>Иван Петров</div>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Создать RFC
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Фильтры -->
+            <div class="filters">
+                <div class="filter-item">
+                    <label class="form-label">Статус</label>
+                    <select class="form-control" id="statusFilter">
+                        <option value="">Все статусы</option>
+                        <option value="new">Requested New</option>
+                        <option value="waiting">Waiting</option>
+                        <option value="approved">Approved</option>
+                        <option value="declined">Declined</option>
+                        <option value="done">Done</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label class="form-label">Инициатор</label>
+                    <select class="form-control" id="initiatorFilter">
+                        <option value="">Все инициаторы</option>
+                        <option value="user1">Иван Петров</option>
+                        <option value="user2">Сергей Васильев</option>
+                        <option value="user3">Анна Иванова</option>
+                        <option value="user4">Петр Сидоров</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label class="form-label">Исполнитель</label>
+                    <select class="form-control" id="executorFilter">
+                        <option value="">Все исполнители</option>
+                        <option value="team1">Команда DBA</option>
+                        <option value="team2">Команда DevOps</option>
+                        <option value="team3">Команда ИБ</option>
+                        <option value="team4">Команда 1С</option>
+                        <option value="team5">Сетевые инженеры</option>
+                        <option value="team6">Сисадмины</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label class="form-label">Дата создания</label>
+                    <div class="date-range">
+                        <input type="date" class="form-control" id="dateFrom">
+                        <span>—</span>
+                        <input type="date" class="form-control" id="dateTo">
+                    </div>
+                </div>
+                <div class="filter-item">
+                    <label class="form-label">Поиск</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Введите текст для поиска">
+                </div>
+                <div class="filter-item" style="justify-content: flex-end;">
+                    <button class="btn btn-primary" id="applyFilters">
+                        <i class="fas fa-filter"></i> Применить
+                    </button>
+                    <button class="btn" id="resetFilters">
+                        <i class="fas fa-times"></i> Сбросить
+                    </button>
+                </div>
+                
+                <!-- Дополнительные фильтры -->
+                <div class="advanced-filters" id="advancedFilters">
+                    <div class="filter-item">
+                        <label class="form-label">Приоритет</label>
+                        <select class="form-control" id="priorityFilter">
+                            <option value="">Все приоритеты</option>
+                            <option value="low">Низкий</option>
+                            <option value="medium">Средний</option>
+                            <option value="high">Высокий</option>
+                            <option value="critical">Критический</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label class="form-label">Подсистема</label>
+                        <select class="form-control" id="subsystemFilter">
+                            <option value="">Все подсистемы</option>
+                            <option value="db">Базы данных</option>
+                            <option value="servers">Серверы</option>
+                            <option value="network">Сетевое оборудование</option>
+                            <option value="1c">1С</option>
+                            <option value="security">Системы безопасности</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label class="form-label">Сортировка</label>
+                        <select class="form-control" id="sortFilter">
+                            <option value="newest">Сначала новые</option>
+                            <option value="oldest">Сначала старые</option>
+                            <option value="priority">По приоритету</option>
+                            <option value="status">По статусу</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="width: 100%;">
+                    <button class="toggle-filters" id="toggleFilters">
+                        <i class="fas fa-chevron-down"></i> Дополнительные фильтры
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Переключение представлений -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="tabs">
+                        <button class="btn btn-sm active" data-tab="all">Все RFC</button>
+                        <button class="btn btn-sm" data-tab="requested">Requested New</button>
+                        <button class="btn btn-sm" data-tab="waiting">Waiting</button>
+                        <button class="btn btn-sm" data-tab="approved">Approved</button>
+                        <button class="btn btn-sm" data-tab="done">Done</button>
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-toggle-btn active" data-view="table">
+                            <i class="fas fa-table"></i>
+                        </button>
+                        <button class="view-toggle-btn" data-view="cards">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Табличное представление -->
+                <div class="card-body tab-content active" id="table-view">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Название</th>
+                                <th>Инициатор</th>
+                                <th>Дата создания</th>
+                                <th>Статус</th>
+                                <th>Исполнитель</th>
+                                <th>Приоритет</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>RFC-0042</td>
+                                <td>Обновление БД до версии 12.2</td>
+                                <td>Иван Петров</td>
+                                <td>15.05.2023</td>
+                                <td><span class="status status-waiting"><i class="fas fa-clock"></i> Waiting</span></td>
+                                <td>Команда DBA</td>
+                                <td><span class="badge badge-light">Высокий</span></td>
+                                <td>
+                                    <button class="btn btn-sm view-rfc-btn" data-id="RFC-0042">
+                                        <i class="fas fa-eye"></i> Просмотр
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>RFC-0041</td>
+                                <td>Патчинг серверов VMware</td>
+                                <td>Сергей Васильев</td>
+                                <td>14.05.2023</td>
+                                <td><span class="status status-approved"><i class="fas fa-check-circle"></i> Approved</span></td>
+                                <td>Команда DevOps</td>
+                                <td><span class="badge badge-light">Средний</span></td>
+                                <td>
+                                    <button class="btn btn-sm view-rfc-btn" data-id="RFC-0041">
+                                        <i class="fas fa-eye"></i> Просмотр
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>RFC-0040</td>
+                                <td>Обновление сертификатов безопасности</td>
+                                <td>Анна Иванова</td>
+                                <td>13.05.2023</td>
+                                <td><span class="status status-done"><i class="fas fa-check-double"></i> Done</span></td>
+                                <td>Команда ИБ</td>
+                                <td><span class="badge badge-light">Высокий</span></td>
+                                <td>
+                                    <button class="btn btn-sm view-rfc-btn" data-id="RFC-0040">
+                                        <i class="fas fa-eye"></i> Просмотр
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>RFC-0039</td>
+                                <td>Миграция данных 1С</td>
+                                <td>Иван Петров</td>
+                                <td>12.05.2023</td>
+                                <td><span class="status status-declined"><i class="fas fa-times-circle"></i> Declined</span></td>
+                                <td>Команда 1С</td>
+                                <td><span class="badge badge-light">Высокий</span></td>
+                                <td>
+                                    <button class="btn btn-sm view-rfc-btn" data-id="RFC-0039">
+                                        <i class="fas fa-eye"></i> Просмотр
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>RFC-0038</td>
+                                <td>Обновление ОС на серверах</td>
+                                <td>Петр Сидоров</td>
+                                <td>10.05.2023</td>
+                                <td><span class="status status-new"><i class="fas fa-plus-circle"></i> Requested New</span></td>
+                                <td>Команда DevOps</td>
+                                <td><span class="badge badge-light">Средний</span></td>
+                                <td>
+                                    <button class="btn btn-sm view-rfc-btn" data-id="RFC-0038">
+                                        <i class="fas fa-eye"></i> Просмотр
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>RFC-0037</td>
+                                <td>Настройка балансировщика нагрузки</td>
+                                <td>Сергей Васильев</td>
+                                <td>08.05.2023</td>
+                                <td><span class="status status-done"><i class="fas fa-check-double"></i> Done</span></td>
+                                <td>Сетевые инженеры</td>
+                                <td><span class="badge badge-light">Низкий</span></td>
+                                <td>
+                                    <button class="btn btn-sm view-rfc-btn" data-id="RFC-0037">
+                                        <i class="fas fa-eye"></i> Просмотр
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>RFC-0036</td>
+                                <td>Обновление антивирусного ПО</td>
+                                <td>Анна Иванова</td>
+                                <td>05.05.2023</td>
+                                <td><span class="status status-approved"><i class="fas fa-check-circle"></i> Approved</span></td>
+                                <td>Команда ИБ</td>
+                                <td><span class="badge badge-light">Высокий</span></td>
+                                <td>
+                                    <button class="btn btn-sm view-rfc-btn" data-id="RFC-0036">
+                                        <i class="fas fa-eye"></i> Просмотр
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Пагинация -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                        <div class="text-sm text-gray">Показано 7 из 42 записей</div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn btn-sm"><i class="fas fa-chevron-left"></i></button>
+                            <button class="btn btn-sm active">1</button>
+                            <button class="btn btn-sm">2</button>
+                            <button class="btn btn-sm">3</button>
+                            <button class="btn btn-sm">4</button>
+                            <button class="btn btn-sm">5</button>
+                            <button class="btn btn-sm"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Представление карточками -->
+                <div class="card-body tab-content hidden" id="cards-view">
+                    <div class="cards-view">
+                        <!-- Карточка RFC -->
+                        <div class="rfc-card view-rfc-btn" data-id="RFC-0042">
+                            <div class="rfc-card-header">
+                                <div>
+                                    <div class="rfc-card-title">Обновление БД до версии 12.2</div>
+                                    <div class="rfc-card-id">RFC-0042</div>
+                                </div>
+                                <span class="status status-waiting"><i class="fas fa-clock"></i> Waiting</span>
+                            </div>
+                            <div class="rfc-card-body">
+                                <p class="text-sm">Обновление основных баз данных до версии 12.2 с переносом данных и тестированием производительности.</p>
+                            </div>
+                            <div class="rfc-card-meta">
+                                <div class="rfc-card-meta-item">
+                                    <i class="fas fa-user"></i>
+                                    <span>Инициатор: Иван Петров</span>
+                                </div>
+                                <div class="rfc-card-meta-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>Создано: 15.05.2023</span>
+                                </div>
+                                <div class="rfc-card-meta-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>Исполнитель: Команда DBA</span>
+                                </div>
+                                <div class="rfc-card-meta-item">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>Приоритет: Высокий</span>
+                                </div>
+                            </div>
+                            <div class="rfc-card-footer">
+                                <button class="btn btn-sm">
+                                    <i class="fas fa-eye"></i> Просмотр
+                                </button>
+                                <button class="btn btn-sm">
+                                    <i class="fas fa-edit"></i> Редактировать
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Карточка RFC -->
+                        <div class="rfc-card view-rfc-btn" data-id="RFC-0041">
+                            <div class="rfc-card-header">
+                                <div>
+                                    <div class="rfc-card-title">Патчинг серверов VMware</div>
+                                    <div class="rfc-card-id">RFC-0041</div>
+                                </div>
+                                <span class="status status-approved"><i class="fas fa-check-circle"></i> Approved</span>
+                            </div>
+                            <div class="rfc-card-body">
+                                <p class="text-sm">Установка последних обновлений безопасности на все серверы VMware в основном датацентре.</p>
+                            </div>
+                            <div class="rfc-card-meta">
+                                <div class="rfc-card-meta-item">
+                                    <i class="fas fa-user"></i>
+                                    <span>Инициатор: Сергей Васильев</span>
+                                </div>
+                                <div class="rfc-card-meta-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>Создано: 14.05.2023</span>
+                                </div>
+                                <div class="rfc-card-meta-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>Исполнитель: Команда DevOps</span>
+                                </div>
+                                <div class="rfc-card-meta-item">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>Приоритет: Средний</span>
+                                </div>
+                            </div>
+                            <div class="rfc-card-footer">
+                                <button class="btn btn-sm">
+                                    <i class="fas fa-eye"></i> Просмотр
+                                </button>
+                                <button class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i> Выполнено
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Карточка RFC -->
+                        <div class="rfc-card view-rfc-btn" data-id="RFC-0040">
+                            <div class="rfc-card-header">
+                                <div>
+                                    <div class="rfc-card-title">Обновление сертификатов безопасности</div>
+                                    <div class="rfc-card-id">RFC-0040</div>
+                                </div>
+                                <span class="status status-done"><i class="fas fa-check-double"></i> Done</span>
+                            </div>
