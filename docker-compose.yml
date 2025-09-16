@@ -37,19 +37,15 @@ services:
 
   # Frontend Service (React + Vite)
   frontend:
-    # TODO: Заменить на build: ./frontend когда будет создан Dockerfile
-    image: node:20-alpine
+    build: ./frontend
     container_name: cab_frontend
     ports:
-      - "5173:5173"
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
+      - "5173:80"
+    depends_on:
+      - backend
     networks:
       - cab-network
     restart: unless-stopped
-    # Временная команда для поддержания контейнера в работающем состоянии
-    command: ["tail", "-f", "/dev/null"]
 
   # Keycloak Authentication Server
   keycloak:
