@@ -1,0 +1,84 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16
+    container_name: cab_db
+    environment:
+      POSTGRES_DB: cab_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cab-network
+    restart: unless-stopped
+
+  # Backend Service (Java Spring Boot)
+  backend:
+    # TODO: Заменить на build: ./backend когда будет создан Dockerfile
+    image: eclipse-temurin:17-jdk-jammy
+    container_name: cab_backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cab_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_AUTH_SERVER_URL: http://keycloak:8080
+    depends_on:
+      - db
+      - keycloak
+    networks:
+      - cab-network
+    restart: unless-stopped
+    # Временная команда для поддержания контейнера в работающем состоянии
+    command: ["tail", "-f", "/dev/null"]
+
+  # Frontend Service (React + Vite)
+  frontend:
+    # TODO: Заменить на build: ./frontend когда будет создан Dockerfile
+    image: node:20-alpine
+    container_name: cab_frontend
+    ports:
+      - "5173:5173"
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    networks:
+      - cab-network
+    restart: unless-stopped
+    # Временная команда для поддержания контейнера в работающем состоянии
+    command: ["tail", "-f", "/dev/null"]
+
+  # Keycloak Authentication Server
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.2
+    container_name: cab_keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DEV_FILE_ROOT_PATH: /opt/keycloak/data/import
+    ports:
+      - "8081:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    networks:
+      - cab-network
+    restart: unless-stopped
+    command: ["start-dev"]
+
+# Networks
+networks:
+  cab-network:
+    driver: bridge
+    name: cab-network
+
+# Volumes
+volumes:
+  postgres_data:
+    name: cab_postgres_data
+  keycloak_data:
+    name: cab_keycloak_data
