@@ -66,3 +66,70 @@ export interface PaginatedResponse<T> {
   hasNext: boolean;
   hasPrev: boolean;
 }
+
+// Full RFC entity
+export interface Rfc {
+  id: string;
+  title: string;
+  description: string;
+  status: RfcStatus;
+  priority: Priority;
+  createdAt: string;
+  updatedAt: string;
+  author: User;
+  executors: User[];
+  reviewers: User[];
+  system: System;
+}
+
+// User entity
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+}
+
+// System entity
+export interface System {
+  id: string;
+  name: string;
+  description: string;
+}
+
+// Team entity
+export interface Team {
+  id: string;
+  name: string;
+  description: string;
+  members: User[];
+}
+
+// RFC creation request
+export interface CreateRfcRequest {
+  title: string;
+  description: string;
+  systemId: string;
+  executorIds: string[];
+  reviewerIds: string[];
+  updatedAt: string;
+  priority: Priority;
+}
+
+// RFC filters
+export interface RfcFilters {
+  status?: RfcStatus;
+  priority?: Priority;
+  systemId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  my?: boolean;
+}
+
+// Sorting options
+export interface SortOptions {
+  field: 'createdAt' | 'updatedAt' | 'title' | 'status' | 'priority';
+  direction: 'asc' | 'desc';
+}
