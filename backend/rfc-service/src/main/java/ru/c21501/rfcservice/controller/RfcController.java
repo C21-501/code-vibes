@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.c21501.rfcservice.dto.request.CreateRfcRequest;
 import ru.c21501.rfcservice.dto.request.UpdateRfcRequest;
+import ru.c21501.rfcservice.dto.response.DashboardResponse;
 import ru.c21501.rfcservice.dto.response.RfcResponse;
 import ru.c21501.rfcservice.dto.response.StatusHistoryResponse;
 import ru.c21501.rfcservice.mapper.RfcMapper;
@@ -21,6 +22,7 @@ import ru.c21501.rfcservice.model.entity.User;
 import ru.c21501.rfcservice.model.enums.Priority;
 import ru.c21501.rfcservice.model.enums.RfcStatus;
 import ru.c21501.rfcservice.repository.RfcRepository;
+import ru.c21501.rfcservice.service.DashboardService;
 import ru.c21501.rfcservice.service.RfcIdService;
 import ru.c21501.rfcservice.service.RfcService;
 import ru.c21501.rfcservice.service.StatusHistoryService;
@@ -43,6 +45,7 @@ public class RfcController {
     private final RfcIdService rfcIdService;
     private final StatusHistoryService statusHistoryService;
     private final UserService userService;
+    private final DashboardService dashboardService;
     private final RfcRepository rfcRepository;
     private final RfcMapper rfcMapper;
     private final StatusHistoryMapper statusHistoryMapper;
@@ -158,5 +161,17 @@ public class RfcController {
                 .toList();
         
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Получить данные для дашборда (статистика, последние RFC, ближайшие дедлайны)
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<DashboardResponse> getDashboardStats() {
+        log.info("Getting dashboard statistics");
+        
+        DashboardResponse dashboardData = dashboardService.getDashboardData();
+        
+        return ResponseEntity.ok(dashboardData);
     }
 }

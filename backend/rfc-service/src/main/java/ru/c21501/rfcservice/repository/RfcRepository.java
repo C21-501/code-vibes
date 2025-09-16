@@ -64,4 +64,20 @@ public interface RfcRepository extends JpaRepository<Rfc, String>, JpaSpecificat
      * Найти RFC по заголовку (содержит подстроку, без учета регистра)
      */
     List<Rfc> findByTitleContainingIgnoreCase(String title);
+    
+    /**
+     * Подсчитать количество RFC по статусу
+     */
+    Long countByStatus(RfcStatus status);
+    
+    /**
+     * Найти последние N RFC, отсортированные по дате создания
+     */
+    List<Rfc> findTop10ByOrderByCreatedDateDesc();
+    
+    /**
+     * Найти RFC с ближайшими дедлайнами (плановая дата в будущем)
+     */
+    @Query("SELECT r FROM Rfc r WHERE r.plannedDate >= CURRENT_DATE AND r.status NOT IN ('DONE', 'CANCELLED') ORDER BY r.plannedDate ASC")
+    List<Rfc> findUpcomingDeadlines();
 }

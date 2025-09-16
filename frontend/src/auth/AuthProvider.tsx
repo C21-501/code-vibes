@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import keycloak from '../keycloak';
-import type { KeycloakProfile, KeycloakTokenParsed } from 'keycloak-js';
+import type { KeycloakProfile } from 'keycloak-js';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           // Setup token refresh
           keycloak.onTokenExpired = () => {
-            keycloak.updateToken(30).then((refreshed) => {
+            keycloak.updateToken(30).then((refreshed: boolean) => {
               if (refreshed) {
                 setToken(keycloak.token || null);
                 console.log('Token refreshed');
