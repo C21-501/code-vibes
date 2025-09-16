@@ -10,6 +10,7 @@ interface RecentRfcsProps {
 const statusColors = {
   [RfcStatus.REQUESTED_NEW]: 'bg-gray-100 text-gray-800',
   [RfcStatus.WAITING]: 'bg-yellow-100 text-yellow-800',
+  [RfcStatus.WAITING_FOR_CAB]: 'bg-orange-100 text-orange-800',
   [RfcStatus.APPROVED]: 'bg-green-100 text-green-800',
   [RfcStatus.DONE]: 'bg-blue-100 text-blue-800',
   [RfcStatus.DECLINED]: 'bg-red-100 text-red-800',
@@ -19,6 +20,7 @@ const statusColors = {
 const statusLabels = {
   [RfcStatus.REQUESTED_NEW]: 'Новый запрос',
   [RfcStatus.WAITING]: 'На рассмотрении',
+  [RfcStatus.WAITING_FOR_CAB]: 'Ожидание CAB',
   [RfcStatus.APPROVED]: 'Одобрено',
   [RfcStatus.DONE]: 'Выполнено',
   [RfcStatus.DECLINED]: 'Отклонено',

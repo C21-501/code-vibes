@@ -1,5 +1,5 @@
 import apiClient from './axiosConfig';
-import { 
+import type { 
   Rfc, 
   PaginatedResponse, 
   CreateRfcRequest, 

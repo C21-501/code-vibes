@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, FileText, Users, Calendar } from 'lucide-react';
 import { rfcApi } from '../../api/rfcApi';
-import { CreateRfcRequest, Priority, System, Team, User } from '../../types/api';
+import type { CreateRfcRequest, System, Team, User } from '../../types/api';
+import { Priority } from '../../types/api';
 
 interface CreateRfcModalProps {
   isOpen: boolean;

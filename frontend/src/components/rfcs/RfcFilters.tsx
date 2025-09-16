@@ -1,6 +1,7 @@
 import React from 'react';
-import { Search, Filter, X } from 'lucide-react';
-import { RfcFilters, RfcStatus, Priority } from '../../types/api';
+import { Filter, X } from 'lucide-react';
+import type { RfcFilters } from '../../types/api';
+import { RfcStatus, Priority } from '../../types/api';
 
 interface RfcFiltersProps {
   filters: RfcFilters;
@@ -24,7 +25,7 @@ const priorityOptions: Array<{ value: Priority; label: string }> = [
   { value: 'CRITICAL', label: 'Критический' }
 ];
 
-export const RfcFilters: React.FC<RfcFiltersProps> = ({
+export const RfcFiltersComponent: React.FC<RfcFiltersProps> = ({
   filters,
   onFiltersChange,
   onClearFilters

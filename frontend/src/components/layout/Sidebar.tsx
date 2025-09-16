@@ -20,7 +20,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Дашборд', icon: Home, path: '/dashboard' },
   { id: 'my-rfcs', label: 'Мои RFC', icon: FileText, path: '/my-rfcs' },
-  { id: 'all-rfcs', label: 'Все RFC', icon: Files, path: '/rfcs' },
+  { id: 'all-rfcs', label: 'Все RFC', icon: Files, path: '/all-rfcs' },
   { id: 'kanban', label: 'Канбан-доска', icon: Kanban, path: '/kanban' },
   { id: 'references', label: 'Справочники', icon: BookOpen, path: '/references' },
 ];

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronUp, ChevronDown, MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react';
-import { Rfc, SortOptions, RfcStatus, Priority } from '../../types/api';
+import type { Rfc, SortOptions } from '../../types/api';
+import { RfcStatus, Priority } from '../../types/api';
 
 interface RfcTableProps {
   rfcs: Rfc[];
@@ -14,6 +15,7 @@ interface RfcTableProps {
 const statusLabels: Record<RfcStatus, string> = {
   REQUESTED_NEW: 'Новый запрос',
   WAITING: 'Ожидание',
+  WAITING_FOR_CAB: 'Ожидание CAB',
   APPROVED: 'Одобрен',
   DECLINED: 'Отклонен',
   DONE: 'Выполнен',
@@ -23,6 +25,7 @@ const statusLabels: Record<RfcStatus, string> = {
 const statusColors: Record<RfcStatus, string> = {
   REQUESTED_NEW: 'bg-blue-100 text-blue-800',
   WAITING: 'bg-yellow-100 text-yellow-800',
+  WAITING_FOR_CAB: 'bg-orange-100 text-orange-800',
   APPROVED: 'bg-green-100 text-green-800',
   DECLINED: 'bg-red-100 text-red-800',
   DONE: 'bg-gray-100 text-gray-800',

@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, User, Calendar, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import { rfcApi } from '../api/rfcApi';
 import { useAuth } from '../auth';
-import { Rfc, RfcStatus, UserRole, ChangeStatusRequest } from '../types/api';
+import type { Rfc, ChangeStatusRequest } from '../types/api';
+import { RfcStatus } from '../types/api';
 
 export const RfcDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -75,17 +76,16 @@ export const RfcDetail: React.FC = () => {
   };
 
   // Check user permissions
-  const canChangeStatus = (targetStatus: RfcStatus): boolean => {
+  const canChangeStatus = (_targetStatus: RfcStatus): boolean => {
     if (!user || !rfc) return false;
     
-    const currentStatus = rfc.status;
     
     // For simplicity, allow any authenticated user to change status
     // In real implementation, check user roles from JWT token
     return true;
   };
 
-  const canConfirmExecutorReadiness = (teamId: string): boolean => {
+  const canConfirmExecutorReadiness = (_teamId: string): boolean => {
     if (!user || !rfc) return false;
     
     // For simplicity, allow any authenticated user to confirm readiness

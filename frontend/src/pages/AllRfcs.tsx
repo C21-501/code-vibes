@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, RefreshCw } from 'lucide-react';
-import { RfcTable } from '../components/rfcs/RfcTable';
-import { RfcFilters } from '../components/rfcs';
+import { AdvancedRfcTable } from '../components/rfcs/AdvancedRfcTable';
+import { AdvancedRfcFilters } from '../components/rfcs/AdvancedRfcFilters';
 import { Pagination } from '../components/rfcs/Pagination';
 import { CreateRfcModal } from '../components/dashboard/CreateRfcModal';
 import { rfcApi } from '../api/rfcApi';
 import type { Rfc, RfcFilters as RfcFiltersType, SortOptions, PaginatedResponse } from '../types/api';
+import { RfcStatus } from '../types/api';
+import { useUserRole } from '../hooks/useUserRole';
 
-export const MyRfcs: React.FC = () => {
+export const AllRfcs: React.FC = () => {
   const navigate = useNavigate();
+  const { canPerformMassOperations } = useUserRole();
   const [rfcs, setRfcs] = useState<Rfc[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,8 +26,8 @@ export const MyRfcs: React.FC = () => {
   const [hasPrev, setHasPrev] = useState(false);
   const pageSize = 10;
   
-  // Filters and sorting
-  const [filters, setFilters] = useState<RfcFiltersType>({ my: true });
+  // Filters and sorting - exclude "my" filter for all RFCs page
+  const [filters, setFilters] = useState<RfcFiltersType>({});
   const [sortOptions, setSortOptions] = useState<SortOptions>({
     field: 'createdAt',
     direction: 'desc'
@@ -39,7 +42,7 @@ export const MyRfcs: React.FC = () => {
       const response: PaginatedResponse<Rfc> = await rfcApi.getRfcs(
         page,
         pageSize,
-        filters,
+        filters, // No "my: true" filter here
         sortOptions
       );
       
@@ -76,12 +79,12 @@ export const MyRfcs: React.FC = () => {
   };
 
   const handleFiltersChange = (newFilters: RfcFiltersType) => {
-    setFilters({ ...newFilters, my: true }); // Always keep "my" filter for this page
+    setFilters(newFilters);
     setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
-    setFilters({ my: true });
+    setFilters({});
     setCurrentPage(1);
   };
 
@@ -110,15 +113,67 @@ export const MyRfcs: React.FC = () => {
     }
   };
 
+  // Mass operations handlers
+  const handleMassApprove = async (rfcIds: string[]) => {
+    try {
+      setLoading(true);
+      // Approve all selected RFCs
+      await Promise.all(
+        rfcIds.map(id => 
+          rfcApi.changeRfcStatus(id, { newStatus: RfcStatus.APPROVED })
+        )
+      );
+      
+      // Reload current page
+      await loadRfcs(currentPage);
+      
+      // Show success message
+      alert(`Успешно одобрено ${rfcIds.length} RFC`);
+    } catch (error) {
+      console.error('Error approving RFCs:', error);
+      alert('Ошибка при одобрении RFC. Попробуйте еще раз.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMassChangeStatus = async (rfcIds: string[], status: RfcStatus) => {
+    try {
+      setLoading(true);
+      // Change status for all selected RFCs
+      await Promise.all(
+        rfcIds.map(id => 
+          rfcApi.changeRfcStatus(id, { newStatus: status })
+        )
+      );
+      
+      // Reload current page
+      await loadRfcs(currentPage);
+      
+      // Show success message
+      alert(`Успешно изменен статус ${rfcIds.length} RFC`);
+    } catch (error) {
+      console.error('Error changing RFC status:', error);
+      alert('Ошибка при изменении статуса RFC. Попробуйте еще раз.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Мои RFC</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Все RFC</h1>
           <p className="text-gray-600 mt-1">
             {loading ? 'Загрузка...' : `Всего найдено: ${total} RFC`}
           </p>
+          {canPerformMassOperations() && (
+            <p className="text-sm text-blue-600 mt-1">
+              Доступны массовые операции - выделите RFC для изменения статуса
+            </p>
+          )}
         </div>
         
         <div className="flex items-center space-x-3">
@@ -142,7 +197,7 @@ export const MyRfcs: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <RfcFilters
+      <AdvancedRfcFilters
         filters={filters}
         onFiltersChange={handleFiltersChange}
         onClearFilters={handleClearFilters}
@@ -178,7 +233,7 @@ export const MyRfcs: React.FC = () => {
           <div className="animate-pulse">
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex space-x-4">
-                {[...Array(6)].map((_, i) => (
+                {[...Array(7)].map((_, i) => (
                   <div key={i} className="h-4 bg-gray-200 rounded flex-1"></div>
                 ))}
               </div>
@@ -186,7 +241,7 @@ export const MyRfcs: React.FC = () => {
             {[...Array(5)].map((_, i) => (
               <div key={i} className="px-6 py-4 border-b border-gray-200">
                 <div className="flex space-x-4">
-                  {[...Array(6)].map((_, j) => (
+                  {[...Array(7)].map((_, j) => (
                     <div key={j} className="h-4 bg-gray-200 rounded flex-1"></div>
                   ))}
                 </div>
@@ -198,13 +253,15 @@ export const MyRfcs: React.FC = () => {
 
       {/* Table */}
       {!loading || rfcs.length > 0 ? (
-        <RfcTable
+        <AdvancedRfcTable
           rfcs={rfcs}
           sortOptions={sortOptions}
           onSort={handleSort}
           onView={handleViewRfc}
           onEdit={handleEditRfc}
           onDelete={handleDeleteRfc}
+          onMassApprove={canPerformMassOperations() ? handleMassApprove : undefined}
+          onMassChangeStatus={canPerformMassOperations() ? handleMassChangeStatus : undefined}
         />
       ) : null}
 
