@@ -1,6 +1,7 @@
 package ru.c21501.rfcservice.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.c21501.rfcservice.model.entity.Rfc;
@@ -16,7 +17,7 @@ import java.util.List;
  * Репозиторий для работы с RFC
  */
 @Repository
-public interface RfcRepository extends JpaRepository<Rfc, String> {
+public interface RfcRepository extends JpaRepository<Rfc, String>, JpaSpecificationExecutor<Rfc> {
     
     /**
      * Найти RFC по статусу
