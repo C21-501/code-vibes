@@ -3,7 +3,6 @@ package ru.c21501.rfcservice.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
 import ru.c21501.rfcservice.dto.request.CreateRfcRequest;
 import ru.c21501.rfcservice.dto.request.UpdateRfcRequest;
 import ru.c21501.rfcservice.dto.response.RfcResponse;

@@ -98,7 +98,7 @@ public class RfcController {
         
         // Создать RFC entity
         Rfc rfc = rfcMapper.toEntity(request);
-        rfc.setId(rfcIdService.generateRfcId());
+        rfc.setId(rfcIdService.generateNextRfcId());
         rfc.setInitiator(initiator);
         
         // Сохранить RFC
