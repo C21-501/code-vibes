@@ -83,4 +83,9 @@ public interface RfcExecutorService {
      * Проверить существование исполнителя по ID RFC и ID команды
      */
     boolean existsByRfcIdAndTeamId(String rfcId, UUID teamId);
+    
+    /**
+     * Изменить статус подтверждения исполнителя
+     */
+    RfcExecutor updateConfirmationStatus(String rfcId, UUID teamId, ConfirmationStatus confirmationStatus);
 }

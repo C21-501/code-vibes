@@ -80,4 +80,19 @@ public interface RfcService {
      * Проверить существование RFC по ID
      */
     boolean existsById(String id);
+    
+    /**
+     * Изменить статус RFC
+     */
+    Rfc changeStatus(String rfcId, RfcStatus newStatus, User changedByUser);
+    
+    /**
+     * Проверить возможность изменения статуса
+     */
+    boolean canChangeStatus(String rfcId, RfcStatus newStatus, User user);
+    
+    /**
+     * Проверить, все ли исполнители подтвердили готовность
+     */
+    boolean areAllExecutorsConfirmed(String rfcId);
 }

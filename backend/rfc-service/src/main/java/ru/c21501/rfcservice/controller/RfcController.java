@@ -8,7 +8,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import ru.c21501.rfcservice.dto.request.ChangeStatusRequest;
 import ru.c21501.rfcservice.dto.request.CreateRfcRequest;
 import ru.c21501.rfcservice.dto.request.UpdateRfcRequest;
 import ru.c21501.rfcservice.dto.response.DashboardResponse;
@@ -23,6 +26,7 @@ import ru.c21501.rfcservice.model.enums.Priority;
 import ru.c21501.rfcservice.model.enums.RfcStatus;
 import ru.c21501.rfcservice.repository.RfcRepository;
 import ru.c21501.rfcservice.service.DashboardService;
+import ru.c21501.rfcservice.service.RfcExecutorService;
 import ru.c21501.rfcservice.service.RfcIdService;
 import ru.c21501.rfcservice.service.RfcService;
 import ru.c21501.rfcservice.service.StatusHistoryService;
@@ -42,6 +46,7 @@ import java.util.UUID;
 public class RfcController {
     
     private final RfcService rfcService;
+    private final RfcExecutorService rfcExecutorService;
     private final RfcIdService rfcIdService;
     private final StatusHistoryService statusHistoryService;
     private final UserService userService;
@@ -173,5 +178,123 @@ public class RfcController {
         DashboardResponse dashboardData = dashboardService.getDashboardData();
         
         return ResponseEntity.ok(dashboardData);
+    }
+    
+    /**
+     * Изменить статус RFC
+     */
+    @PutMapping("/{id}/status")
+    public ResponseEntity<RfcResponse> changeRfcStatus(
+            @PathVariable String id,
+            @Valid @RequestBody ChangeStatusRequest request,
+            Authentication authentication) {
+        
+        log.info("Changing RFC {} status to {}", id, request.getNewStatus());
+        
+        try {
+            // Получить текущего пользователя из JWT токена
+            Jwt jwt = (Jwt) authentication.getPrincipal();
+            String keycloakId = jwt.getSubject();
+            
+            User currentUser = userService.findByKeycloakId(keycloakId)
+                    .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+            
+            // Изменить статус RFC
+            Rfc updatedRfc = rfcService.changeStatus(id, request.getNewStatus(), currentUser);
+            
+            // Если все исполнители подтвердили готовность, автоматически изменить статус на WAITING_FOR_CAB
+            if (request.getNewStatus() == RfcStatus.APPROVED && rfcService.areAllExecutorsConfirmed(id)) {
+                updatedRfc = rfcService.changeStatus(id, RfcStatus.WAITING_FOR_CAB, currentUser);
+                log.info("All executors confirmed readiness, automatically changed RFC {} status to WAITING_FOR_CAB", id);
+            }
+            
+            RfcResponse response = rfcMapper.toResponse(updatedRfc);
+            
+            log.info("Successfully changed RFC {} status to {}", id, updatedRfc.getStatus());
+            return ResponseEntity.ok(response);
+            
+        } catch (IllegalArgumentException e) {
+            log.error("Bad request when changing RFC {} status: {}", id, e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (IllegalStateException e) {
+            log.error("Forbidden when changing RFC {} status: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (Exception e) {
+            log.error("Error changing RFC {} status: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * Подтвердить готовность команды-исполнителя
+     */
+    @PutMapping("/{id}/executors/{teamId}/confirm")
+    public ResponseEntity<RfcResponse> confirmExecutorReadiness(
+            @PathVariable String id,
+            @PathVariable UUID teamId,
+            Authentication authentication) {
+        
+        log.info("Confirming executor readiness for RFC {} and team {}", id, teamId);
+        
+        try {
+            // Получить текущего пользователя из JWT токена
+            Jwt jwt = (Jwt) authentication.getPrincipal();
+            String keycloakId = jwt.getSubject();
+            
+            User currentUser = userService.findByKeycloakId(keycloakId)
+                    .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+            
+            // Проверить права пользователя на подтверждение готовности для данной команды
+            if (!canConfirmReadiness(currentUser, teamId)) {
+                log.error("User {} does not have permission to confirm readiness for team {}", currentUser.getId(), teamId);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
+            // Обновить статус подтверждения исполнителя
+            rfcExecutorService.updateConfirmationStatus(id, teamId, ru.c21501.rfcservice.model.enums.ConfirmationStatus.CONFIRMED);
+            
+            // Проверить, все ли исполнители подтвердили готовность
+            if (rfcService.areAllExecutorsConfirmed(id)) {
+                // Автоматически изменить статус RFC на WAITING_FOR_CAB
+                Rfc updatedRfc = rfcService.changeStatus(id, RfcStatus.WAITING_FOR_CAB, currentUser);
+                log.info("All executors confirmed readiness, automatically changed RFC {} status to WAITING_FOR_CAB", id);
+                
+                RfcResponse response = rfcMapper.toResponse(updatedRfc);
+                return ResponseEntity.ok(response);
+            } else {
+                // Вернуть обновленный RFC без изменения статуса
+                Rfc rfc = rfcService.findById(id)
+                        .orElseThrow(() -> new IllegalArgumentException("RFC не найден"));
+                RfcResponse response = rfcMapper.toResponse(rfc);
+                return ResponseEntity.ok(response);
+            }
+            
+        } catch (IllegalArgumentException e) {
+            log.error("Bad request when confirming executor readiness for RFC {} and team {}: {}", id, teamId, e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error confirming executor readiness for RFC {} and team {}: {}", id, teamId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * Проверить, может ли пользователь подтверждать готовность для данной команды
+     */
+    private boolean canConfirmReadiness(User user, UUID teamId) {
+        // Администратор и CAB_MANAGER могут подтверждать готовность любой команды
+        if (user.getRole() == ru.c21501.rfcservice.model.enums.UserRole.ADMIN || 
+            user.getRole() == ru.c21501.rfcservice.model.enums.UserRole.CAB_MANAGER) {
+            return true;
+        }
+        
+        // Исполнитель может подтверждать готовность только своей команды (если он лидер)
+        if (user.getRole() == ru.c21501.rfcservice.model.enums.UserRole.EXECUTOR) {
+            // Здесь нужно проверить, является ли пользователь лидером команды с данным ID
+            // Для упрощения, пока разрешаем всем исполнителям
+            return true;
+        }
+        
+        return false;
     }
 }

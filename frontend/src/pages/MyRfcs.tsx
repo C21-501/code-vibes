@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, RefreshCw } from 'lucide-react';
 import { RfcTable } from '../components/rfcs/RfcTable';
 import { RfcFilters } from '../components/rfcs/RfcFilters';
@@ -8,6 +9,7 @@ import { rfcApi } from '../api/rfcApi';
 import { Rfc, RfcFilters as RfcFiltersType, SortOptions, PaginatedResponse } from '../types/api';
 
 export const MyRfcs: React.FC = () => {
+  const navigate = useNavigate();
   const [rfcs, setRfcs] = useState<Rfc[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,8 +95,7 @@ export const MyRfcs: React.FC = () => {
 
   // RFC actions
   const handleViewRfc = (rfc: Rfc) => {
-    console.log('View RFC:', rfc);
-    // TODO: Navigate to RFC detail page
+    navigate(`/rfcs/${rfc.id}`);
   };
 
   const handleEditRfc = (rfc: Rfc) => {

@@ -127,4 +127,23 @@ public class RfcExecutorServiceImpl implements RfcExecutorService {
         log.debug("Проверка существования исполнителя по ID RFC: {} и ID команды: {}", rfcId, teamId);
         return rfcExecutorRepository.existsByRfcIdAndTeamId(rfcId, teamId);
     }
+    
+    @Override
+    @Transactional
+    public RfcExecutor updateConfirmationStatus(String rfcId, UUID teamId, ConfirmationStatus confirmationStatus) {
+        log.debug("Изменение статуса подтверждения для RFC: {} и команды: {} на {}", 
+                  rfcId, teamId, confirmationStatus);
+        
+        RfcExecutor rfcExecutor = rfcExecutorRepository.findByRfcIdAndTeamId(rfcId, teamId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Исполнитель для RFC " + rfcId + " и команды " + teamId + " не найден"));
+        
+        rfcExecutor.setConfirmationStatus(confirmationStatus);
+        RfcExecutor updatedExecutor = rfcExecutorRepository.save(rfcExecutor);
+        
+        log.info("Статус подтверждения изменен для RFC: {} и команды: {} на {}", 
+                 rfcId, teamId, confirmationStatus);
+        
+        return updatedExecutor;
+    }
 }

@@ -5,12 +5,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.c21501.rfcservice.model.entity.Rfc;
+import ru.c21501.rfcservice.model.entity.RfcExecutor;
+import ru.c21501.rfcservice.model.entity.StatusHistory;
 import ru.c21501.rfcservice.model.entity.User;
+import ru.c21501.rfcservice.model.enums.ConfirmationStatus;
 import ru.c21501.rfcservice.model.enums.Priority;
 import ru.c21501.rfcservice.model.enums.RfcStatus;
+import ru.c21501.rfcservice.model.enums.UserRole;
+import ru.c21501.rfcservice.repository.RfcExecutorRepository;
 import ru.c21501.rfcservice.repository.RfcRepository;
 import ru.c21501.rfcservice.service.RfcIdService;
 import ru.c21501.rfcservice.service.RfcService;
+import ru.c21501.rfcservice.service.StatusHistoryService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,7 +33,9 @@ import java.util.UUID;
 public class RfcServiceImpl implements RfcService {
     
     private final RfcRepository rfcRepository;
+    private final RfcExecutorRepository rfcExecutorRepository;
     private final RfcIdService rfcIdService;
+    private final StatusHistoryService statusHistoryService;
     
     @Override
     @Transactional
@@ -130,5 +138,109 @@ public class RfcServiceImpl implements RfcService {
     public boolean existsById(String id) {
         log.debug("Проверка существования RFC по ID: {}", id);
         return rfcRepository.existsById(id);
+    }
+    
+    @Override
+    @Transactional
+    public Rfc changeStatus(String rfcId, RfcStatus newStatus, User changedByUser) {
+        log.debug("Изменение статуса RFC {} на {}", rfcId, newStatus);
+        
+        Rfc rfc = findById(rfcId)
+                .orElseThrow(() -> new IllegalArgumentException("RFC с ID " + rfcId + " не найден"));
+        
+        RfcStatus oldStatus = rfc.getStatus();
+        
+        // Валидация перехода статуса
+        if (!isValidStatusTransition(oldStatus, newStatus)) {
+            throw new IllegalStateException("Невозможно изменить статус с " + oldStatus + " на " + newStatus);
+        }
+        
+        // Проверка прав пользователя
+        if (!canChangeStatus(rfcId, newStatus, changedByUser)) {
+            throw new IllegalStateException("У пользователя нет прав для изменения статуса на " + newStatus);
+        }
+        
+        // Изменение статуса
+        rfc.setStatus(newStatus);
+        Rfc updatedRfc = rfcRepository.save(rfc);
+        
+        // Создание записи в истории статусов
+        StatusHistory statusHistory = StatusHistory.builder()
+                .rfc(rfc)
+                .oldStatus(oldStatus)
+                .newStatus(newStatus)
+                .changedByUser(changedByUser)
+                .build();
+        statusHistoryService.createStatusHistory(statusHistory);
+        
+        log.info("Статус RFC {} изменен с {} на {} пользователем {}", 
+                rfcId, oldStatus, newStatus, changedByUser.getId());
+        
+        return updatedRfc;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean canChangeStatus(String rfcId, RfcStatus newStatus, User user) {
+        log.debug("Проверка прав пользователя {} для изменения статуса на {}", user.getId(), newStatus);
+        
+        Rfc rfc = findById(rfcId)
+                .orElseThrow(() -> new IllegalArgumentException("RFC с ID " + rfcId + " не найден"));
+        
+        // Администратор и CAB_MANAGER могут изменять любые статусы
+        if (user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.CAB_MANAGER) {
+            return true;
+        }
+        
+        // Инициатор может отменить свой RFC если он еще не одобрен
+        if (user.getId().equals(rfc.getInitiator().getId()) && 
+            newStatus == RfcStatus.CANCELLED &&
+            (rfc.getStatus() == RfcStatus.REQUESTED_NEW || rfc.getStatus() == RfcStatus.WAITING)) {
+            return true;
+        }
+        
+        // Исполнители могут подтверждать готовность (изменение статуса на WAITING_FOR_CAB происходит автоматически)
+        if (user.getRole() == UserRole.EXECUTOR && newStatus == RfcStatus.DONE) {
+            // Проверяем, является ли пользователь лидером одной из команд-исполнителей данного RFC
+            List<RfcExecutor> executors = rfcExecutorRepository.findByRfcId(rfcId);
+            return executors.stream()
+                    .anyMatch(executor -> executor.getTeam().getLeader().getId().equals(user.getId()));
+        }
+        
+        return false;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean areAllExecutorsConfirmed(String rfcId) {
+        log.debug("Проверка подтверждения всех исполнителей для RFC {}", rfcId);
+        
+        List<RfcExecutor> executors = rfcExecutorRepository.findByRfcId(rfcId);
+        
+        if (executors.isEmpty()) {
+            return false;
+        }
+        
+        return executors.stream()
+                .allMatch(executor -> executor.getConfirmationStatus() == ConfirmationStatus.CONFIRMED);
+    }
+    
+    /**
+     * Проверяет валидность перехода статуса
+     */
+    private boolean isValidStatusTransition(RfcStatus from, RfcStatus to) {
+        if (from == to) {
+            return false; // Нельзя изменить статус на тот же самый
+        }
+        
+        return switch (from) {
+            case REQUESTED_NEW -> to == RfcStatus.WAITING || to == RfcStatus.CANCELLED;
+            case WAITING -> to == RfcStatus.APPROVED || to == RfcStatus.DECLINED || to == RfcStatus.CANCELLED;
+            case APPROVED -> to == RfcStatus.WAITING_FOR_CAB || to == RfcStatus.DONE || to == RfcStatus.CANCELLED;
+            case WAITING_FOR_CAB -> to == RfcStatus.DONE || to == RfcStatus.DECLINED || to == RfcStatus.CANCELLED;
+            case DECLINED -> to == RfcStatus.WAITING || to == RfcStatus.CANCELLED;
+            case DONE -> false; // Из DONE нельзя переходить в другие статусы
+            case CANCELLED -> false; // Из CANCELLED нельзя переходить в другие статусы
+        };
     }
 }

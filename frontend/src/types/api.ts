@@ -35,6 +35,7 @@ export const RfcStatus = {
   REQUESTED_NEW: 'REQUESTED_NEW',
   WAITING: 'WAITING', 
   APPROVED: 'APPROVED',
+  WAITING_FOR_CAB: 'WAITING_FOR_CAB',
   DECLINED: 'DECLINED',
   DONE: 'DONE',
   CANCELLED: 'CANCELLED'
@@ -132,4 +133,25 @@ export interface RfcFilters {
 export interface SortOptions {
   field: 'createdAt' | 'updatedAt' | 'title' | 'status' | 'priority';
   direction: 'asc' | 'desc';
+}
+
+// Change status request
+export interface ChangeStatusRequest {
+  newStatus: RfcStatus;
+  comment?: string;
+}
+
+// User roles
+export const UserRole = {
+  REQUESTER: 'REQUESTER',
+  EXECUTOR: 'EXECUTOR',
+  CAB_MANAGER: 'CAB_MANAGER',
+  ADMIN: 'ADMIN'
+} as const;
+
+export type UserRole = typeof UserRole[keyof typeof UserRole];
+
+// Enhanced User interface with role
+export interface UserWithRole extends User {
+  role: UserRole;
 }

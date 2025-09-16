@@ -6,7 +6,8 @@ import {
   RfcFilters, 
   SortOptions,
   System,
-  Team
+  Team,
+  ChangeStatusRequest
 } from '../types/api';
 
 export const rfcApi = {
@@ -61,6 +62,18 @@ export const rfcApi = {
   // Получить список команд
   getTeams: async (): Promise<Team[]> => {
     const response = await apiClient.get<Team[]>('/api/teams');
+    return response.data;
+  },
+
+  // Изменить статус RFC
+  changeRfcStatus: async (id: string, statusData: ChangeStatusRequest): Promise<Rfc> => {
+    const response = await apiClient.put<Rfc>(`/api/rfcs/${id}/status`, statusData);
+    return response.data;
+  },
+
+  // Подтвердить готовность исполнителя
+  confirmExecutorReadiness: async (rfcId: string, teamId: string): Promise<Rfc> => {
+    const response = await apiClient.put<Rfc>(`/api/rfcs/${rfcId}/executors/${teamId}/confirm`);
     return response.data;
   },
 };
