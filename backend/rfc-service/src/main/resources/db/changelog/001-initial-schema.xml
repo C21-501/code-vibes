@@ -30,10 +30,11 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        
-        <addCheckConstraint tableName="users" 
-                           constraintName="chk_user_role"
-                           checkCondition="role IN ('REQUESTER', 'EXECUTOR', 'CAB_MANAGER', 'ADMIN')"/>
+
+        <sql>
+            alter table users add constraint chk_user_role
+            check (role IN ('REQUESTER', 'EXECUTOR', 'CAB_MANAGER', 'ADMIN'));
+        </sql>
     </changeSet>
 
     <!-- Create teams table -->
@@ -105,14 +106,16 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        
-        <addCheckConstraint tableName="rfcs" 
-                           constraintName="chk_rfc_status"
-                           checkCondition="status IN ('REQUESTED_NEW', 'WAITING', 'APPROVED', 'DECLINED', 'DONE', 'CANCELLED')"/>
-        
-        <addCheckConstraint tableName="rfcs" 
-                           constraintName="chk_rfc_priority"
-                           checkCondition="priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')"/>
+
+        <sql>
+            alter table rfcs add constraint chk_rfc_status
+            check (status IN ('REQUESTED_NEW', 'WAITING', 'APPROVED', 'DECLINED', 'DONE', 'CANCELLED'));
+        </sql>
+
+        <sql>
+            alter table rfcs add constraint chk_rfc_priority
+            check (priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL'));
+        </sql>
         
         <addForeignKeyConstraint baseTableName="rfcs"
                                 baseColumnNames="initiator_id"
@@ -141,10 +144,11 @@
         <addUniqueConstraint tableName="rfc_executors"
                             columnNames="rfc_id, team_id"
                             constraintName="uk_rfc_executors_rfc_team"/>
-        
-        <addCheckConstraint tableName="rfc_executors" 
-                           constraintName="chk_confirmation_status"
-                           checkCondition="confirmation_status IN ('PENDING', 'CONFIRMED', 'IMPOSSIBLE')"/>
+
+        <sql>
+            alter table rfc_executors add constraint chk_confirmation_status
+            check (confirmation_status IN ('PENDING', 'CONFIRMED', 'IMPOSSIBLE'));
+        </sql>
         
         <addForeignKeyConstraint baseTableName="rfc_executors"
                                 baseColumnNames="rfc_id"
@@ -210,14 +214,16 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        
-        <addCheckConstraint tableName="status_history" 
-                           constraintName="chk_status_history_old_status"
-                           checkCondition="old_status IS NULL OR old_status IN ('REQUESTED_NEW', 'WAITING', 'APPROVED', 'DECLINED', 'DONE', 'CANCELLED')"/>
-        
-        <addCheckConstraint tableName="status_history" 
-                           constraintName="chk_status_history_new_status"
-                           checkCondition="new_status IN ('REQUESTED_NEW', 'WAITING', 'APPROVED', 'DECLINED', 'DONE', 'CANCELLED')"/>
+
+        <sql>
+            alter table status_history add constraint chk_status_history_old_status
+            check (old_status IS NULL OR old_status IN ('REQUESTED_NEW', 'WAITING', 'APPROVED', 'DECLINED', 'DONE', 'CANCELLED'));
+        </sql>
+
+        <sql>
+            alter table status_history add constraint chk_status_history_new_status
+            check (new_status IN ('REQUESTED_NEW', 'WAITING', 'APPROVED', 'DECLINED', 'DONE', 'CANCELLED'));
+        </sql>
         
         <addForeignKeyConstraint baseTableName="status_history"
                                 baseColumnNames="rfc_id"

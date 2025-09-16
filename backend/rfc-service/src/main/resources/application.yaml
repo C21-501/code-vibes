@@ -3,9 +3,9 @@ spring:
     name: rfc-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/rfc_db
-    username: rfc_user
-    password: rfc_password
+    url: jdbc:postgresql://localhost:5050/rfc_db
+    username: postgres
+    password: postgres
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -22,7 +22,7 @@ spring:
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
-    enabled: true
+    enabled: false
 
   security:
     oauth2:
