@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth, ProtectedRoute } from './auth'
 import { Layout } from './components/layout'
-import { Dashboard, MyRfcs, RfcDetail, AllRfcs, Kanban } from './pages'
+import { Dashboard, MyRfcs, RfcDetail, AllRfcs, Kanban, References } from './pages'
 import './App.css'
 
 function App() {
@@ -40,7 +40,7 @@ function App() {
           <Route path="/rfcs/:id" element={<RfcDetail />} />
           <Route path="/all-rfcs" element={<AllRfcs />} />
           <Route path="/kanban" element={<Kanban />} />
-          <Route path="/references" element={<div className="p-6">Справочники - в разработке</div>} />
+          <Route path="/references" element={<References />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

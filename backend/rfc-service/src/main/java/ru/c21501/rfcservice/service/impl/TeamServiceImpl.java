@@ -89,4 +89,12 @@ public class TeamServiceImpl implements TeamService {
         log.debug("Проверка существования команды по названию: {}", name);
         return teamRepository.existsByName(name);
     }
+    
+    @Override
+    @Transactional
+    public void deleteById(UUID id) {
+        log.debug("Удаление команды по ID: {}", id);
+        teamRepository.deleteById(id);
+        log.info("Удалена команда с ID: {}", id);
+    }
 }

@@ -102,4 +102,12 @@ public class UserServiceImpl implements UserService {
         log.debug("Проверка существования пользователя по email: {}", email);
         return userRepository.existsByEmail(email);
     }
+    
+    @Override
+    @Transactional
+    public void deleteById(UUID id) {
+        log.debug("Удаление пользователя по ID: {}", id);
+        userRepository.deleteById(id);
+        log.info("Удален пользователь с ID: {}", id);
+    }
 }

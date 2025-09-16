@@ -56,4 +56,9 @@ public interface TeamService {
      * Проверить существование команды по названию
      */
     boolean existsByName(String name);
+    
+    /**
+     * Удалить команду по ID
+     */
+    void deleteById(UUID id);
 }

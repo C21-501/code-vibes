@@ -65,4 +65,9 @@ public interface UserService {
      * Проверить существование пользователя по email
      */
     boolean existsByEmail(String email);
+    
+    /**
+     * Удалить пользователя по ID
+     */
+    void deleteById(UUID id);
 }

@@ -96,4 +96,12 @@ public class SystemServiceImpl implements SystemService {
         log.debug("Проверка существования подсистемы по названию: {}", name);
         return systemRepository.existsByName(name);
     }
+    
+    @Override
+    @Transactional
+    public void deleteById(UUID id) {
+        log.debug("Удаление подсистемы по ID: {}", id);
+        systemRepository.deleteById(id);
+        log.info("Удалена подсистема с ID: {}", id);
+    }
 }

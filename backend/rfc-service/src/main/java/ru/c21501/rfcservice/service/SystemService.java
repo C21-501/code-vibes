@@ -61,4 +61,9 @@ public interface SystemService {
      * Проверить существование подсистемы по названию
      */
     boolean existsByName(String name);
+    
+    /**
+     * Удалить подсистему по ID
+     */
+    void deleteById(UUID id);
 }

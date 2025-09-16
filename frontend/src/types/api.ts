@@ -97,15 +97,18 @@ export interface User {
 export interface System {
   id: string;
   name: string;
-  description: string;
+  type?: string;
+  description?: string;
+  responsibleTeam?: Team;
 }
 
 // Team entity
 export interface Team {
   id: string;
   name: string;
-  description: string;
-  members: User[];
+  description?: string;
+  leader?: User;
+  members?: User[];
 }
 
 // RFC creation request
@@ -153,5 +156,54 @@ export type UserRole = typeof UserRole[keyof typeof UserRole];
 
 // Enhanced User interface with role
 export interface UserWithRole extends User {
+  role: UserRole;
+  team?: Team;
+}
+
+// CRUD Request types
+export interface CreateSystemRequest {
+  name: string;
+  type?: string;
+  description?: string;
+  responsibleTeamId: string;
+}
+
+export interface UpdateSystemRequest {
+  id: string;
+  name: string;
+  type?: string;
+  description?: string;
+  responsibleTeamId: string;
+}
+
+export interface CreateTeamRequest {
+  name: string;
+  description?: string;
+  leaderId: string;
+}
+
+export interface UpdateTeamRequest {
+  id: string;
+  name: string;
+  description?: string;
+  leaderId: string;
+}
+
+export interface CreateUserRequest {
+  keycloakId: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+}
+
+export interface UpdateUserRequest {
+  id: string;
+  keycloakId: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
   role: UserRole;
 }
