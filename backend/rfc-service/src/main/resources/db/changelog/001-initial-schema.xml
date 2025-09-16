@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <!-- Create users table -->
+    <changeSet id="001-create-users-table" author="system">
+        <createTable tableName="users">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="keycloak_id" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="first_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addCheckConstraint tableName="users" 
+                           constraintName="chk_user_role"
+                           checkCondition="role IN ('REQUESTER', 'EXECUTOR', 'CAB_MANAGER', 'ADMIN')"/>
+    </changeSet>
+
+    <!-- Create teams table -->
+    <changeSet id="002-create-teams-table" author="system">
+        <createTable tableName="teams">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="leader_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint baseTableName="teams"
+                                baseColumnNames="leader_id"
+                                constraintName="fk_teams_leader"
+                                referencedTableName="users"
+                                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Create systems table -->
+    <changeSet id="003-create-systems-table" author="system">
+        <createTable tableName="systems">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="description" type="TEXT"/>
+            <column name="responsible_team_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint baseTableName="systems"
+                                baseColumnNames="responsible_team_id"
+                                constraintName="fk_systems_responsible_team"
+                                referencedTableName="teams"
+                                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Create rfcs table -->
+    <changeSet id="004-create-rfcs-table" author="system">
+        <createTable tableName="rfcs">
+            <column name="id" type="VARCHAR(50)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="priority" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="planned_date" type="DATE"/>
+            <column name="created_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="initiator_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addCheckConstraint tableName="rfcs" 
+                           constraintName="chk_rfc_status"
+                           checkCondition="status IN ('REQUESTED_NEW', 'WAITING', 'APPROVED', 'DECLINED', 'DONE', 'CANCELLED')"/>
+        
+        <addCheckConstraint tableName="rfcs" 
+                           constraintName="chk_rfc_priority"
+                           checkCondition="priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')"/>
+        
+        <addForeignKeyConstraint baseTableName="rfcs"
+                                baseColumnNames="initiator_id"
+                                constraintName="fk_rfcs_initiator"
+                                referencedTableName="users"
+                                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Create rfc_executors table -->
+    <changeSet id="005-create-rfc-executors-table" author="system">
+        <createTable tableName="rfc_executors">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="rfc_id" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="team_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="confirmation_status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addUniqueConstraint tableName="rfc_executors"
+                            columnNames="rfc_id, team_id"
+                            constraintName="uk_rfc_executors_rfc_team"/>
+        
+        <addCheckConstraint tableName="rfc_executors" 
+                           constraintName="chk_confirmation_status"
+                           checkCondition="confirmation_status IN ('PENDING', 'CONFIRMED', 'IMPOSSIBLE')"/>
+        
+        <addForeignKeyConstraint baseTableName="rfc_executors"
+                                baseColumnNames="rfc_id"
+                                constraintName="fk_rfc_executors_rfc"
+                                referencedTableName="rfcs"
+                                referencedColumnNames="id"/>
+        
+        <addForeignKeyConstraint baseTableName="rfc_executors"
+                                baseColumnNames="team_id"
+                                constraintName="fk_rfc_executors_team"
+                                referencedTableName="teams"
+                                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Create rfc_reviewers table -->
+    <changeSet id="006-create-rfc-reviewers-table" author="system">
+        <createTable tableName="rfc_reviewers">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="rfc_id" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="team_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addUniqueConstraint tableName="rfc_reviewers"
+                            columnNames="rfc_id, team_id"
+                            constraintName="uk_rfc_reviewers_rfc_team"/>
+        
+        <addForeignKeyConstraint baseTableName="rfc_reviewers"
+                                baseColumnNames="rfc_id"
+                                constraintName="fk_rfc_reviewers_rfc"
+                                referencedTableName="rfcs"
+                                referencedColumnNames="id"/>
+        
+        <addForeignKeyConstraint baseTableName="rfc_reviewers"
+                                baseColumnNames="team_id"
+                                constraintName="fk_rfc_reviewers_team"
+                                referencedTableName="teams"
+                                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Create status_history table -->
+    <changeSet id="007-create-status-history-table" author="system">
+        <createTable tableName="status_history">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="rfc_id" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="old_status" type="VARCHAR(50)"/>
+            <column name="new_status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed_by_user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="change_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addCheckConstraint tableName="status_history" 
+                           constraintName="chk_status_history_old_status"
+                           checkCondition="old_status IS NULL OR old_status IN ('REQUESTED_NEW', 'WAITING', 'APPROVED', 'DECLINED', 'DONE', 'CANCELLED')"/>
+        
+        <addCheckConstraint tableName="status_history" 
+                           constraintName="chk_status_history_new_status"
+                           checkCondition="new_status IN ('REQUESTED_NEW', 'WAITING', 'APPROVED', 'DECLINED', 'DONE', 'CANCELLED')"/>
+        
+        <addForeignKeyConstraint baseTableName="status_history"
+                                baseColumnNames="rfc_id"
+                                constraintName="fk_status_history_rfc"
+                                referencedTableName="rfcs"
+                                referencedColumnNames="id"/>
+        
+        <addForeignKeyConstraint baseTableName="status_history"
+                                baseColumnNames="changed_by_user_id"
+                                constraintName="fk_status_history_user"
+                                referencedTableName="users"
+                                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Create indexes for better performance -->
+    <changeSet id="008-create-indexes" author="system">
+        <createIndex tableName="users" indexName="idx_users_keycloak_id">
+            <column name="keycloak_id"/>
+        </createIndex>
+        
+        <createIndex tableName="users" indexName="idx_users_username">
+            <column name="username"/>
+        </createIndex>
+        
+        <createIndex tableName="users" indexName="idx_users_email">
+            <column name="email"/>
+        </createIndex>
+        
+        <createIndex tableName="rfcs" indexName="idx_rfcs_status">
+            <column name="status"/>
+        </createIndex>
+        
+        <createIndex tableName="rfcs" indexName="idx_rfcs_priority">
+            <column name="priority"/>
+        </createIndex>
+        
+        <createIndex tableName="rfcs" indexName="idx_rfcs_created_date">
+            <column name="created_date"/>
+        </createIndex>
+        
+        <createIndex tableName="rfcs" indexName="idx_rfcs_planned_date">
+            <column name="planned_date"/>
+        </createIndex>
+        
+        <createIndex tableName="rfcs" indexName="idx_rfcs_initiator_id">
+            <column name="initiator_id"/>
+        </createIndex>
+        
+        <createIndex tableName="status_history" indexName="idx_status_history_rfc_id">
+            <column name="rfc_id"/>
+        </createIndex>
+        
+        <createIndex tableName="status_history" indexName="idx_status_history_change_date">
+            <column name="change_date"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
