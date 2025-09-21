@@ -10,7 +10,7 @@ import ru.c21501.rfcservice.model.entity.Team;
  */
 @Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface TeamMapper {
-    
+
     /**
      * Преобразование Team entity в DTO ответа
      */

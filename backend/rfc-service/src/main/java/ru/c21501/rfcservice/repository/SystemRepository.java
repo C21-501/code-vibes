@@ -14,27 +14,27 @@ import java.util.UUID;
  */
 @Repository
 public interface SystemRepository extends JpaRepository<System, UUID> {
-    
+
     /**
      * Найти подсистему по названию
      */
     Optional<System> findByName(String name);
-    
+
     /**
      * Найти подсистемы по типу
      */
     List<System> findByType(String type);
-    
+
     /**
      * Найти подсистемы по ответственной команде
      */
     List<System> findByResponsibleTeam(Team responsibleTeam);
-    
+
     /**
      * Найти подсистемы по ID ответственной команды
      */
     List<System> findByResponsibleTeamId(UUID responsibleTeamId);
-    
+
     /**
      * Проверить существование подсистемы по названию
      */

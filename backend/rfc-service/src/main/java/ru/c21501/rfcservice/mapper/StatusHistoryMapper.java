@@ -9,7 +9,7 @@ import ru.c21501.rfcservice.model.entity.StatusHistory;
  */
 @Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface StatusHistoryMapper {
-    
+
     /**
      * Преобразование StatusHistory entity в DTO ответа
      */

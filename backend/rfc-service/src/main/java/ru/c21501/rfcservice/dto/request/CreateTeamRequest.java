@@ -11,12 +11,12 @@ import java.util.UUID;
  */
 @Data
 public class CreateTeamRequest {
-    
+
     @NotBlank(message = "Название команды не может быть пустым")
     private String name;
-    
+
     private String description;
-    
+
     @NotNull(message = "Руководитель команды не может быть пустым")
     private UUID leaderId;
 }

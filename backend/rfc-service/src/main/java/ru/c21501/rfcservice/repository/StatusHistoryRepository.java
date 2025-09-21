@@ -16,49 +16,44 @@ import java.util.UUID;
  */
 @Repository
 public interface StatusHistoryRepository extends JpaRepository<StatusHistory, UUID> {
-    
+
     /**
      * Найти историю по RFC
      */
     List<StatusHistory> findByRfc(Rfc rfc);
-    
+
     /**
      * Найти историю по ID RFC
      */
-    List<StatusHistory> findByRfcId(String rfcId);
-    
+    List<StatusHistory> findByRfcId(UUID rfcId);
+
     /**
      * Найти историю по RFC, отсортированную по дате изменения
      */
-    List<StatusHistory> findByRfcOrderByChangeDateDesc(Rfc rfc);
-    
+    List<StatusHistory> findByRfcOrderByChangedAtDesc(Rfc rfc);
+
     /**
      * Найти историю по ID RFC, отсортированную по дате изменения
      */
-    List<StatusHistory> findByRfcIdOrderByChangeDateDesc(String rfcId);
-    
+    List<StatusHistory> findByRfcIdOrderByChangedAtDesc(UUID rfcId);
+
     /**
-     * Найти историю по старому статусу
+     * Найти историю по статусу
      */
-    List<StatusHistory> findByOldStatus(RfcStatus oldStatus);
-    
-    /**
-     * Найти историю по новому статусу
-     */
-    List<StatusHistory> findByNewStatus(RfcStatus newStatus);
-    
+    List<StatusHistory> findByStatus(RfcStatus status);
+
     /**
      * Найти историю по пользователю, который изменил статус
      */
-    List<StatusHistory> findByChangedByUser(User changedByUser);
-    
+    List<StatusHistory> findByChangedBy(User changedBy);
+
     /**
      * Найти историю по ID пользователя, который изменил статус
      */
-    List<StatusHistory> findByChangedByUserId(UUID changedByUserId);
-    
+    List<StatusHistory> findByChangedById(UUID changedById);
+
     /**
      * Найти историю в диапазоне дат
      */
-    List<StatusHistory> findByChangeDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    List<StatusHistory> findByChangedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }

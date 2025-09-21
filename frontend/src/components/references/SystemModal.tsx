@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { referenceApi } from '@/api/referenceApi';
-import { System, Team, CreateSystemRequest, UpdateSystemRequest } from '@/types/api';
+import type { System, Team, CreateSystemRequest, UpdateSystemRequest } from '@/types/api';
 
 interface SystemModalProps {
   system: System | null;

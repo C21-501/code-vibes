@@ -20,9 +20,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class TeamServiceImpl implements TeamService {
-    
+
     private final TeamRepository teamRepository;
-    
+
     @Override
     @Transactional
     public Team createTeam(Team team) {
@@ -31,7 +31,7 @@ public class TeamServiceImpl implements TeamService {
         log.info("Создана команда с ID: {}", savedTeam.getId());
         return savedTeam;
     }
-    
+
     @Override
     @Transactional
     public Team updateTeam(Team team) {
@@ -40,56 +40,56 @@ public class TeamServiceImpl implements TeamService {
         log.info("Обновлена команда с ID: {}", updatedTeam.getId());
         return updatedTeam;
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Optional<Team> findById(UUID id) {
         log.debug("Поиск команды по ID: {}", id);
         return teamRepository.findById(id);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Optional<Team> findByName(String name) {
         log.debug("Поиск команды по названию: {}", name);
         return teamRepository.findByName(name);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<Team> findByLeader(User leader) {
         log.debug("Поиск команд по руководителю: {}", leader.getId());
         return teamRepository.findByLeader(leader);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<Team> findByLeaderId(UUID leaderId) {
         log.debug("Поиск команд по ID руководителя: {}", leaderId);
         return teamRepository.findByLeaderId(leaderId);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<Team> findAll() {
         log.debug("Получение всех команд");
         return teamRepository.findAll();
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public boolean existsById(UUID id) {
         log.debug("Проверка существования команды по ID: {}", id);
         return teamRepository.existsById(id);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public boolean existsByName(String name) {
         log.debug("Проверка существования команды по названию: {}", name);
         return teamRepository.existsByName(name);
     }
-    
+
     @Override
     @Transactional
     public void deleteById(UUID id) {

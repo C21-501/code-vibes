@@ -11,16 +11,16 @@ import java.time.LocalDateTime;
  */
 @Data
 public class RecentRfcResponse {
-    
+
     private String id;
-    
+
     private String title;
-    
+
     private RfcStatus status;
-    
+
     private Priority priority;
-    
+
     private LocalDateTime createdDate;
-    
+
     private String authorName;
 }

@@ -11,7 +11,7 @@ import java.util.UUID;
  * Спецификации для фильтрации RFC
  */
 public class RfcSpecification {
-    
+
     /**
      * Фильтр по статусу
      */
@@ -23,7 +23,7 @@ public class RfcSpecification {
             return criteriaBuilder.equal(root.get("status"), status);
         };
     }
-    
+
     /**
      * Фильтр по приоритету
      */
@@ -35,19 +35,19 @@ public class RfcSpecification {
             return criteriaBuilder.equal(root.get("priority"), priority);
         };
     }
-    
+
     /**
-     * Фильтр по ID инициатора
+     * Фильтр по ID создателя
      */
-    public static Specification<Rfc> hasInitiatorId(UUID initiatorId) {
+    public static Specification<Rfc> hasCreatedById(UUID createdById) {
         return (root, query, criteriaBuilder) -> {
-            if (initiatorId == null) {
+            if (createdById == null) {
                 return criteriaBuilder.conjunction();
             }
-            return criteriaBuilder.equal(root.get("initiator").get("id"), initiatorId);
+            return criteriaBuilder.equal(root.get("createdBy").get("id"), createdById);
         };
     }
-    
+
     /**
      * Фильтр по заголовку (содержит подстроку)
      */
@@ -57,8 +57,8 @@ public class RfcSpecification {
                 return criteriaBuilder.conjunction();
             }
             return criteriaBuilder.like(
-                criteriaBuilder.lower(root.get("title")), 
-                "%" + title.toLowerCase() + "%"
+                    criteriaBuilder.lower(root.get("title")),
+                    "%" + title.toLowerCase() + "%"
             );
         };
     }

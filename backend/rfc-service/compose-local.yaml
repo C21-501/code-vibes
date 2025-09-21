@@ -2,7 +2,7 @@ services:
   postgresql:
     image: postgres:16
     ports:
-      - "5050:5432"
+      - "5050:5050"
     environment:
       POSTGRES_DB: rfc_db
       POSTGRES_USER: postgres
@@ -19,7 +19,7 @@ services:
     command:
       - --changelog-file=db.changelog-master.xml
       - --driver=org.postgresql.Driver
-      - --url=jdbc:postgresql://postgresql:5432/rfc_db
+      - --url=jdbc:postgresql://postgresql:5050/rfc_db
       - --username=postgres
       - --password=postgres
       - update

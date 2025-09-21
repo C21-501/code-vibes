@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { referenceApi } from '@/api/referenceApi';
-import { Team, UserWithRole } from '@/types/api';
+import type { Team } from '@/types/api';
 import { TeamModal } from './TeamModal';
 
 export function TeamsTab() {

@@ -22,33 +22,33 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
-    
+
     @Column(name = "keycloak_id", unique = true, nullable = false)
     @NotBlank(message = "Keycloak ID не может быть пустым")
     private String keycloakId;
-    
+
     @Column(name = "username", unique = true, nullable = false)
     @NotBlank(message = "Имя пользователя не может быть пустым")
     private String username;
-    
+
     @Column(name = "email", unique = true, nullable = false)
     @NotBlank(message = "Email не может быть пустым")
     @Email(message = "Неверный формат email")
     private String email;
-    
+
     @Column(name = "first_name", nullable = false)
     @NotBlank(message = "Имя не может быть пустым")
     private String firstName;
-    
+
     @Column(name = "last_name", nullable = false)
     @NotBlank(message = "Фамилия не может быть пустой")
     private String lastName;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     @NotNull(message = "Роль пользователя не может быть пустой")

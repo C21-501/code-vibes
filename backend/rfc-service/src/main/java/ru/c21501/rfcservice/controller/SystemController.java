@@ -27,82 +27,82 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class SystemController {
-    
+
     private final SystemService systemService;
     private final SystemMapper systemMapper;
     private final TeamService teamService;
-    
+
     /**
      * Получить список всех подсистем
      */
     @GetMapping
     public ResponseEntity<List<SystemResponse>> getAllSystems() {
         log.info("Getting all systems");
-        
+
         List<System> systems = systemService.findAll();
         List<SystemResponse> response = systems.stream()
                 .map(systemMapper::toResponse)
                 .toList();
-        
+
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * Получить подсистему по ID
      */
     @GetMapping("/{id}")
     public ResponseEntity<SystemResponse> getSystemById(@PathVariable UUID id) {
         log.info("Getting system by id: {}", id);
-        
+
         return systemService.findById(id)
                 .map(systemMapper::toResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /**
      * Получить подсистему по названию
      */
     @GetMapping("/by-name/{name}")
     public ResponseEntity<SystemResponse> getSystemByName(@PathVariable String name) {
         log.info("Getting system by name: {}", name);
-        
+
         return systemService.findByName(name)
                 .map(systemMapper::toResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /**
      * Получить подсистемы по типу
      */
     @GetMapping("/by-type/{type}")
     public ResponseEntity<List<SystemResponse>> getSystemsByType(@PathVariable String type) {
         log.info("Getting systems by type: {}", type);
-        
+
         List<System> systems = systemService.findByType(type);
         List<SystemResponse> response = systems.stream()
                 .map(systemMapper::toResponse)
                 .toList();
-        
+
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * Получить подсистемы по ID ответственной команды
      */
     @GetMapping("/by-team/{teamId}")
     public ResponseEntity<List<SystemResponse>> getSystemsByResponsibleTeamId(@PathVariable UUID teamId) {
         log.info("Getting systems by responsible team id: {}", teamId);
-        
+
         List<System> systems = systemService.findByResponsibleTeamId(teamId);
         List<SystemResponse> response = systems.stream()
                 .map(systemMapper::toResponse)
                 .toList();
-        
+
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * Создать новую подсистему
      */
@@ -110,23 +110,23 @@ public class SystemController {
     @PreAuthorize("hasAnyRole('CAB_MANAGER', 'ADMIN')")
     public ResponseEntity<SystemResponse> createSystem(@Valid @RequestBody CreateSystemRequest request) {
         log.info("Creating system: {}", request.getName());
-        
+
         Team responsibleTeam = teamService.findById(request.getResponsibleTeamId())
                 .orElseThrow(() -> new RuntimeException("Команда не найдена"));
-        
+
         System system = System.builder()
                 .name(request.getName())
                 .type(request.getType())
                 .description(request.getDescription())
                 .responsibleTeam(responsibleTeam)
                 .build();
-        
+
         System savedSystem = systemService.createSystem(system);
         SystemResponse response = systemMapper.toResponse(savedSystem);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    
+
     /**
      * Обновить подсистему
      */
@@ -134,14 +134,14 @@ public class SystemController {
     @PreAuthorize("hasAnyRole('CAB_MANAGER', 'ADMIN')")
     public ResponseEntity<SystemResponse> updateSystem(@PathVariable UUID id, @Valid @RequestBody UpdateSystemRequest request) {
         log.info("Updating system with id: {}", id);
-        
+
         if (!systemService.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        
+
         Team responsibleTeam = teamService.findById(request.getResponsibleTeamId())
                 .orElseThrow(() -> new RuntimeException("Команда не найдена"));
-        
+
         System system = System.builder()
                 .id(id)
                 .name(request.getName())
@@ -149,13 +149,13 @@ public class SystemController {
                 .description(request.getDescription())
                 .responsibleTeam(responsibleTeam)
                 .build();
-        
+
         System updatedSystem = systemService.updateSystem(system);
         SystemResponse response = systemMapper.toResponse(updatedSystem);
-        
+
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * Удалить подсистему
      */
@@ -163,11 +163,11 @@ public class SystemController {
     @PreAuthorize("hasAnyRole('CAB_MANAGER', 'ADMIN')")
     public ResponseEntity<Void> deleteSystem(@PathVariable UUID id) {
         log.info("Deleting system with id: {}", id);
-        
+
         if (!systemService.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        
+
         systemService.deleteById(id);
         return ResponseEntity.noContent().build();
     }

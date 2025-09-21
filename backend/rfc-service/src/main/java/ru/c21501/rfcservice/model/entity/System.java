@@ -20,22 +20,22 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class System {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
-    
+
     @Column(name = "name", unique = true, nullable = false)
     @NotBlank(message = "Название подсистемы не может быть пустым")
     private String name;
-    
+
     @Column(name = "type")
     private String type;
-    
+
     @Column(name = "description")
     private String description;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "responsible_team_id", nullable = false)
     @NotNull(message = "Ответственная команда не может быть пустой")

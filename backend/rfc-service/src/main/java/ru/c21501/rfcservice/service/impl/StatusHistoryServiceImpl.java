@@ -23,19 +23,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class StatusHistoryServiceImpl implements StatusHistoryService {
-    
+
     private final StatusHistoryRepository statusHistoryRepository;
-    
+
     @Override
     @Transactional
     public StatusHistory createStatusHistory(StatusHistory statusHistory) {
-        log.debug("Создание записи истории для RFC: {} со статусом: {}", 
-                  statusHistory.getRfc().getId(), statusHistory.getNewStatus());
+        log.debug("Создание записи истории для RFC: {} со статусом: {}",
+                statusHistory.getRfc().getId(), statusHistory.getStatus());
         StatusHistory savedStatusHistory = statusHistoryRepository.save(statusHistory);
         log.info("Создана запись истории с ID: {}", savedStatusHistory.getId());
         return savedStatusHistory;
     }
-    
+
     @Override
     @Transactional
     public StatusHistory updateStatusHistory(StatusHistory statusHistory) {
@@ -44,84 +44,84 @@ public class StatusHistoryServiceImpl implements StatusHistoryService {
         log.info("Обновлена запись истории с ID: {}", updatedStatusHistory.getId());
         return updatedStatusHistory;
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Optional<StatusHistory> findById(UUID id) {
         log.debug("Поиск записи истории по ID: {}", id);
         return statusHistoryRepository.findById(id);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<StatusHistory> findByRfc(Rfc rfc) {
         log.debug("Поиск истории по RFC: {}", rfc.getId());
         return statusHistoryRepository.findByRfc(rfc);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
-    public List<StatusHistory> findByRfcId(String rfcId) {
+    public List<StatusHistory> findByRfcId(UUID rfcId) {
         log.debug("Поиск истории по ID RFC: {}", rfcId);
         return statusHistoryRepository.findByRfcId(rfcId);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
-    public List<StatusHistory> findByRfcOrderByChangeDateDesc(Rfc rfc) {
+    public List<StatusHistory> findByRfcOrderByChangedAtDesc(Rfc rfc) {
         log.debug("Поиск истории по RFC: {} (отсортированной по дате)", rfc.getId());
-        return statusHistoryRepository.findByRfcOrderByChangeDateDesc(rfc);
+        return statusHistoryRepository.findByRfcOrderByChangedAtDesc(rfc);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
-    public List<StatusHistory> findByRfcIdOrderByChangeDateDesc(String rfcId) {
+    public List<StatusHistory> findByRfcIdOrderByChangeDateDesc(UUID rfcId) {
         log.debug("Поиск истории по ID RFC: {} (отсортированной по дате)", rfcId);
-        return statusHistoryRepository.findByRfcIdOrderByChangeDateDesc(rfcId);
+        return statusHistoryRepository.findByRfcIdOrderByChangedAtDesc(rfcId);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<StatusHistory> findByOldStatus(RfcStatus oldStatus) {
         log.debug("Поиск истории по старому статусу: {}", oldStatus);
-        return statusHistoryRepository.findByOldStatus(oldStatus);
+        return statusHistoryRepository.findByStatus(oldStatus);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<StatusHistory> findByNewStatus(RfcStatus newStatus) {
         log.debug("Поиск истории по новому статусу: {}", newStatus);
-        return statusHistoryRepository.findByNewStatus(newStatus);
+        return statusHistoryRepository.findByStatus(newStatus);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<StatusHistory> findByChangedByUser(User changedByUser) {
         log.debug("Поиск истории по пользователю: {}", changedByUser.getId());
-        return statusHistoryRepository.findByChangedByUser(changedByUser);
+        return statusHistoryRepository.findByChangedBy(changedByUser);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<StatusHistory> findByChangedByUserId(UUID changedByUserId) {
         log.debug("Поиск истории по ID пользователя: {}", changedByUserId);
-        return statusHistoryRepository.findByChangedByUserId(changedByUserId);
+        return statusHistoryRepository.findByChangedById(changedByUserId);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<StatusHistory> findByChangeDateBetween(LocalDateTime startDate, LocalDateTime endDate) {
         log.debug("Поиск истории в диапазоне дат: {} - {}", startDate, endDate);
-        return statusHistoryRepository.findByChangeDateBetween(startDate, endDate);
+        return statusHistoryRepository.findByChangedAtBetween(startDate, endDate);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<StatusHistory> findAll() {
         log.debug("Получение всей истории");
         return statusHistoryRepository.findAll();
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public boolean existsById(UUID id) {

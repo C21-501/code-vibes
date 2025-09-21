@@ -16,49 +16,49 @@ import java.util.UUID;
  */
 @Repository
 public interface RfcExecutorRepository extends JpaRepository<RfcExecutor, UUID> {
-    
+
     /**
      * Найти исполнителей по RFC
      */
     List<RfcExecutor> findByRfc(Rfc rfc);
-    
+
     /**
      * Найти исполнителей по ID RFC
      */
-    List<RfcExecutor> findByRfcId(String rfcId);
-    
+    List<RfcExecutor> findByRfcId(UUID rfcId);
+
     /**
      * Найти исполнителей по команде
      */
     List<RfcExecutor> findByTeam(Team team);
-    
+
     /**
      * Найти исполнителей по ID команды
      */
     List<RfcExecutor> findByTeamId(UUID teamId);
-    
+
     /**
      * Найти исполнителей по статусу подтверждения
      */
     List<RfcExecutor> findByConfirmationStatus(ConfirmationStatus confirmationStatus);
-    
+
     /**
      * Найти конкретного исполнителя по RFC и команде
      */
     Optional<RfcExecutor> findByRfcAndTeam(Rfc rfc, Team team);
-    
+
     /**
      * Найти конкретного исполнителя по ID RFC и ID команды
      */
-    Optional<RfcExecutor> findByRfcIdAndTeamId(String rfcId, UUID teamId);
-    
+    Optional<RfcExecutor> findByRfcIdAndTeamId(UUID rfcId, UUID teamId);
+
     /**
      * Проверить существование исполнителя для RFC и команды
      */
     boolean existsByRfcAndTeam(Rfc rfc, Team team);
-    
+
     /**
      * Проверить существование исполнителя по ID RFC и ID команды
      */
-    boolean existsByRfcIdAndTeamId(String rfcId, UUID teamId);
+    boolean existsByRfcIdAndTeamId(UUID rfcId, UUID teamId);
 }

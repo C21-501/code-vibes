@@ -18,6 +18,7 @@ docker-compose -f docker-compose.dev.yml up --build -d
 ```
 
 В этом режиме:
+
 - Frontend доступен на http://localhost:5173 с HMR
 - Backend доступен на http://localhost:8080
 - Keycloak доступен на http://localhost:8081
@@ -39,6 +40,7 @@ docker-compose up --build -d
 ```
 
 В этом режиме:
+
 - Frontend доступен на http://localhost:5173 (статические файлы через nginx)
 - Backend доступен на http://localhost:8080
 - Keycloak доступен на http://localhost:8081
@@ -46,16 +48,33 @@ docker-compose up --build -d
 ## Структура проекта
 
 ### Фронтенд
+
 - `frontend/src/pages/References.tsx` - Страница справочников
 - `frontend/src/components/references/` - Компоненты для работы со справочниками
 - `frontend/src/api/referenceApi.ts` - API для CRUD операций
 - `frontend/src/types/api.ts` - Типы данных
 
 ### Бэкенд
+
+- Расположен в `backend/rfc-service/`
+- Содержит собственный `Dockerfile` и `docker-compose.yml`
 - CRUD endpoints защищены ролями `CAB_MANAGER` и `ADMIN`
 - `POST/PUT/DELETE /api/systems` - Управление системами
-- `POST/PUT/DELETE /api/teams` - Управление командами  
+- `POST/PUT/DELETE /api/teams` - Управление командами
 - `POST/PUT/DELETE /api/users` - Управление пользователями
+
+### Запуск только бэкенда
+
+```bash
+# Перейти в директорию бэкенда
+cd backend/rfc-service
+
+# Запустить только бэкенд с зависимостями
+docker-compose up --build
+
+# Или из корневой директории
+docker-compose -f backend/rfc-service/docker-compose.yml up --build
+```
 
 ## Функциональность
 
@@ -66,6 +85,7 @@ docker-compose up --build -d
 3. **Пользователи** - управление пользователями с назначением ролей
 
 Каждый таб имеет полный CRUD интерфейс:
+
 - Просмотр списка в виде таблицы
 - Создание новых записей через модальные окна
 - Редактирование существующих записей
@@ -74,6 +94,7 @@ docker-compose up --build -d
 ## Алиасы импортов
 
 Настроены алиасы для удобства импортов:
+
 - `@/components/*` вместо `../components/*`
 - `@/api/*` вместо `../api/*`
 - `@/types/*` вместо `../types/*`

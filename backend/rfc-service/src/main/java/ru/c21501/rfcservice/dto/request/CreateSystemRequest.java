@@ -11,14 +11,14 @@ import java.util.UUID;
  */
 @Data
 public class CreateSystemRequest {
-    
+
     @NotBlank(message = "Название подсистемы не может быть пустым")
     private String name;
-    
+
     private String type;
-    
+
     private String description;
-    
+
     @NotNull(message = "Ответственная команда не может быть пустой")
     private UUID responsibleTeamId;
 }

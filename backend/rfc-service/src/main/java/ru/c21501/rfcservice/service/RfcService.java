@@ -5,7 +5,6 @@ import ru.c21501.rfcservice.model.entity.User;
 import ru.c21501.rfcservice.model.enums.Priority;
 import ru.c21501.rfcservice.model.enums.RfcStatus;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -15,84 +14,84 @@ import java.util.UUID;
  * Сервис для работы с RFC
  */
 public interface RfcService {
-    
+
     /**
      * Создать новый RFC
      */
     Rfc createRfc(Rfc rfc);
-    
+
     /**
      * Обновить RFC
      */
     Rfc updateRfc(Rfc rfc);
-    
+
     /**
      * Найти RFC по ID
      */
-    Optional<Rfc> findById(String id);
-    
+    Optional<Rfc> findById(UUID id);
+
     /**
      * Найти RFC по статусу
      */
     List<Rfc> findByStatus(RfcStatus status);
-    
+
     /**
      * Найти RFC по приоритету
      */
     List<Rfc> findByPriority(Priority priority);
-    
+
     /**
-     * Найти RFC по инициатору
+     * Найти RFC по создателю
      */
-    List<Rfc> findByInitiator(User initiator);
-    
+    List<Rfc> findByCreatedBy(User createdBy);
+
     /**
-     * Найти RFC по ID инициатора
+     * Найти RFC по ID создателя
      */
-    List<Rfc> findByInitiatorId(UUID initiatorId);
-    
+    List<Rfc> findByCreatedById(UUID createdById);
+
     /**
      * Найти RFC созданные в диапазоне дат
      */
-    List<Rfc> findByCreatedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
-    
+    List<Rfc> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
     /**
-     * Найти RFC с плановой датой в диапазоне
+     * Найти RFC с плановой датой начала в диапазоне
      */
-    List<Rfc> findByPlannedDateBetween(LocalDate startDate, LocalDate endDate);
-    
+    List<Rfc> findByPlannedStartDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+
     /**
      * Найти RFC по статусу и приоритету
      */
     List<Rfc> findByStatusAndPriority(RfcStatus status, Priority priority);
-    
+
     /**
      * Найти RFC по заголовку (содержит подстроку, без учета регистра)
      */
     List<Rfc> findByTitleContaining(String title);
-    
+
     /**
      * Получить все RFC
      */
     List<Rfc> findAll();
-    
+
     /**
      * Проверить существование RFC по ID
      */
-    boolean existsById(String id);
-    
+    boolean existsById(UUID id);
+
     /**
      * Изменить статус RFC
      */
-    Rfc changeStatus(String rfcId, RfcStatus newStatus, User changedByUser);
-    
+    Rfc changeStatus(UUID rfcId, RfcStatus newStatus, User changedByUser);
+
     /**
      * Проверить возможность изменения статуса
      */
-    boolean canChangeStatus(String rfcId, RfcStatus newStatus, User user);
-    
+    boolean canChangeStatus(UUID rfcId, RfcStatus newStatus, User user);
+
     /**
      * Проверить, все ли исполнители подтвердили готовность
      */
-    boolean areAllExecutorsConfirmed(String rfcId);
+    boolean areAllExecutorsConfirmed(UUID rfcId);
 }

@@ -15,10 +15,10 @@ import ru.c21501.rfcservice.model.enums.RfcStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChangeStatusRequest {
-    
+
     @NotNull(message = "Новый статус не может быть пустым")
     private RfcStatus newStatus;
-    
+
     /**
      * Комментарий к изменению статуса (опционально)
      */

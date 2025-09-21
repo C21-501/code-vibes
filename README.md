@@ -5,6 +5,7 @@
 ## Архитектура
 
 ### Стек технологий
+
 - **Backend**: Java 21 + Spring Boot 3
 - **Frontend**: React + Vite
 - **База данных**: PostgreSQL 16
@@ -28,6 +29,7 @@ code-vibes/
 ## Быстрый старт
 
 ### Предварительные требования
+
 - Docker и Docker Compose
 - Java 21+ (для локальной разработки backend)
 - Node.js 20+ (для локальной разработки frontend)
@@ -35,12 +37,14 @@ code-vibes/
 ### Запуск всего стека
 
 1. Клонируйте репозиторий:
+
    ```bash
    git clone <repository-url>
    cd code-vibes
    ```
 
 2. Скопируйте и настройте переменные окружения:
+
    ```bash
    cp .env.example .env  # если есть пример
    # Отредактируйте .env по необходимости
@@ -54,6 +58,7 @@ code-vibes/
 ### Доступ к сервисам
 
 После запуска будут доступны:
+
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8080
 - **Keycloak Admin**: http://localhost:8081 (admin/admin)
@@ -62,9 +67,26 @@ code-vibes/
 ## Разработка
 
 ### Backend
+
 Перейдите в директорию `backend/rfc-service` для работы с Java приложением.
 
+### Запуск только бэкенда
+
+Для запуска только бэкенда с базой данных и Keycloak:
+
+```bash
+cd backend/rfc-service
+docker-compose up --build
+```
+
+Или из корневой директории:
+
+```bash
+docker-compose -f backend/rfc-service/docker-compose.yml up --build
+```
+
 ### Frontend
+
 Перейдите в директорию `frontend` для работы с React приложением.
 
 ## Сервисы Docker Compose
@@ -79,6 +101,7 @@ code-vibes/
 ## Переменные окружения
 
 Основные переменные в файле `.env`:
+
 - `POSTGRES_PASSWORD` - пароль для PostgreSQL
 - `KEYCLOAK_ADMIN` - логин администратора Keycloak
 - `KEYCLOAK_ADMIN_PASSWORD` - пароль администратора Keycloak

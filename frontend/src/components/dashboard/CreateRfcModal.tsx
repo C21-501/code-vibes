@@ -129,12 +129,14 @@ export const CreateRfcModal: React.FC<CreateRfcModalProps> = ({
     const userIds = new Set<string>();
     
     teams.forEach(team => {
-      team.members.forEach(user => {
-        if (!userIds.has(user.id)) {
-          userIds.add(user.id);
-          users.push(user);
-        }
-      });
+      if (team.members) {
+        team.members.forEach(user => {
+          if (!userIds.has(user.id)) {
+            userIds.add(user.id);
+            users.push(user);
+          }
+        });
+      }
     });
     
     return users;

@@ -158,6 +158,7 @@ export type UserRole = typeof UserRole[keyof typeof UserRole];
 export interface UserWithRole extends User {
   role: UserRole;
   team?: Team;
+  keycloakId?: string;
 }
 
 // CRUD Request types

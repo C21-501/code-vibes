@@ -12,32 +12,32 @@ import java.util.UUID;
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
-    
+
     /**
      * Найти пользователя по Keycloak ID
      */
     Optional<User> findByKeycloakId(String keycloakId);
-    
+
     /**
      * Найти пользователя по имени пользователя
      */
     Optional<User> findByUsername(String username);
-    
+
     /**
      * Найти пользователя по email
      */
     Optional<User> findByEmail(String email);
-    
+
     /**
      * Проверить существование пользователя по Keycloak ID
      */
     boolean existsByKeycloakId(String keycloakId);
-    
+
     /**
      * Проверить существование пользователя по имени пользователя
      */
     boolean existsByUsername(String username);
-    
+
     /**
      * Проверить существование пользователя по email
      */

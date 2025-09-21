@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { referenceApi } from '@/api/referenceApi';
-import { UserWithRole, UserRole, CreateUserRequest, UpdateUserRequest } from '@/types/api';
+import type { UserWithRole, CreateUserRequest, UpdateUserRequest } from '@/types/api';
+import { UserRole } from '@/types/api';
 
 interface UserModalProps {
   user: UserWithRole | null;
@@ -31,7 +32,7 @@ export function UserModal({ user, onClose, onSuccess }: UserModalProps) {
   useEffect(() => {
     if (user) {
       setFormData({
-        keycloakId: '', // Keycloak ID обычно не редактируется
+        keycloakId: user.keycloakId || '', // Keycloak ID обычно не редактируется
         username: user.username,
         email: user.email,
         firstName: user.firstName,

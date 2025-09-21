@@ -11,14 +11,14 @@ import java.util.UUID;
  */
 @Data
 public class StatusHistoryResponse {
-    
+
     private UUID id;
-    
+
     private RfcStatus oldStatus;
-    
+
     private RfcStatus newStatus;
-    
+
     private UserResponse changedByUser;
-    
+
     private LocalDateTime changeDate;
 }

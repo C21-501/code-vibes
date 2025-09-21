@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { referenceApi } from '@/api/referenceApi';
-import { System, Team, CreateSystemRequest, UpdateSystemRequest } from '@/types/api';
+import type { System } from '@/types/api';
 import { SystemModal } from './SystemModal';
 
 export function SystemsTab() {

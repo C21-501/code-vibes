@@ -7,16 +7,16 @@ import lombok.Data;
  */
 @Data
 public class RfcStatsResponse {
-    
+
     private Long total;
-    
+
     private Long draft;
-    
+
     private Long review;
-    
+
     private Long approved;
-    
+
     private Long implemented;
-    
+
     private Long rejected;
 }

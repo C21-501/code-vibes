@@ -11,14 +11,14 @@ import ru.c21501.rfcservice.model.entity.User;
  */
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-    
+
     /**
      * Преобразование User entity в DTO ответа
      */
     @Mapping(target = "fullName", expression = "java(user.getFirstName() + \" \" + user.getLastName())")
     @Mapping(target = "team", ignore = true)
     UserResponse toResponse(User user);
-    
+
     /**
      * Преобразование User entity в DTO ответа без команды (для избежания циклических зависимостей)
      */

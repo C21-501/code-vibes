@@ -20,19 +20,19 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Team {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
-    
+
     @Column(name = "name", unique = true, nullable = false)
     @NotBlank(message = "Название команды не может быть пустым")
     private String name;
-    
+
     @Column(name = "description")
     private String description;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "leader_id", nullable = false)
     @NotNull(message = "Руководитель команды не может быть пустым")

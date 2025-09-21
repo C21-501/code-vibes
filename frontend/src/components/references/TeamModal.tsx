@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { referenceApi } from '@/api/referenceApi';
-import { Team, UserWithRole, CreateTeamRequest, UpdateTeamRequest } from '@/types/api';
+import type { Team, UserWithRole, CreateTeamRequest, UpdateTeamRequest } from '@/types/api';
 
 interface TeamModalProps {
   team: Team | null;

@@ -9,10 +9,10 @@ import java.util.List;
  */
 @Data
 public class DashboardResponse {
-    
+
     private RfcStatsResponse stats;
-    
+
     private List<RecentRfcResponse> recentRfcs;
-    
+
     private List<UpcomingDeadlineResponse> upcomingDeadlines;
 }

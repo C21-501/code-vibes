@@ -6,43 +6,31 @@ services:
     environment:
       POSTGRES_DB: cab_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "5050:5432"
+      - "5050:5050"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - cab-network
     restart: unless-stopped
 
-  # Backend Service (Java Spring Boot)
+    # Backend Service (Java Spring Boot)
   backend:
-    build: ./backend/rfc-service
+    build: .
     container_name: cab_backend
     ports:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cab_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5050/cab_db
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:postgres}
       KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_REALM: cab-realm
     depends_on:
       - db
       - keycloak
-    networks:
-      - cab-network
-    restart: unless-stopped
-
-  # Frontend Service (React + Vite)
-  frontend:
-    build: ./frontend
-    container_name: cab_frontend
-    ports:
-      - "5173:80"
-    depends_on:
-      - backend
     networks:
       - cab-network
     restart: unless-stopped
@@ -60,11 +48,11 @@ services:
       - "8081:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
-      - ./deploy/keycloak:/opt/keycloak/data/import
+      - ../../deploy/keycloak:/opt/keycloak/data/import
     networks:
       - cab-network
     restart: unless-stopped
-    command: ["start-dev"]
+    command: [ "start-dev" ]
 
 # Networks
 networks:

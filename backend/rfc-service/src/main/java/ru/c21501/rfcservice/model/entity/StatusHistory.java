@@ -15,45 +15,43 @@ import java.util.UUID;
  * История изменений статусов RFC
  */
 @Entity
-@Table(name = "status_history")
+@Table(name = "rfc_status_history")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class StatusHistory {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rfc_id", nullable = false)
     @NotNull(message = "RFC не может быть пустым")
     private Rfc rfc;
-    
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "old_status")
-    private RfcStatus oldStatus;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "new_status", nullable = false)
-    @NotNull(message = "Новый статус не может быть пустым")
-    private RfcStatus newStatus;
-    
+    @Column(name = "status", nullable = false)
+    @NotNull(message = "Статус не может быть пустым")
+    private RfcStatus status;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "changed_by_user_id", nullable = false)
-    @NotNull(message = "Пользователь, изменивший статус, не может быть пустым")
-    private User changedByUser;
-    
-    @Column(name = "change_date", nullable = false)
+    @JoinColumn(name = "changed_by", nullable = true)
+    private User changedBy;
+
+    @Column(name = "changed_at", nullable = false)
     @NotNull(message = "Дата изменения не может быть пустой")
-    private LocalDateTime changeDate;
-    
+    private LocalDateTime changedAt;
+
+    @Column(name = "comment", columnDefinition = "TEXT")
+    private String comment;
+
     @PrePersist
     protected void onCreate() {
-        if (changeDate == null) {
-            changeDate = LocalDateTime.now();
+        if (changedAt == null) {
+            changedAt = LocalDateTime.now();
         }
     }
 }

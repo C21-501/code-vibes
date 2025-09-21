@@ -9,7 +9,6 @@ import ru.c21501.rfcservice.model.entity.User;
 import ru.c21501.rfcservice.model.enums.Priority;
 import ru.c21501.rfcservice.model.enums.RfcStatus;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,67 +16,62 @@ import java.util.List;
  * Репозиторий для работы с RFC
  */
 @Repository
-public interface RfcRepository extends JpaRepository<Rfc, String>, JpaSpecificationExecutor<Rfc> {
-    
+public interface RfcRepository extends JpaRepository<Rfc, java.util.UUID>, JpaSpecificationExecutor<Rfc> {
+
     /**
      * Найти RFC по статусу
      */
     List<Rfc> findByStatus(RfcStatus status);
-    
+
     /**
      * Найти RFC по приоритету
      */
     List<Rfc> findByPriority(Priority priority);
-    
+
     /**
-     * Найти RFC по инициатору
+     * Найти RFC по создателю
      */
-    List<Rfc> findByInitiator(User initiator);
-    
+    List<Rfc> findByCreatedBy(User createdBy);
+
     /**
-     * Найти RFC по ID инициатора
+     * Найти RFC по ID создателя
      */
-    List<Rfc> findByInitiatorId(java.util.UUID initiatorId);
-    
+    List<Rfc> findByCreatedById(java.util.UUID createdById);
+
     /**
      * Найти RFC созданные в диапазоне дат
      */
-    List<Rfc> findByCreatedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
-    
+    List<Rfc> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
     /**
-     * Найти RFC с плановой датой в диапазоне
+     * Найти RFC с плановой датой начала в диапазоне
      */
-    List<Rfc> findByPlannedDateBetween(LocalDate startDate, LocalDate endDate);
-    
+    List<Rfc> findByPlannedStartDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+
     /**
      * Найти RFC по статусу и приоритету
      */
     List<Rfc> findByStatusAndPriority(RfcStatus status, Priority priority);
-    
-    /**
-     * Найти максимальный числовой ID для генерации следующего RFC ID
-     */
-    @Query("SELECT MAX(CAST(SUBSTRING(r.id, 5) AS int)) FROM Rfc r WHERE r.id LIKE 'RFC-%'")
-    Integer findMaxNumericId();
-    
+
+
     /**
      * Найти RFC по заголовку (содержит подстроку, без учета регистра)
      */
     List<Rfc> findByTitleContainingIgnoreCase(String title);
-    
+
     /**
      * Подсчитать количество RFC по статусу
      */
     Long countByStatus(RfcStatus status);
-    
+
     /**
      * Найти последние N RFC, отсортированные по дате создания
      */
-    List<Rfc> findTop10ByOrderByCreatedDateDesc();
-    
+    List<Rfc> findTop10ByOrderByCreatedAtDesc();
+
     /**
-     * Найти RFC с ближайшими дедлайнами (плановая дата в будущем)
+     * Найти RFC с ближайшими дедлайнами (плановая дата начала в будущем)
      */
-    @Query("SELECT r FROM Rfc r WHERE r.plannedDate >= CURRENT_DATE AND r.status NOT IN ('DONE', 'CANCELLED') ORDER BY r.plannedDate ASC")
+    @Query("SELECT r FROM Rfc r WHERE r.plannedStartDate >= CURRENT_DATE AND r.status NOT IN ('IMPLEMENTED', 'CANCELLED') ORDER BY r.plannedStartDate ASC")
     List<Rfc> findUpcomingDeadlines();
 }
