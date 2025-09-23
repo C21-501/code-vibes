@@ -32,6 +32,10 @@ spring:
         jwt:
           issuer-uri: http://keycloak:8080/realms/cab-realm
 
+app:
+  security:
+    enabled: true
+
 logging:
   level:
     liquibase: INFO

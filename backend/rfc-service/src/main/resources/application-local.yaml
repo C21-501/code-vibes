@@ -21,6 +21,10 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
 
+app:
+  security:
+    enabled: false
+
 logging:
   level:
     liquibase: INFO

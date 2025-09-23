@@ -46,11 +46,11 @@ code-vibes/
 2. Скопируйте и настройте переменные окружения:
 
    ```bash
-   cp .env.example .env  # если есть пример
+   cp .env.example .env
    # Отредактируйте .env по необходимости
    ```
 
-3. Запустите все сервисы:
+3. Запустите все сервисы (по умолчанию защита включена):
    ```bash
    docker-compose up -d
    ```
@@ -70,20 +70,47 @@ code-vibes/
 
 Перейдите в директорию `backend/rfc-service` для работы с Java приложением.
 
+### Запуск только инфраструктуры (без backend)
+
+```bash
+docker compose -f backend/rfc-service/compose-local.yaml up -d
+```
+
 ### Запуск только бэкенда
 
 Для запуска только бэкенда с базой данных и Keycloak:
 
 ```bash
 cd backend/rfc-service
-docker-compose up --build
+APP_SECURITY_ENABLED=true docker compose up --build
 ```
 
 Или из корневой директории:
 
 ```bash
-docker-compose -f backend/rfc-service/docker-compose.yml up --build
+APP_SECURITY_ENABLED=true docker compose -f backend/rfc-service/docker-compose.yml up --build
 ```
+
+### Режим без защиты
+
+APP_SECURITY_ENABLED=false конфигурируется в .env файле по примеру из .env.example или (если .env файл не создан)
+
+- В корневом compose:
+
+  ```bash
+  APP_SECURITY_ENABLED=false docker compose up -d
+  ```
+
+- Только бэкенд:
+  ```bash
+  cd backend/rfc-service
+  APP_SECURITY_ENABLED=false docker compose up --build
+  ```
+- На винде 
+  ```
+  $env:APP_SECURITY_ENABLED="false"
+  docker compose up -d
+  ```
 
 ### Frontend
 

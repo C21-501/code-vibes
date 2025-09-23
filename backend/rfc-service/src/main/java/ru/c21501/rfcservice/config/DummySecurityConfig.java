@@ -4,12 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -20,21 +16,15 @@ import java.util.List;
 @Slf4j
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
-@ConditionalOnProperty(name = "app.security.enabled", havingValue = "true", matchIfMissing = true)
-public class SecurityConfig {
+@ConditionalOnProperty(name = "app.security.enabled", havingValue = "false")
+public class DummySecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().permitAll()
-            )
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
-            );
+            .authorizeHttpRequests(authz -> authz.anyRequest().permitAll())
+            .csrf(csrf -> csrf.disable());
 
         return http.build();
     }
@@ -51,9 +41,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-    @Bean
-    public Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter() {
-        return new KeycloakJwtAuthenticationConverter();
-    }
 }
+
+

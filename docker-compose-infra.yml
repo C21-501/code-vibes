@@ -1,42 +1,19 @@
 services:
-  # PostgreSQL Database
   db:
     image: postgres:16
     container_name: cab_db
     environment:
       POSTGRES_DB: cab_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - "5050:5050"
+      - "5050:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - cab-network
     restart: unless-stopped
 
-    # Backend Service (Java Spring Boot)
-  backend:
-    build: .
-    container_name: cab_backend
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5050/cab_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      APP_SECURITY_ENABLED: ${APP_SECURITY_ENABLED:-true}
-      KEYCLOAK_URL: http://keycloak:8080
-      KEYCLOAK_REALM: cab-realm
-    depends_on:
-      - db
-      - keycloak
-    networks:
-      - cab-network
-    restart: unless-stopped
-
-  # Keycloak Authentication Server
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.2
     container_name: cab_keycloak
@@ -49,21 +26,21 @@ services:
       - "8081:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
-      - ../../deploy/keycloak:/opt/keycloak/data/import
+      - ./deploy/keycloak:/opt/keycloak/data/import
     networks:
       - cab-network
     restart: unless-stopped
     command: [ "start-dev" ]
 
-# Networks
 networks:
   cab-network:
     driver: bridge
     name: cab-network
 
-# Volumes
 volumes:
   postgres_data:
     name: cab_postgres_data
   keycloak_data:
     name: cab_keycloak_data
+
+
