@@ -4,17 +4,17 @@
 
 ### С Hot Module Replacement (HMR)
 
-Для разработки с поддержкой HMR используйте отдельный docker-compose файл:
+Для разработки с поддержкой HMR используйте docker-compose файл:
 
 ```bash
 # Создайте файл .env с переменными окружения
 echo "POSTGRES_PASSWORD=postgres" > .env
 
 # Запустите в режиме разработки
-docker-compose -f docker-compose.dev.yml up --build
+docker-compose -f docker-compose.yml up --build
 
 # Или в фоновом режиме
-docker-compose -f docker-compose.dev.yml up --build -d
+docker-compose -f docker-compose.yml up --build -d
 ```
 
 В этом режиме:
@@ -22,7 +22,7 @@ docker-compose -f docker-compose.dev.yml up --build -d
 - Frontend доступен на http://localhost:5173 с HMR
 - Backend доступен на http://localhost:8080
 - Keycloak доступен на http://localhost:8081
-- PostgreSQL на порту 5432
+- PostgreSQL на порту 5050
 
 ### Продакшн режим
 
