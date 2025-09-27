@@ -13,6 +13,7 @@
 - **Аутентификация**: Keycloak
 - **Контейнеризация**: Docker + Docker Compose
 
+
 ### Структура проекта
 
 ```
@@ -68,17 +69,17 @@ code-vibes/
 
 ### Backend
 
-Перейдите в директорию `backend/rfc-service` для работы с Java приложением.
+Запуск из директории `code-vibes`
 
 ### Запуск только инфраструктуры (без backend)
 
 ```bash
-docker compose -f backend/rfc-service/compose-local.yaml up -d
+docker compose -f backend/rfc-service/docker-compose-infra.yml up -d
 ```
 
 ### Запуск только бэкенда
 
-Для запуска только бэкенда с базой данных и Keycloak:
+Для запуска бэкенда с базой данных и Keycloak:
 
 ```bash
 cd backend/rfc-service
@@ -91,26 +92,20 @@ APP_SECURITY_ENABLED=true docker compose up --build
 APP_SECURITY_ENABLED=true docker compose -f backend/rfc-service/docker-compose.yml up --build
 ```
 
-### Режим без защиты
+На винде вместо
+```
+APP_SECURITY_ENABLED=true
+```
+нужно использовать
 
-APP_SECURITY_ENABLED=false конфигурируется в .env файле по примеру из .env.example или (если .env файл не создан)
+```
+$env:APP_SECURITY_ENABLED="true"
+```
 
-- В корневом compose:
-
-  ```bash
-  APP_SECURITY_ENABLED=false docker compose up -d
-  ```
-
-- Только бэкенд:
-  ```bash
-  cd backend/rfc-service
-  APP_SECURITY_ENABLED=false docker compose up --build
-  ```
-- На винде 
-  ```
-  $env:APP_SECURITY_ENABLED="false"
-  docker compose up -d
-  ```
+Для запуска в режиме без защиты
+```
+APP_SECURITY_ENABLED=false
+```
 
 ### Frontend
 

@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/cab_db
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/cab-realm
+
+keycloak:
+  auth-server-url: http://keycloak:8080
