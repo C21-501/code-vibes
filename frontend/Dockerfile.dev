@@ -1,0 +1,40 @@
+# Dockerfile для разработки с HMR
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Копируем package.json и package-lock.json для кэширования зависимостей
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm ci
+
+# Копируем исходный код
+COPY . .
+
+# Открываем порт для Vite dev server
+EXPOSE 5173
+
+# Обновляем конфигурацию Vite для работы в Docker
+RUN echo 'import { defineConfig } from "vite"\n\
+import react from "@vitejs/plugin-react"\n\
+import path from "path"\n\
+\n\
+export default defineConfig({\n\
+  plugins: [react()],\n\
+  resolve: {\n\
+    alias: {\n\
+      "@": path.resolve(__dirname, "./src"),\n\
+    },\n\
+  },\n\
+  server: {\n\
+    host: "0.0.0.0",\n\
+    port: 5173,\n\
+    watch: {\n\
+      usePolling: true,\n\
+    },\n\
+  },\n\
+})' > vite.config.ts
+
+# Запускаем dev server
+CMD ["npm", "run", "dev"]
