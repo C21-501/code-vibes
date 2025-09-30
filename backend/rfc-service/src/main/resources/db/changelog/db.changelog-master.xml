@@ -10,4 +10,7 @@
     <!-- Initial schema creation -->
     <include file="db/changelog/001-initial-schema.xml"/>
 
+    <!-- RFC Attachments table -->
+    <include file="db/changelog/010-create-rfc-attachments-table.xml"/>
+    
 </databaseChangeLog>

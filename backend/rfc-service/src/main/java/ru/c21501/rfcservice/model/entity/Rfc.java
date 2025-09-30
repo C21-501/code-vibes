@@ -128,6 +128,9 @@ public class Rfc {
     @OneToMany(mappedBy = "rfc", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StatusHistory> statusHistory;
 
+    @OneToMany(mappedBy = "rfc", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RfcAttachment> attachments;
+
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
