@@ -20,6 +20,4 @@ public class UserResponse {
     private String fullName;
 
     private UserRole role;
-
-    private TeamResponse team;
 }

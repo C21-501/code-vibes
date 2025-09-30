@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth, ProtectedRoute } from './auth'
 import { Layout } from './components/layout'
 import { Dashboard, MyRfcs, RfcDetail, AllRfcs, Kanban, References } from './pages'
@@ -6,9 +6,17 @@ import './App.css'
 
 function App() {
   const { isAuthenticated, login } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogin = () => {
+    navigate('/dashboard')
+  }
+
+  // Временно игнорируем аутентификацию для теста
+  const bypassAuth = true
 
   // Показать страницу входа для неавторизованных пользователей
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !bypassAuth) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
@@ -20,7 +28,8 @@ function App() {
               Система управления RFC (Request for Comments)
             </p>
             <button
-              onClick={login}
+              // onClick={login}
+              onClick={handleLogin}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
               Войти в систему

@@ -3,7 +3,7 @@ import keycloak from '../keycloak';
 
 // Create axios instance
 const apiClient = axios.create({
-  baseURL: process.env.VITE_API_BASE_URL || 'http://localhost:8081',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
   timeout: 10000,
 });
 

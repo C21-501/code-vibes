@@ -14,6 +14,6 @@ public interface TeamMapper {
     /**
      * Преобразование Team entity в DTO ответа
      */
-    @Mapping(target = "leader", source = "leader", qualifiedByName = "toResponseWithoutTeam")
+    @Mapping(target = "leader", source = "leader")
     TeamResponse toResponse(Team team);
 }
