@@ -1,10 +1,11 @@
 services:
+  # PostgreSQL Database
   db:
     image: postgres:16
     container_name: cab_db
     environment:
       POSTGRES_DB: cab_db
-      POSTGRES_USER: postgres
+      POSTGRES_USER: ${POSTGRES_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5050:5432"
@@ -14,6 +15,7 @@ services:
       - cab-network
     restart: unless-stopped
 
+  # Keycloak Authentication Server
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.2
     container_name: cab_keycloak
@@ -22,25 +24,26 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_HTTP_ENABLED: true
       KC_DEV_FILE_ROOT_PATH: /opt/keycloak/data/import
+      KC_IMPORT: /opt/keycloak/data/import/realm-config.json
     ports:
       - "8081:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
-      - ./deploy/keycloak:/opt/keycloak/data/import
+      - ../../deploy/keycloak:/opt/keycloak/data/import
     networks:
       - cab-network
     restart: unless-stopped
-    command: [ "start-dev" ]
+    command: [ "start-dev", "--import-realm" ]
 
+# Networks
 networks:
   cab-network:
     driver: bridge
     name: cab-network
 
+# Volumes
 volumes:
   postgres_data:
     name: cab_postgres_data
   keycloak_data:
     name: cab_keycloak_data
-
-

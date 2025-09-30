@@ -5,7 +5,7 @@ services:
     container_name: cab_db
     environment:
       POSTGRES_DB: cab_db
-      POSTGRES_USER: postgres
+      POSTGRES_USER: ${POSTGRES_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5050:5432"
@@ -23,27 +23,12 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cab_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       APP_SECURITY_ENABLED: ${APP_SECURITY_ENABLED:-true}
-      KEYCLOAK_URL: http://keycloak:8080
-      KEYCLOAK_REALM: cab-realm
     depends_on:
       - db
       - keycloak
-    networks:
-      - cab-network
-    restart: unless-stopped
-
-  # Frontend Service (React + Vite)
-  frontend:
-    build: ./frontend
-    container_name: cab_frontend
-    ports:
-      - "5173:80"
-    depends_on:
-      - backend
     networks:
       - cab-network
     restart: unless-stopped
@@ -57,6 +42,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_HTTP_ENABLED: true
       KC_DEV_FILE_ROOT_PATH: /opt/keycloak/data/import
+      KC_IMPORT: /opt/keycloak/data/import/realm-config.json
     ports:
       - "8081:8080"
     volumes:
@@ -65,7 +51,19 @@ services:
     networks:
       - cab-network
     restart: unless-stopped
-    command: ["start-dev"]
+    command: [ "start-dev", "--import-realm" ]
+
+  # Frontend Service (React + Vite)
+  frontend:
+    build: ./frontend
+    container_name: cab_frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - cab-network
+    restart: unless-stopped
 
 # Networks
 networks:
@@ -79,3 +77,4 @@ volumes:
     name: cab_postgres_data
   keycloak_data:
     name: cab_keycloak_data
+
