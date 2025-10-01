@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои RFC - CAB System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Сайдбар */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 20px;
+        }
+        
+        .sidebar-menu li {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-menu li:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-menu li.active {
+            background-color: var(--secondary);
+            border-left: 4px solid white;
+        }
+        
+        /* Основной контент */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 250px;
+            overflow-y: auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        /* Карточки */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* Таблицы */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th, .table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Статусы RFC (согласно БД) */
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-draft {
+            background-color: #f5f5f5;
+            color: #616161;
+        }
+        
+        .status-submitted {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .status-under-review {
+            background-color: #fff8e1;
+            color: #f57c00;
+        }
+        
+        .status-approved {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-rejected {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .status-implemented {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-cancelled {
+            background-color: #f5f5f5;
+            color: #616161;
+        }
+        
+        /* Статусы подтверждения исполнителей */
+        .confirmation-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .confirmation-pending {
+            background-color: #fff8e1;
+            color: #f57c00;
+        }
+        
+        .confirmation-confirmed {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .confirmation-impossible {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        /* Приоритеты и уровни риска */
+        .priority, .risk {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .priority-low, .risk-low {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .priority-medium, .risk-medium {
+            background-color: #fff8e1;
+            color: #f57c00;
+        }
+        
+        .priority-high, .risk-high {
+            background-color: #ffe0b2;
+            color: #ef6c00;
+        }
+        
+        .priority-critical, .risk-critical {
+            background-color: #ffcdd2;
+            color: #c62828;
+        }
+        
+        /* Формы */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        select.form-control {
+            background-color: white;
+        }
+        
+        /* Фильтры */
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+        
+        /* Представление карточек */
+        .cards-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .rfc-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border-left: 4px solid #3498db;
+        }
+        
+        .rfc-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .rfc-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .rfc-card-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .rfc-card-id {
+            color: var(--gray);
+            font-size: 13px;
+        }
+        
+        .rfc-card-body {
+            margin-bottom: 15px;
+        }
+        
+        .rfc-card-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .rfc-card-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--dark);
+        }
+        
+        .rfc-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Теги для отображения связанных сущностей */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .tag {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            background-color: #f0f8ff;
+            color: #3498db;
+        }
+        
+        /* Переключение представлений */
+        .view-toggle {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: auto;
+        }
+        
+        .view-toggle-btn {
+            padding: 8px 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .view-toggle-btn.active {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        /* Вкладки модального окна */
+        .modal-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .modal-tab.active {
+            border-bottom: 2px solid var(--secondary);
+            color: var(--secondary);
+        }
+        
+        .modal-tab-content {
+            display: none;
+        }
+        
+        .modal-tab-content.active {
+            display: block;
+        }
+        
+        /* Детали RFC в модальном окне */
+        .rfc-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .rfc-detail-item {
+            margin-bottom: 15px;
+        }
+        
+        .rfc-detail-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+        
+        .rfc-detail-value {
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .rfc-description {
+            grid-column: 1 / -1;
+        }
+        
+        /* Таблица исполнителей */
+        .executors-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .executors-table th, .executors-table td {
+            padding: 10px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .executors-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        /* Файлы */
+        .files-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .file-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e3f2fd;
+            border-radius: 4px;
+            color: #1565c0;
+        }
+        
+        .file-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .file-name {
+            font-weight: 500;
+        }
+        
+        .file-size {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+            
+            .sidebar-header span, .sidebar-menu li span {
+                display: none;
+            }
+            
+            .sidebar-header {
+                justify-content: center;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+            
+            .sidebar-menu li {
+                justify-content: center;
+            }
+            
+            .sidebar:hover {
+                width: 250px;
+                z-index: 100;
+            }
+            
+            .sidebar:hover .sidebar-header span,
+            .sidebar:hover .sidebar-menu li span {
+                display: inline;
+            }
+            
+            .sidebar:hover .sidebar-menu li {
+                justify-content: flex-start;
+            }
+            
+            .rfc-details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .filters {
+                flex-direction: column;
+            }
+            
+            .filter-item {
+                width: 100%;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .cards-view {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Утилиты */
+        .badge {
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .badge-light {
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        
+        .text-sm {
+            font-size: 13px;
+        }
+        
+        .text-gray {
+            color: var(--gray);
+        }
+        
+        .mt-20 {
+            margin-top: 20px;
+        }
+        
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Вкладки статусов */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .tab-btn.active {
+            background-color: var(--secondary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Сайдбар -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-tasks fa-2x"></i>
+                <span>CAB System</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li><i class="fas fa-th-large"></i> <span>Дашборд</span></li>
+                <li class="active"><i class="fas fa-list"></i> <span>Мои RFC</span></li>
+                <li><i class="fas fa-layer-group"></i> <span>Все RFC</span></li>
+                <li><i class="fas fa-book"></i> <span>Справочники</span></li>
+                <li><i class="fas fa-cog"></i> <span>Настройки</span></li>
+            </ul>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="main-content">
+            <div class="header">
+                <h1 class="page-title">
+                    <i class="fas fa-list"></i>
+                    <span>Мои RFC</span>
+                </h1>
+                <div class="user-info">
+                    <div class="user-role">Исполнитель</div>
+                    <div class="user-avatar">ИП</div>
+                    <div>Иван Петров</div>
+                    <button class="btn btn-primary" id="createRfcBtn">
+                        <i class="fas fa-plus"></i> Создать RFC
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Фильтры -->
+            <div class="filters">
+                <div class="filter-item">
+                    <label class="form-label">Статус RFC</label>
+                    <select class="form-control" id="statusFilter">
+                        <option value="">Все статусы</option>
+                        <option value="DRAFT">Черновик</option>
+                        <option value="SUBMITTED">Отправлен</option>
+                        <option value="UNDER_REVIEW">На рассмотрении</option>
+                        <option value="APPROVED">Одобрен</option>
+                        <option value="REJECTED">Отклонен</option>
+                        <option value="IMPLEMENTED">Внедрен</option>
+                        <option value="CANCELLED">Отменен</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label class="form-label">Тип участия</label>
+                    <select class="form-control" id="roleFilter">
+                        <option value="">Все</option>
+                        <option value="requester">Инициатор</option>
+                        <option value="executor">Исполнитель</option>
+                        <option value="reviewer">Согласующий</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label class="form-label">Система</label>
+                    <select class="form-control" id="systemFilter">
+                        <option value="">Все системы</option>
+                        <option value="crm">CRM система</option>
+                        <option value="erp">ERP система</option>
+                        <option value="db">База данных</option>
+                        <option value="servers">Серверы</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label class="form-label">Приоритет</label>
+                    <select class="form-control" id="priorityFilter">
+                        <option value="">Все приоритеты</option>
+                        <option value="LOW">Низкий</option>
+                        <option value="MEDIUM">Средний</option>
+                        <option value="HIGH">Высокий</option>
+                        <option value="CRITICAL">Критический</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Переключение представлений -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="all">Все RFC</button>
+                        <button class="tab-btn" data-tab="draft">Черновики</button>
+                        <button class="tab-btn" data-tab="submitted">Отправленные</button>
+                        <button class="tab-btn" data-tab="review">На рассмотрении</button>
+                        <button class="tab-btn" data-tab="approved">Одобренные</button>
+                        <button class="tab-btn" data-tab="implemented">Внедренные</button>
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-toggle-btn active" data-view="table">
+                            <i class="fas fa-table"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Табличное представление -->
+                <div class="card-body tab-content active" id="table-view">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Название</th>
+                                <th>Дата создания</th>
+                                <th>Статус RFC</th>
+                                <th>Приоритет</th>
+                                <th>Уровень риска</th>
+                                <th>Системы</th>
+                                <th>Исполнители</th>
+                                <th>Моя роль</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>RFC-0042</td>
+                                <td>Обновление БД до версии 12.2</td>
+                                <td>15.05.2023</td>
+                                <td><span class="status status-under-review"><i class="fas fa-clock"></i> На рассмотрении</span></td>
+                                <td><span class="priority priority-high">HIGH</span></td>
+                                <td><span class="risk risk-medium">MEDIUM</span></td>
+                                <td>
+                                    <div class="tags-container">
+                                        <span class="tag">CRM</span>
+                                        <span class="tag">База данных</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="tags-container">
+                                        <span class="tag">DBA <span class="confirmation-status confirmation-confirmed">✓</span></span>
+                                        <span class="tag">DevOps <span class="confirmation-status confirmation-pending">?</span></span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-light">Инициатор</span></td>
+                                <td>
+                                    <button class="btn btn-sm view-rfc-btn" data-id="RFC-0042">
+                                        <i class="fas fa-eye"></i> Просмотр
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>RFC-0041</td>
+                                <td>Патчинг серверов VMware</td>
+                                <td>14.05.2023</td>
+                                <td><span class="status status-approved"><i class="fas fa-check-circle"></i> Одобрен</span></td>
+                                <td><span class="priority priority-medium">MEDIUM</span></td>
+                                <td><span class="risk risk-low">LOW</span></td>
+                                <td>
+                                    <div class="tags-container">
+                                        <span class="tag">Серверы</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="tags-container">
+                                        <span class="tag">DevOps <span class="confirmation-status confirmation-confirmed">✓</span></span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-light">Исполнитель</span></td>
+                                <td>
+                                    <button class="btn btn-sm view-rfc-btn" data-id="RFC-0041">
+                                        <i class="fas fa-eye"></i> Просмотр
+                                    </button>
+                                    <button class="btn btn-sm btn-success">
+                                        <i class="fas fa-check"></i> Подтвердить
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>RFC-0040</td>
+                                <td>Обновление сертификатов безопасности</td>
+                                <td>13.05.2023</td>
+                                <td><span class="status status-implemented"><i class="fas fa-check-double"></i> Внедрен</span></td>
+                                <td><span class="priority priority-medium">MEDIUM</span></td>
+                                <td><span class="risk risk-high">HIGH</span></td>
+                                <td>
+                                    <div class="tags-container">
+                                        <span class="tag">Безопасность</span>
+                                        <span class="tag">Серверы</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="tags-container">
+                                        <span class="tag">ИБ <span class="confirmation-status confirmation-confirmed">✓</span></span>
+                                        <span class="tag">Сисадмины <span class="confirmation-status confirmation-confirmed">✓</span></span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-light">Согласующий</span></td>
+                                <td>
+                                    <button class="btn btn-sm view-rfc-btn" data-id="RFC-0040">
+                                        <i class="fas fa-eye"></i> Просмотр
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Пагинация -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                        <div class="text-sm text-gray">Показано 3 из 23 записей</div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn btn-sm"><i class="fas fa-chevron-left"></i></button>
+                            <button class="btn btn-sm active">1</button>
+                            <button class="btn btn-sm">2</button>
+                            <button class="btn btn-sm">3</button>
+                            <button class="btn btn-sm">4</button>
+                            <button class="btn btn-sm">5</button>
+                            <button class="btn btn-sm"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно просмотра RFC -->
+    <div class="modal" id="viewRfcModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Просмотр RFC: <span id="rfcModalId"></span></h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-tabs">
+                    <button class="modal-tab active" data-tab="main">Основное</button>
+                    <button class="modal-tab" data-tab="executors">Исполнители</button>
+                    <button class="modal-tab" data-tab="files">Файлы</button>
+                    <button class="modal-tab" data-tab="history">История</button>
+                </div>
+                
+                <!-- Вкладка "Основное" -->
+                <div class="modal-tab-content active" id="main-tab">
+                    <div class="rfc-details-grid">
+                        <div class="rfc-detail-item">
+                            <div class="rfc-detail-label">Название RFC</div>
+                            <div class="rfc-detail-value" id="rfcTitle"></div>
+                        </div>
+                        <div class="rfc-detail-item">
+                            <div class="rfc-detail-label">Статус</div>
+                            <div class="rfc-detail-value" id="rfcStatus"></div>
+                        </div>
+                        <div class="rfc-detail-item">
+                            <div class="rfc-detail-label">Приоритет</div>
+                            <div class="rfc-detail-value" id="rfcPriority"></div>
+                        </div>
+                        <div class="rfc-detail-item">
+                            <div class="rfc-detail-label">Уровень риска</div>
+                            <div class="rfc-detail-value" id="rfcRisk"></div>
+                        </div>
+                        <div class="rfc-detail-item">
+                            <div class="rfc-detail-label">Дата создания</div>
+                            <div class="rfc-detail-value" id="rfcCreated"></div>
+                        </div>
+                        <div class="rfc-detail-item">
+                            <div class="rfc-detail-label">Планируемая дата выполнения</div>
+                            <div class="rfc-detail-value" id="rfcPlanned"></div>
+                        </div>
+                        <div class="rfc-detail-item">
+                            <div class="rfc-detail-label">Инициатор</div>
+                            <div class="rfc-detail-value" id="rfcInitiator"></div>
+                        </div>
+                        <div class="rfc-detail-item rfc-description">
+                            <div class="rfc-detail-label">Описание</div>
+                            <div class="rfc-detail-value" id="rfcDescription" style="min-height: 100px;"></div>
+                        </div>
+                        <div class="rfc-detail-item rfc-description">
+                            <div class="rfc-detail-label">Системы и подсистемы</div>
+                            <div class="rfc-detail-value">
+                                <div class="tags-container" id="rfcSystems"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Вкладка "Исполнители" -->
+                <div class="modal-tab-content" id="executors-tab">
+                    <table class="executors-table">
+                        <thead>
+                            <tr>
+                                <th>Система</th>
+                                <th>Подсистема</th>
+                                <th>Исполнитель</th>
+                                <th>Статус подтверждения</th>
+                                <th>Комментарий исполнителя</th>
+                            </tr>
+                        </thead>
+                        <tbody id="executorsTableBody">
+                            <!-- Данные будут заполнены через JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Вкладка "Файлы" -->
+                <div class="modal-tab-content" id="files-tab">
+                    <div class="files-list" id="filesList">
+                        <!-- Данные будут заполнены через JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Вкладка "История" -->
+                <div class="modal-tab-content" id="history-tab">
+                    <div class="rfc-detail-item">
+                        <div class="rfc-detail-label">История изменений</div>
+                        <div class="rfc-detail-value" style="padding: 0;">
+                            <div style="padding: 10px; border-bottom: 1px solid #eee;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span><strong>Создание RFC</strong></span>
+                                    <span class="text-sm text-gray">15.05.2023 14:30</span>
+                                </div>
+                                <div class="text-sm text-gray">Инициатор: Иван Петров</div>
+                            </div>
+                            <div style="padding: 10px; border-bottom: 1px solid #eee;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span><strong>Отправлен на согласование</strong></span>
+                                    <span class="text-sm text-gray">16.05.2023 10:15</span>
+                                </div>
+                                <div class="text-sm text-gray">Пользователь: Иван Петров</div>
+                            </div>
+                            <div style="padding: 10px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span><strong>Подтверждение готовности от DBA</strong></span>
+                                    <span class="text-sm text-gray">17.05.2023 09:45</span>
+                                </div>
+                                <div class="text-sm text-gray">Исполнитель: Сергей Васильев</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="closeRfcView">Закрыть</button>
+                <button class="btn btn-primary" id="editRfcBtn">
+                    <i class="fas fa-edit"></i> Редактировать
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Данные RFC для демонстрации
+        const rfcData = {
+            "RFC-0042": {
+                title: "Обновление БД до версии 12.2",
+                status: "under-review",
+                priority: "high",
+                risk: "medium",
+                created: "15.05.2023",
+                planned: "25.05.2023",
+                initiator: "Иван Петров",
+                description: "Обновление основных баз данных до версии 12.2 с переносом данных и тестированием производительности. Включает резервное копирование, проверку целостности данных и откат на предыдущую версию в случае проблем.",
+                systems: [
+                    { system: "CRM", subsystem: "База данных" },
+                    { system: "ERP", subsystem: "Основная БД" }
+                ],
+                executors: [
+                    { system: "CRM", subsystem: "База данных", executor: "Команда DBA", status: "confirmed", comment: "Готовы выполнить в указанные сроки" },
+                    { system: "ERP", subsystem: "Основная БД", executor: "Команда DevOps", status: "pending", comment: "" }
+                ],
+                files: [
+                    { name: "План обновления БД.pdf", size: "2.4 МБ", type: "pdf" },
+                    { name: "Диаграмма миграции данных.vsd", size: "1.8 МБ", type: "vsd" },
+                    { name: "Чек-лист тестирования.xlsx", size: "356 КБ", type: "xlsx" }
+                ]
+            },
+            "RFC-0041": {
+                title: "Патчинг серверов VMware",
+                status: "approved",
+                priority: "medium",
+                risk: "low",
+                created: "14.05.2023",
+                planned: "22.05.2023",
+                initiator: "Сергей Васильев",
+                description: "Установка последних обновлений безопасности на все серверы VMware в основном датацентре. Работа будет выполняться в ночное время с 02:00 до 06:00 для минимизации воздействия на пользователей.",
+                systems: [
+                    { system: "Серверы", subsystem: "VMware ESXi" }
+                ],
+                executors: [
+                    { system: "Серверы", subsystem: "VMware ESXi", executor: "Команда DevOps", status: "confirmed", comment: "Все патчи протестированы в тестовой среде" }
+                ],
+                files: [
+                    { name: "Отчет по тестированию патчей.docx", size: "1.2 МБ", type: "docx" },
+                    { name: "График работ.pdf", size: "845 КБ", type: "pdf" }
+                ]
+            },
+            "RFC-0040": {
+                title: "Обновление сертификатов безопасности",
+                status: "implemented",
+                priority: "medium",
+                risk: "high",
+                created: "13.05.2023",
+                planned: "20.05.2023",
+                initiator: "Анна Иванова",
+                description: "Замена SSL сертификатов на всех веб-серверах и настройка автоматического обновления. Сертификаты были получены от нового удостоверяющего центра.",
+                systems: [
+                    { system: "Безопасность", subsystem: "SSL сертификаты" },
+                    { system: "Серверы", subsystem: "Веб-серверы" }
+                ],
+                executors: [
+                    { system: "Безопасность", subsystem: "SSL сертификаты", executor: "Команда ИБ", status: "confirmed", comment: "Все сертификаты успешно заменены" },
+                    { system: "Серверы", subsystem: "Веб-серверы", executor: "Сисадмины", status: "confirmed", comment: "Настройка автоматического обновления выполнена" }
+                ],
+                files: [
+                    { name: "Новые сертификаты.zip", size: "3.2 МБ", type: "zip" },
+                    { name: "Инструкция по установке.pdf", size: "1.1 МБ", type: "pdf" }
+                ]
+            }
+        };
+
+        // Переключение между представлениями (таблица/карточки)
+        const viewToggleBtns = document.querySelectorAll('.view-toggle-btn');
+        const tableView = document.getElementById('table-view');
+        const cardsView = document.getElementById('cards-view');
+        
+        viewToggleBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const view = this.getAttribute('data-view');
+                
+                // Активируем кнопку
+                viewToggleBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Показываем соответствующее представление
+                if (view === 'table') {
+                    tableView.classList.remove('hidden');
+                    cardsView.classList.add('hidden');
+                } else {
+                    tableView.classList.add('hidden');
+                    cardsView.classList.remove('hidden');
+                }
+            });
+        });
+        
+        // Переключение между вкладками статусов
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Активируем кнопку
+                tabBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Здесь будет логика фильтрации RFC по статусу
+                const tab = this.getAttribute('data-tab');
+                console.log('Активирована вкладка:', tab);
+                
+                // Фильтрация RFC по статусу
+                filterRFCsByStatus(tab);
+            });
+        });
+        
+        // Обработка фильтров
+        const filterSelects = document.querySelectorAll('.filters select');
+        filterSelects.forEach(filter => {
+            filter.addEventListener('change', applyFilters);
+        });
+        
+        // Функция фильтрации RFC по статусу
+        function filterRFCsByStatus(status) {
+            console.log('Фильтрация RFC по статусу:', status);
+            // Здесь будет логика фильтрации RFC на фронтенде или запрос к серверу
+        }
+        
+        // Функция применения всех фильтров
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const roleFilter = document.getElementById('roleFilter').value;
+            const systemFilter = document.getElementById('systemFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            
+            console.log('Применены фильтры:', {
+                status: statusFilter,
+                role: roleFilter,
+                system: systemFilter,
+                priority: priorityFilter
+            });
+            
+            // Здесь будет логика фильтрации RFC на фронтенде или запрос к серверу
+        }
+        
+        // Обработка кнопки создания RFC
+        document.getElementById('createRfcBtn').addEventListener('click', function() {
+            alert('Переход к созданию нового RFC');
+            // Здесь будет переход на страницу создания RFC
+        });
+        
+        // Просмотр RFC
+        const viewRfcModal = document.getElementById('viewRfcModal');
+        const viewRfcBtns = document.querySelectorAll('.view-rfc-btn');
+        const closeRfcViewBtn = document.getElementById('closeRfcView');
+        const closeModalBtn = document.querySelector('#viewRfcModal .close');
+        
+        viewRfcBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const rfcId = this.getAttribute('data-id');
+                openRfcModal(rfcId);
+            });
+        });
+        
+        closeRfcViewBtn.addEventListener('click', closeRfcModal);
+        closeModalBtn.addEventListener('click', closeRfcModal);
+        
+        window.addEventListener('click', function(event) {
+            if (event.target === viewRfcModal) {
+                closeRfcModal();
+            }
+        });
+        
+        // Переключение вкладок в модальном окне
+        const modalTabs = document.querySelectorAll('.modal-tab');
+        modalTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // Активируем вкладку
+                modalTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Показываем соответствующее содержимое
+                document.querySelectorAll('.modal-tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        function openRfcModal(rfcId) {
+            const rfc = rfcData[rfcId];
+            
+            if (rfc) {
+                document.getElementById('rfcModalId').textContent = rfcId;
+                document.getElementById('rfcTitle').textContent = rfc.title;
+                
+                // Устанавливаем статус с соответствующим стилем
+                const statusElement = document.getElementById('rfcStatus');
+                statusElement.textContent = '';
+                
+                let statusClass = '';
+                let statusText = '';
+                let statusIcon = '';
+                
+                switch(rfc.status) {
+                    case 'draft':
+                        statusClass = 'status-draft';
+                        statusText = 'Черновик';
+                        statusIcon = 'fa-edit';
+                        break;
+                    case 'submitted':
+                        statusClass = 'status-submitted';
+                        statusText = 'Отправлен';
+                        statusIcon = 'fa-paper-plane';
+                        break;
+                    case 'under-review':
+                        statusClass = 'status-under-review';
+                        statusText = 'На рассмотрении';
+                        statusIcon = 'fa-clock';
+                        break;
+                    case 'approved':
+                        statusClass = 'status-approved';
+                        statusText = 'Одобрен';
+                        statusIcon = 'fa-check-circle';
+                        break;
+                    case 'rejected':
+                        statusClass = 'status-rejected';
+                        statusText = 'Отклонен';
+                        statusIcon = 'fa-times-circle';
+                        break;
+                    case 'implemented':
+                        statusClass = 'status-implemented';
+                        statusText = 'Внедрен';
+                        statusIcon = 'fa-check-double';
+                        break;
+                }
+                
+                const statusSpan = document.createElement('span');
+                statusSpan.className = `status ${statusClass}`;
+                statusSpan.innerHTML = `<i class="fas ${statusIcon}"></i> ${statusText}`;
+                statusElement.appendChild(statusSpan);
+                
+                // Приоритет
+                const priorityElement = document.getElementById('rfcPriority');
+                priorityElement.textContent = '';
+                let priorityClass = '';
+                let priorityText = '';
+                
+                switch(rfc.priority) {
+                    case 'low':
+                        priorityClass = 'priority-low';
+                        priorityText = 'LOW';
+                        break;
+                    case 'medium':
+                        priorityClass = 'priority-medium';
+                        priorityText = 'MEDIUM';
+                        break;
+                    case 'high':
+                        priorityClass = 'priority-high';
+                        priorityText = 'HIGH';
+                        break;
+                    case 'critical':
+                        priorityClass = 'priority-critical';
+                        priorityText = 'CRITICAL';
+                        break;
+                }
+                
+                const prioritySpan = document.createElement('span');
+                prioritySpan.className = `priority ${priorityClass}`;
+                prioritySpan.textContent = priorityText;
+                priorityElement.appendChild(prioritySpan);
+                
+                // Риск
+                const riskElement = document.getElementById('rfcRisk');
+                riskElement.textContent = '';
+                let riskClass = '';
+                let riskText = '';
+                
+                switch(rfc.risk) {
+                    case 'low':
+                        riskClass = 'risk-low';
+                        riskText = 'LOW';
+                        break;
+                    case 'medium':
+                        riskClass = 'risk-medium';
+                        riskText = 'MEDIUM';
+                        break;
+                    case 'high':
+                        riskClass = 'risk-high';
+                        riskText = 'HIGH';
+                        break;
+                    case 'critical':
+                        riskClass = 'risk-critical';
+                        riskText = 'CRITICAL';
+                        break;
+                }
+                
+                const riskSpan = document.createElement('span');
+                riskSpan.className = `risk ${riskClass}`;
+                riskSpan.textContent = riskText;
+                riskElement.appendChild(riskSpan);
+                
+                document.getElementById('rfcCreated').textContent = rfc.created;
+                document.getElementById('rfcPlanned').textContent = rfc.planned;
+                document.getElementById('rfcInitiator').textContent = rfc.initiator;
+                document.getElementById('rfcDescription').textContent = rfc.description;
+                
+                // Системы
+                const systemsContainer = document.getElementById('rfcSystems');
+                systemsContainer.innerHTML = '';
+                rfc.systems.forEach(system => {
+                    const systemTag = document.createElement('span');
+                    systemTag.className = 'tag';
+                    systemTag.textContent = `${system.system} (${system.subsystem})`;
+                    systemsContainer.appendChild(systemTag);
+                });
+                
+                // Исполнители
+                const executorsTableBody = document.getElementById('executorsTableBody');
+                executorsTableBody.innerHTML = '';
+                rfc.executors.forEach(executor => {
+                    const row = document.createElement('tr');
+                    
+                    let statusClass = '';
+                    let statusText = '';
+                    
+                    switch(executor.status) {
+                        case 'pending':
+                            statusClass = 'confirmation-pending';
+                            statusText = 'Ожидает';
+                            break;
+                        case 'confirmed':
+                            statusClass = 'confirmation-confirmed';
+                            statusText = 'Подтверждено';
+                            break;
+                        case 'impossible':
+                            statusClass = 'confirmation-impossible';
+                            statusText = 'Невозможно';
+                            break;
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${executor.system}</td>
+                        <td>${executor.subsystem}</td>
+                        <td>${executor.executor}</td>
+                        <td><span class="confirmation-status ${statusClass}">${statusText}</span></td>
+                        <td>${executor.comment}</td>
+                    `;
+                    executorsTableBody.appendChild(row);
+                });
+                
+                // Файлы
+                const filesList = document.getElementById('filesList');
+                filesList.innerHTML = '';
+                rfc.files.forEach(file => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    
+                    let fileIcon = '';
+                    switch(file.type) {
+                        case 'pdf':
+                            fileIcon = 'fa-file-pdf';
+                            break;
+                        case 'docx':
+                            fileIcon = 'fa-file-word';
+                            break;
+                        case 'xlsx':
+                            fileIcon = 'fa-file-excel';
+                            break;
+                        case 'zip':
+                            fileIcon = 'fa-file-archive';
+                            break;
+                        case 'vsd':
+                            fileIcon = 'fa-file-image';
+                            break;
+                        default:
+                            fileIcon = 'fa-file';
+                    }
+                    
+                    fileItem.innerHTML = `
+                        <div class="file-info">
+                            <div class="file-icon">
+                                <i class="fas ${fileIcon}"></i>
+                            </div>
+                            <div class="file-details">
+                                <div class="file-name">${file.name}</div>
+                                <div class="file-size">${file.size}</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm">
+                            <i class="fas fa-download"></i> Скачать
+                        </button>
+                    `;
+                    filesList.appendChild(fileItem);
+                });
+                
+                viewRfcModal.style.display = 'flex';
+            }
+        }
+        
+        function closeRfcModal() {
+            viewRfcModal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
