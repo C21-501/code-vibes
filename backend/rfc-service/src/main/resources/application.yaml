@@ -30,6 +30,12 @@ spring:
         jwt:
           issuer-uri: http://localhost:8081/realms/cab-realm
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 11MB
+
 keycloak:
   auth-server-url: http://localhost:8081
   realm: cab-realm
@@ -41,7 +47,7 @@ app:
   security:
     enabled: true
   file:
-    storage-path: ./uploads
+    storage-path: /tmp/uploads
     max-file-size: 10MB
     max-request-size: 11MB
 

@@ -1,6 +1,5 @@
 package ru.c21501.rfcservice.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,20 +8,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import ru.c21501.rfcservice.dto.request.UploadAttachmentRequest;
 import ru.c21501.rfcservice.dto.response.RfcAttachmentResponse;
 import ru.c21501.rfcservice.mapper.RfcAttachmentMapper;
 import ru.c21501.rfcservice.model.entity.Rfc;
-import ru.c21501.rfcservice.model.entity.User;
 import ru.c21501.rfcservice.model.enums.RfcStatus;
 import ru.c21501.rfcservice.service.RfcAttachmentService;
 import ru.c21501.rfcservice.service.RfcService;
-import ru.c21501.rfcservice.service.UserService;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,14 +32,12 @@ public class RfcAttachmentController {
 
     private final RfcAttachmentService attachmentService;
     private final RfcService rfcService;
-    private final UserService userService;
     private final RfcAttachmentMapper attachmentMapper;
 
     /**
      * Получить список вложений RFC
      */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<RfcAttachmentResponse>> getAttachments(@PathVariable UUID rfcId) {
         log.info("Getting attachments for RFC: {}", rfcId);
 
@@ -65,12 +56,9 @@ public class RfcAttachmentController {
      * Загрузить новое вложение
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('CAB_MANAGER', 'ADMIN') or @rfcSecurityService.isRequester(#rfcId, authentication)")
     public ResponseEntity<RfcAttachmentResponse> uploadAttachment(
             @PathVariable UUID rfcId,
-            @RequestPart("file") MultipartFile file,
-            @RequestPart(value = "request", required = false) @Valid UploadAttachmentRequest request,
-            Authentication authentication) {
+            @RequestPart("file") MultipartFile file) {
 
         log.info("Uploading attachment for RFC: {}, file: {}", rfcId, file.getOriginalFilename());
 
@@ -79,11 +67,8 @@ public class RfcAttachmentController {
             Rfc rfc = rfcService.findById(rfcId)
                     .orElseThrow(() -> new RuntimeException("RFC not found"));
 
-            // Получить текущего пользователя
-            Jwt jwt = (Jwt) authentication.getPrincipal();
-            String keycloakId = jwt.getSubject();
-            User currentUser = userService.findByKeycloakId(keycloakId)
-                    .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+            // Временно используем фиксированного пользователя (как в RfcController)
+            String uploadedBy = "system-user";
 
             // Проверить размер файла (макс. 10MB)
             if (file.getSize() > 10 * 1024 * 1024) {
@@ -93,14 +78,12 @@ public class RfcAttachmentController {
             // Проверить, что RFC можно редактировать (не в финальных статусах)
             if (rfc.getStatus() == RfcStatus.IMPLEMENTED ||
                     rfc.getStatus() == RfcStatus.CANCELLED) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(null); // Нельзя изменять RFC в финальных статусах
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
             }
 
-            // Загрузить файл
-            String description = request != null ? request.getDescription() : null;
+            // Загрузить файл БЕЗ описания
             var attachment = attachmentService.uploadAttachment(
-                    rfc, file, description, currentUser.getUsername());
+                    rfc, file, null, uploadedBy); // description = null
 
             RfcAttachmentResponse response = attachmentMapper.toResponse(attachment);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -115,7 +98,6 @@ public class RfcAttachmentController {
      * Скачать вложение
      */
     @GetMapping("/{attachmentId}/download")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Resource> downloadAttachment(
             @PathVariable UUID rfcId,
             @PathVariable UUID attachmentId) {
@@ -123,18 +105,18 @@ public class RfcAttachmentController {
         log.info("Downloading attachment: {} for RFC: {}", attachmentId, rfcId);
 
         try {
-            // Проверить существование RFC и принадлежность вложения
-            if (!rfcService.existsById(rfcId) ||
-                    !attachmentService.existsById(attachmentId)) {
+            if (!rfcService.existsById(rfcId) || !attachmentService.existsById(attachmentId)) {
                 return ResponseEntity.notFound().build();
             }
 
             Resource resource = attachmentService.downloadAttachment(attachmentId);
             var attachment = attachmentService.findById(attachmentId).orElseThrow();
 
+            // Кодируем имя файла
+            String contentDisposition = createContentDisposition(attachment.getOriginalFileName());
+
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + attachment.getOriginalFileName() + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
                     .header(HttpHeaders.CONTENT_TYPE, attachment.getMimeType())
                     .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachment.getFileSize()))
                     .body(resource);
@@ -145,15 +127,152 @@ public class RfcAttachmentController {
         }
     }
 
+    private String createContentDisposition(String fileName) {
+        try {
+            String safeFileName = transliterateRussian(fileName);
+            // Дополнительно очищаем от любых оставшихся не-ASCII символов
+            safeFileName = safeFileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+            return "attachment; filename=\"" + safeFileName + "\"";
+        } catch (Exception e) {
+            log.warn("Failed to transliterate filename: {}, using safe name", fileName);
+            return "attachment; filename=\"document\"";
+        }
+    }
+
+    private String transliterateRussian(String text) {
+        if (text == null) return "";
+
+        StringBuilder result = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            result.append(transliterateChar(c));
+        }
+        return result.toString();
+    }
+
+    private String transliterateChar(char c) {
+        switch (c) {
+            // Русские заглавные буквы
+            case 'А': return "A";
+            case 'Б': return "B";
+            case 'В': return "V";
+            case 'Г': return "G";
+            case 'Д': return "D";
+            case 'Е': return "E";
+            case 'Ё': return "E";
+            case 'Ж': return "Zh";
+            case 'З': return "Z";
+            case 'И': return "I";
+            case 'Й': return "Y";
+            case 'К': return "K";
+            case 'Л': return "L";
+            case 'М': return "M";
+            case 'Н': return "N";
+            case 'О': return "O";
+            case 'П': return "P";
+            case 'Р': return "R";
+            case 'С': return "S";
+            case 'Т': return "T";
+            case 'У': return "U";
+            case 'Ф': return "F";
+            case 'Х': return "Kh";
+            case 'Ц': return "Ts";
+            case 'Ч': return "Ch";
+            case 'Ш': return "Sh";
+            case 'Щ': return "Sch";
+            case 'Ъ': return "";
+            case 'Ы': return "Y";
+            case 'Ь': return "";
+            case 'Э': return "E";
+            case 'Ю': return "Yu";
+            case 'Я': return "Ya";
+
+            // Русские строчные буквы
+            case 'а': return "a";
+            case 'б': return "b";
+            case 'в': return "v";
+            case 'г': return "g";
+            case 'д': return "d";
+            case 'е': return "e";
+            case 'ё': return "e";
+            case 'ж': return "zh";
+            case 'з': return "z";
+            case 'и': return "i";
+            case 'й': return "y";
+            case 'к': return "k";
+            case 'л': return "l";
+            case 'м': return "m";
+            case 'н': return "n";
+            case 'о': return "o";
+            case 'п': return "p";
+            case 'р': return "r";
+            case 'с': return "s";
+            case 'т': return "t";
+            case 'у': return "u";
+            case 'ф': return "f";
+            case 'х': return "kh";
+            case 'ц': return "ts";
+            case 'ч': return "ch";
+            case 'ш': return "sh";
+            case 'щ': return "sch";
+            case 'ъ': return "";
+            case 'ы': return "y";
+            case 'ь': return "";
+            case 'э': return "e";
+            case 'ю': return "yu";
+            case 'я': return "ya";
+
+            // Специальные символы - заменяем на аналоги
+            case ' ': return "_";
+            case ',': return "_";
+            case ';': return "_";
+            case ':': return "_";
+            case '!': return "_";
+            case '?': return "_";
+            case '"': return "_";
+            case '\'': return "_";
+            case '`': return "_";
+            case '~': return "_";
+            case '@': return "_";
+            case '#': return "_";
+            case '$': return "_";
+            case '%': return "_";
+            case '^': return "_";
+            case '&': return "_";
+            case '*': return "_";
+            case '=': return "_";
+            case '+': return "_";
+            case '|': return "_";
+            case '\\': return "_";
+            case '/': return "_";
+            case '<': return "_";
+            case '>': return "_";
+            case '[': return "_";
+            case ']': return "_";
+            case '{': return "_";
+            case '}': return "_";
+
+            // Скобки можно оставить или заменить
+            case '(': return "(";
+            case ')': return ")";
+
+            default:
+                // Оставляем латинские буквы, цифры, точку, дефис и подчеркивание как есть
+                if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                        (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_') {
+                    return String.valueOf(c);
+                }
+                // Все остальные символы (включая украинские, казахские и т.д.) заменяем на подчеркивание
+                return "_";
+        }
+    }
+
     /**
      * Удалить вложение
      */
     @DeleteMapping("/{attachmentId}")
-    @PreAuthorize("hasAnyRole('CAB_MANAGER', 'ADMIN') or @rfcSecurityService.isRequester(#rfcId, authentication)")
     public ResponseEntity<Void> deleteAttachment(
             @PathVariable UUID rfcId,
-            @PathVariable UUID attachmentId,
-            Authentication authentication) {
+            @PathVariable UUID attachmentId) {
 
         log.info("Deleting attachment: {} for RFC: {}", attachmentId, rfcId);
 
