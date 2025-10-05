@@ -1,0 +1,2146 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "RFC Management System API",
+    "version": "1.0.0",
+    "description": "API для системы управления запросами на изменение (RFC)"
+  },
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Получить пагинированный список пользователей",
+        "description": "Возвращает список пользователей с поддержкой пагинации и фильтрации по имени.\nПользователи автоматически синхронизируются с Keycloak при авторизации.\n",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Номер страницы (начиная с 0)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Размер страницы",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Фильтр по имени (поиск по совпадению в username, first_name, last_name)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный возврат списка пользователей",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Неверные параметры запроса",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Получить пользователя по ID",
+        "description": "Возвращает детальную информацию о пользователе по его идентификатору",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID пользователя",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный возврат пользователя",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Неверный формат UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Пользователь не найден",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams": {
+      "get": {
+        "summary": "Получить пагинированный список команд",
+        "description": "Возвращает список команд с поддержкой пагинации и фильтрации по названию",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Номер страницы (начиная с 0)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Размер страницы",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Фильтр по названию команды (поиск по совпадению)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный возврат списка команд",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Создать новую команду",
+        "description": "Создание новой команды в системе",
+        "tags": [
+          "Teams"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Команда успешно создана",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "409": {
+            "description": "Команда с таким названием уже существует",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/teams/{id}": {
+      "get": {
+        "summary": "Получить команду по ID",
+        "description": "Возвращает детальную информацию о команде по её идентификатору",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID команды",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный возврат команды",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Обновить команду",
+        "description": "Полное обновление информации о команде",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID команды",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTeamRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Команда успешно обновлена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "Команда с таким названием уже существует",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Удалить команду",
+        "description": "Удаление команды по идентификатору",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID команды",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Команда успешно удалена"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "Невозможно удалить команду (есть связанные записи)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/systems": {
+      "get": {
+        "summary": "Получить пагинированный список систем",
+        "description": "Возвращает список систем с поддержкой пагинации и фильтрации по названию",
+        "tags": [
+          "Systems"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Номер страницы (начиная с 0)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Размер страницы",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Фильтр по названию системы (поиск по совпадению)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный возврат списка систем",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Создать новую систему",
+        "description": "Создание новой системы в системе",
+        "tags": [
+          "Systems"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSystemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Система успешно создана",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "409": {
+            "description": "Система с таким названием уже существует",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/systems/{id}": {
+      "get": {
+        "summary": "Получить систему по ID",
+        "description": "Возвращает детальную информацию о системе по её идентификатору",
+        "tags": [
+          "Systems"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID системы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный возврат системы",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Обновить систему",
+        "description": "Полное обновление информации о системе",
+        "tags": [
+          "Systems"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID системы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSystemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Система успешно обновлена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "Система с таким названием уже существует",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Удалить систему",
+        "description": "Удаление системы по идентификатору",
+        "tags": [
+          "Systems"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID системы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Система успешно удалена"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "Невозможно удалить систему (есть связанные подсистемы)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/systems/{id}/subsystems": {
+      "get": {
+        "summary": "Получить список подсистем системы",
+        "description": "Возвращает список подсистем для указанной системы",
+        "tags": [
+          "Subsystems"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID родительской системы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный возврат списка подсистем",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubsystemPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Система не найдена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Создать подсистему",
+        "description": "Создание новой подсистемы для указанной системы",
+        "tags": [
+          "Subsystems"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID родительской системы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubsystemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Подсистема успешно создана",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubsystemResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Система не найдена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Подсистема с таким названием уже существует",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/systems/{id}/subsystems/{subsystemId}": {
+      "get": {
+        "summary": "Получить подсистему по ID",
+        "description": "Возвращает детальную информацию о подсистеме",
+        "tags": [
+          "Subsystems"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID родительской системы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "subsystemId",
+            "in": "path",
+            "required": true,
+            "description": "UUID подсистемы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный возврат подсистемы",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubsystemResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Система или подсистема не найдена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Обновить подсистему",
+        "description": "Полное обновление информации о подсистеме",
+        "tags": [
+          "Subsystems"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID родительской системы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "subsystemId",
+            "in": "path",
+            "required": true,
+            "description": "UUID подсистемы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSubsystemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Подсистема успешно обновлена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubsystemResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Система или подсистема не найдена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Подсистема с таким названием уже существует",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Удалить подсистему",
+        "description": "Удаление подсистемы",
+        "tags": [
+          "Subsystems"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID родительской системы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "subsystemId",
+            "in": "path",
+            "required": true,
+            "description": "UUID подсистемы",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Подсистема успешно удалена"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Система или подсистема не найдена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Невозможно удалить подсистему (есть связанные RFC)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/files": {
+      "post": {
+        "summary": "Загрузить файл",
+        "description": "Загрузка файла в систему",
+        "tags": [
+          "Files"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Файл для загрузки"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Файл успешно загружен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Неверный запрос (отсутствует файл или файл слишком большой)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Файл слишком большой",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Ошибка при загрузке файла",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/{id}": {
+      "delete": {
+        "summary": "Удалить файл",
+        "description": "Удаление файла по идентификатору",
+        "tags": [
+          "Files"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID файла",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Файл успешно удален"
+          },
+          "400": {
+            "description": "Неверный формат UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Файл не найден",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Ошибка при удалении файла",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rfc": {
+      "get": {
+        "summary": "Получить пагинированный список RFC",
+        "description": "Возвращает список RFC с поддержкой пагинации и фильтрации",
+        "tags": [
+          "RFC"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Номер страницы (начиная с 0)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Размер страницы",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Фильтр по статусу RFC",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/RfcStatus"
+            }
+          },
+          {
+            "name": "systemId",
+            "in": "query",
+            "description": "Фильтр по ID системы",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "createdFrom",
+            "in": "query",
+            "description": "Фильтр по дате создания (от)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "createdTo",
+            "in": "query",
+            "description": "Фильтр по дате создания (до)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный возврат списка RFC",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfcPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Создать новый RFC",
+        "description": "Создание нового запроса на изменение",
+        "tags": [
+          "RFC"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRfcRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "RFC успешно создан",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfcResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "description": "Одна из связанных сущностей не найдена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/rfc/{id}": {
+      "get": {
+        "summary": "Получить RFC по ID",
+        "description": "Возвращает детальную информацию о RFC",
+        "tags": [
+          "RFC"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID RFC",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный возврат RFC",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfcResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Обновить RFC",
+        "description": "Полное обновление информации о RFC",
+        "tags": [
+          "RFC"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID RFC",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRfcRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RFC успешно обновлен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfcResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Удалить RFC",
+        "description": "Удаление RFC по идентификатору",
+        "tags": [
+          "RFC"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID RFC",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "RFC успешно удален"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Уникальный идентификатор пользователя"
+          },
+          "keycloakId": {
+            "type": "string",
+            "description": "Идентификатор пользователя в Keycloak"
+          },
+          "username": {
+            "type": "string",
+            "description": "Имя пользователя"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email пользователя"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Имя"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Фамилия"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "REQUESTER",
+              "EXECUTOR",
+              "CAB_MANAGER",
+              "ADMIN"
+            ],
+            "description": "Роль пользователя в системе"
+          }
+        },
+        "required": [
+          "id",
+          "keycloakId",
+          "username",
+          "email",
+          "firstName",
+          "lastName",
+          "role"
+        ]
+      },
+      "UserPageResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserResponse"
+            }
+          },
+          "totalElements": {
+            "type": "integer",
+            "description": "Общее количество элементов"
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Общее количество страниц"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Размер страницы"
+          },
+          "number": {
+            "type": "integer",
+            "description": "Номер текущей страницы"
+          },
+          "first": {
+            "type": "boolean",
+            "description": "Является ли текущая страница первой"
+          },
+          "last": {
+            "type": "boolean",
+            "description": "Является ли текущая страница последней"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Время возникновения ошибки"
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP статус код"
+          },
+          "error": {
+            "type": "string",
+            "description": "Тип ошибки"
+          },
+          "message": {
+            "type": "string",
+            "description": "Сообщение об ошибке"
+          },
+          "path": {
+            "type": "string",
+            "description": "URL путь запроса"
+          }
+        },
+        "required": [
+          "timestamp",
+          "status",
+          "error",
+          "message",
+          "path"
+        ]
+      },
+      "TeamResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Уникальный идентификатор команды"
+          },
+          "name": {
+            "type": "string",
+            "description": "Название команды"
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание команды"
+          },
+          "leader": {
+            "$ref": "#/components/schemas/UserResponse"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "CreateTeamRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название команды",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание команды",
+            "nullable": true
+          },
+          "leaderId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID лидера команды",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateTeamRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название команды",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание команды",
+            "nullable": true
+          },
+          "leaderId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID лидера команды",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "TeamPageResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamResponse"
+            }
+          },
+          "totalElements": {
+            "type": "integer",
+            "description": "Общее количество элементов"
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Общее количество страниц"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Размер страницы"
+          },
+          "number": {
+            "type": "integer",
+            "description": "Номер текущей страницы"
+          },
+          "first": {
+            "type": "boolean",
+            "description": "Является ли текущая страница первой"
+          },
+          "last": {
+            "type": "boolean",
+            "description": "Является ли текущая страница последней"
+          }
+        }
+      },
+      "SystemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Уникальный идентификатор системы"
+          },
+          "name": {
+            "type": "string",
+            "description": "Название системы"
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание системы"
+          },
+          "subsystems": {
+            "type": "array",
+            "description": "Список подсистем",
+            "items": {
+              "$ref": "#/components/schemas/SubsystemResponse"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "subsystems"
+        ]
+      },
+      "CreateSystemRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название системы",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание системы",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateSystemRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название системы",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание системы",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "SystemPageResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SystemResponse"
+            }
+          },
+          "totalElements": {
+            "type": "integer",
+            "description": "Общее количество элементов"
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Общее количество страниц"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Размер страницы"
+          },
+          "number": {
+            "type": "integer",
+            "description": "Номер текущей страницы"
+          },
+          "first": {
+            "type": "boolean",
+            "description": "Является ли текущая страница первой"
+          },
+          "last": {
+            "type": "boolean",
+            "description": "Является ли текущая страница последней"
+          }
+        }
+      },
+      "SubsystemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Уникальный идентификатор подсистемы"
+          },
+          "name": {
+            "type": "string",
+            "description": "Название подсистемы"
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание подсистемы"
+          },
+          "responsibleTeamId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "ID ответственной команды"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "CreateSubsystemRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название подсистемы",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание подсистемы",
+            "nullable": true
+          },
+          "responsibleTeamId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID ответственной команды",
+            "nullable": false
+          }
+        },
+        "required": [
+          "name",
+          "responsibleTeamId"
+        ]
+      },
+      "UpdateSubsystemRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название подсистемы",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание подсистемы",
+            "nullable": true
+          },
+          "responsibleTeamId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID ответственной команды",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "responsibleTeamId"
+        ]
+      },
+      "SubsystemPageResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SubsystemResponse"
+        }
+      },
+      "FileResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Уникальный идентификатор файла"
+          },
+          "filename": {
+            "type": "string",
+            "description": "Имя файла"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Размер файла"
+          }
+        },
+        "required": [
+          "id",
+          "filename"
+        ]
+      },
+      "RfcResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Уникальный идентификатор RFC"
+          },
+          "title": {
+            "type": "string",
+            "description": "Название RFC"
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание RFC"
+          },
+          "affectedSubsystems": {
+            "type": "array",
+            "description": "Список затронутых подсистем",
+            "items": {
+              "$ref": "#/components/schemas/SubsystemResponse"
+            }
+          },
+          "executors": {
+            "type": "array",
+            "description": "Список исполнителей",
+            "items": {
+              "$ref": "#/components/schemas/TeamResponse"
+            }
+          },
+          "reviewers": {
+            "type": "array",
+            "description": "Список ревьюеров",
+            "items": {
+              "$ref": "#/components/schemas/TeamResponse"
+            }
+          },
+          "files": {
+            "type": "array",
+            "description": "Список прикрепленных файлов",
+            "items": {
+              "$ref": "#/components/schemas/FileResponse"
+            }
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Дедлайн RFC"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RfcStatus"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/RfcPriority"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/UserResponse"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Дата создания"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Дата последнего обновления"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "status",
+          "priority",
+          "deadline",
+          "createdBy",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateRfcRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Название RFC",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание RFC",
+            "minLength": 1
+          },
+          "affectedSubsystemIds": {
+            "type": "array",
+            "description": "Список ID затронутых подсистем",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "executorTeamIds": {
+            "type": "array",
+            "description": "Список ID команд-исполнителей",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "reviewerTeamIds": {
+            "type": "array",
+            "description": "Список ID команд-ревьюеров",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "fileIds": {
+            "type": "array",
+            "description": "Список ID прикрепленных файлов",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Дедлайн RFC"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RfcStatus"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/RfcPriority"
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "deadline",
+          "status",
+          "priority"
+        ]
+      },
+      "UpdateRfcRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Название RFC",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание RFC",
+            "minLength": 1
+          },
+          "affectedSubsystemIds": {
+            "type": "array",
+            "description": "Список ID затронутых подсистем",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "executorTeamIds": {
+            "type": "array",
+            "description": "Список ID команд-исполнителей",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "reviewerTeamIds": {
+            "type": "array",
+            "description": "Список ID команд-ревьюеров",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "fileIds": {
+            "type": "array",
+            "description": "Список ID прикрепленных файлов",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Дедлайн RFC"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RfcStatus"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/RfcPriority"
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "deadline",
+          "status",
+          "priority"
+        ]
+      },
+      "RfcStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "NEW",
+          "UNDER_REVIEW",
+          "APPROVED",
+          "REJECTED",
+          "IN_PROGRESS",
+          "COMPLETED",
+          "CANCELLED"
+        ],
+        "description": "DRAFT - Черновик\nNEW - Новый\nUNDER_REVIEW - На рассмотрении\nAPPROVED - Утвержден\nREJECTED - Отклонен\nIN_PROGRESS - В работе\nCOMPLETED - Завершен\nCANCELLED - Отменен\n"
+      },
+      "RfcPriority": {
+        "type": "string",
+        "enum": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "CRITICAL"
+        ],
+        "description": "Приоритет RFC"
+      },
+      "RfcPageResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RfcResponse"
+            }
+          },
+          "totalElements": {
+            "type": "integer",
+            "description": "Общее количество элементов"
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Общее количество страниц"
+          },
+          "size": {
+            "type": "integer",
+            "description": "Размер страницы"
+          },
+          "number": {
+            "type": "integer",
+            "description": "Номер текущей страницы"
+          },
+          "first": {
+            "type": "boolean",
+            "description": "Является ли текущая страница первой"
+          },
+          "last": {
+            "type": "boolean",
+            "description": "Является ли текущая страница последней"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "PageablePage": {
+        "name": "page",
+        "in": "query",
+        "description": "Номер страницы (начиная с 0)",
+        "schema": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        }
+      },
+      "PageableSize": {
+        "name": "size",
+        "in": "query",
+        "description": "Размер страницы",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Неверные параметры запроса",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Ресурс не найден",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Внутренняя ошибка сервера",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Users",
+      "description": "Операции с пользователями системы"
+    },
+    {
+      "name": "Teams",
+      "description": "Управление командами"
+    },
+    {
+      "name": "Systems",
+      "description": "Управление системами"
+    },
+    {
+      "name": "Subsystems",
+      "description": "Управление подсистемами"
+    },
+    {
+      "name": "Files",
+      "description": "Управление файлами"
+    },
+    {
+      "name": "RFC",
+      "description": "Управление запросами на изменение (Request For Change)"
+    }
+  ]
+}
