@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openapi.generator' version '7.16.0'
 }
 
 group = 'ru.c21-501'
@@ -48,4 +49,36 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$project.projectDir/src/main/resources/api/spec.yaml".toString()
+    outputDir = "$buildDir/generated/openapi".toString()
+    apiPackage = "ru.c21501.rfcservice.openapi.api"
+    modelPackage = "ru.c21501.rfcservice.openapi.model"
+    skipOperationExample = true
+    configOptions = [
+            generateConstructorWithAllArgs : "true",
+            interfaceOnly                  : "true",
+            skipDefaultInterface           : "true",
+            performBeanValidation          : "true",
+            documentationProvider          : "none",
+            useTags                        : "true",
+            useResponseEntity              : "false",
+            useSpringBoot3                 : "true",
+            useBeanValidation              : "true",
+            openApiNullable                : "false"
+    ]
+    generateModelDocumentation = false
+    generateApiDocumentation = false
+    generateApiTests = false
+}
+
+sourceSets {
+    main.java.srcDirs += "$buildDir/generated/openapi/src/main/java"
+}
+
+compileJava {
+    dependsOn tasks.openApiGenerate
 }
