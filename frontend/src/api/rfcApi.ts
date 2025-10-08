@@ -2,6 +2,7 @@ import apiClient from './axiosConfig';
 import type { 
   Rfc, 
   PaginatedResponse, 
+  SpringPage,
   CreateRfcRequest, 
   RfcFilters, 
   SortOptions,
@@ -19,8 +20,8 @@ export const rfcApi = {
     sort?: SortOptions
   ): Promise<PaginatedResponse<Rfc>> => {
     const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
+      page: (page - 1).toString(),
+      size: limit.toString(),
     });
 
     if (filters) {
@@ -37,8 +38,17 @@ export const rfcApi = {
       params.append('sortDir', sort.direction);
     }
 
-    const response = await apiClient.get<PaginatedResponse<Rfc>>(`/api/rfcs?${params}`);
-    return response.data;
+    const response = await apiClient.get<SpringPage<Rfc>>(`/api/rfcs?${params}`);
+    const pageData = response.data;
+    const mapped: PaginatedResponse<Rfc> = {
+      data: pageData.content,
+      total: pageData.totalElements,
+      page: pageData.number + 1,
+      limit: pageData.size,
+      hasNext: !pageData.last,
+      hasPrev: !pageData.first,
+    };
+    return mapped;
   },
 
   // Создать новый RFC

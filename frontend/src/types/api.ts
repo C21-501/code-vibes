@@ -68,6 +68,16 @@ export interface PaginatedResponse<T> {
   hasPrev: boolean;
 }
 
+export interface SpringPage<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+}
+
 // Full RFC entity
 export interface Rfc {
   id: string;

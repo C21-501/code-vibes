@@ -199,7 +199,7 @@ export const RfcTable: React.FC<RfcTableProps> = ({
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {rfc.executors.length > 0 ? (
+                  {rfc.executors?.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {rfc.executors.slice(0, 2).map((executor) => (
                         <span

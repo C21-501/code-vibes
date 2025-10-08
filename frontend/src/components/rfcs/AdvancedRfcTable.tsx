@@ -341,14 +341,14 @@ export const AdvancedRfcTable: React.FC<AdvancedRfcTableProps> = ({
                     <div className="flex items-center">
                       <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2">
                         <span className="text-xs font-medium text-gray-600">
-                          {rfc.author.firstName[0]}{rfc.author.lastName[0]}
+                          {rfc?.author?.firstName[0]}{rfc?.author?.lastName[0]}
                         </span>
                       </div>
-                      <span>{rfc.author.fullName}</span>
+                      <span>{rfc?.author?.fullName}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {rfc.executors.length > 0 ? (
+                    {rfc?.executors?.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {rfc.executors.slice(0, 2).map((executor) => (
                           <span

@@ -72,9 +72,9 @@ export const Dashboard: React.FC = () => {
     ]
   };
 
-  const stats = data?.data?.stats || mockData.stats;
-  const recentRfcs = data?.data?.recentRfcs || mockData.recentRfcs;
-  const upcomingDeadlines = data?.data?.upcomingDeadlines || mockData.upcomingDeadlines;
+  const stats = data?.stats || mockData.stats;
+  const recentRfcs = data?.recentRfcs || mockData.recentRfcs;
+  const upcomingDeadlines = data?.upcomingDeadlines || mockData.upcomingDeadlines;
 
   if (error) {
     console.error('Error loading dashboard data:', error);
