@@ -1,71 +1,96 @@
 import React from 'react';
-import { Bell, User, LogOut, Settings } from 'lucide-react';
-import { useAuth } from '../../auth';
+import { Bell, User, LogOut, Settings, Plus } from 'lucide-react';
 
 interface TopBarProps {
   className?: string;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({ className = '' }) => {
-  const { user, logout } = useAuth();
+  // Mock user data for development
+  const user = {
+    firstName: 'Иван',
+    lastName: 'Петров',
+    role: 'Исполнитель'
+  };
+
+  const fullName = `${user.firstName} ${user.lastName}`;
+  const initials = `${user.firstName[0]}${user.lastName[0]}`;
+
+  const headerStyle = {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backdropFilter: 'blur(8px)',
+    borderBottom: '1px solid #e5e7eb',
+    padding: '16px 24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  };
+
+  const userInfoStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px'
+  };
+
+  const userRoleStyle = {
+    fontSize: '14px',
+    color: '#6b7280',
+    fontWeight: '500'
+  };
+
+  const avatarStyle = {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: '#3498db',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 'bold',
+    fontSize: '14px'
+  };
+
+  const userNameStyle = {
+    fontSize: '16px',
+    fontWeight: '500',
+    color: '#111827'
+  };
+
+  const buttonStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '10px 16px',
+    backgroundColor: '#3498db',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '500',
+    transition: 'background-color 0.3s ease'
+  };
 
   return (
-    <header className={`bg-white border-b border-gray-200 ${className}`}>
-      <div className="flex items-center justify-between px-6 py-4">
-        {/* Left side - can be used for breadcrumbs or page title */}
-        <div className="flex-1">
-          {/* This can be populated by child components */}
-        </div>
+    <header style={headerStyle}>
+      {/* Left side - can be used for breadcrumbs or page title */}
+      <div style={{ flex: 1 }} />
 
-        {/* Right side - user info and actions */}
-        <div className="flex items-center space-x-4">
-          {/* Notifications */}
-          <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-            <Bell size={20} />
-          </button>
-
-          {/* User menu */}
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50">
-              {/* Avatar */}
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <User size={18} className="text-blue-600" />
-              </div>
-              
-              {/* User info */}
-              <div className="text-sm">
-                <div className="font-medium text-gray-900">
-                  {user?.firstName && user?.lastName 
-                    ? `${user.firstName} ${user.lastName}`
-                    : user?.username || 'Пользователь'
-                  }
-                </div>
-                <div className="text-gray-500">
-                  {user?.email || ''}
-                </div>
-              </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex items-center space-x-2">
-              <button 
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Настройки"
-              >
-                <Settings size={18} />
-              </button>
-              
-              <button
-                onClick={logout}
-                className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Выйти"
-              >
-                <LogOut size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Right side - user info and actions */}
+      <div style={userInfoStyle}>
+        <div style={userRoleStyle}>{user.role}</div>
+        <div style={avatarStyle}>{initials}</div>
+        <div style={userNameStyle}>{fullName}</div>
+        <button
+          style={buttonStyle}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2980b9'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3498db'}
+        >
+          <Plus size={16} />
+          Создать RFC
+        </button>
       </div>
     </header>
   );
-};
+}

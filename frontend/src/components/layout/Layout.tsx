@@ -8,20 +8,18 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar className="flex-shrink-0" />
-      
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+    <div style={{ height: '100vh', backgroundColor: '#f9fafb' }}>
+      {/* Sidebar (fixed) */}
+      <Sidebar />
+
+      {/* Main content area shifted by sidebar width */}
+      <div style={{ marginLeft: '256px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Top bar */}
         <TopBar />
-        
+
         {/* Page content */}
-        <main className="flex-1 overflow-auto">
-          <div className="h-full">
-            {children}
-          </div>
+        <main style={{ flex: 1, overflow: 'auto' }}>
+          {children}
         </main>
       </div>
     </div>
