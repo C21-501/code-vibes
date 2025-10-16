@@ -5,7 +5,17 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: [
+          'Segoe UI',
+          'Tahoma',
+          'Geneva',
+          'Verdana',
+          'sans-serif',
+        ],
+      },
+    },
   },
   plugins: [
     require('@tailwindcss/line-clamp'),

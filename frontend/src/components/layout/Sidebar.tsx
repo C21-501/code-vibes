@@ -44,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     left: 0,
     bottom: 0,
     zIndex: 40,
-    width: isCollapsed ? '64px' : '256px',
+    width: isCollapsed ? '56px' : '200px',
     backgroundColor: '#2c3e50',
     color: 'white',
     borderRight: '1px solid #1f2a36',

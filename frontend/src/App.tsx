@@ -1,19 +1,19 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from './components/layout'
-import { Home } from 'lucide-react'
+import { LayoutDashboard } from 'lucide-react'
 import { MyRfcs } from './pages/MyRfcs'
 import './App.css'
 
 function Dashboard() {
   return (
-    <div style={{ padding: '20px' }}>
-      {/* Header */}
+    <div style={{ padding: '12px 20px 20px' }}>
+      {/* Header with page title and user info on one line */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        marginBottom: '30px',
-        paddingBottom: '15px',
+        marginBottom: '24px',
+        paddingBottom: '12px',
         borderBottom: '1px solid #ddd'
       }}>
         <h1 style={{ 
@@ -24,9 +24,29 @@ function Dashboard() {
           gap: '10px',
           color: '#333'
         }}>
-          <Home size={24} />
+          <LayoutDashboard size={20} />
           <span>Дашборд</span>
         </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: 400, fontFamily: 'Tahoma, Segoe UI, Geneva, Verdana, sans-serif' }}>Исполнитель</div>
+          <div style={{ 
+            width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#3498db', color: 'white',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px'
+          }}>ИП</div>
+          <div style={{ fontSize: '16px', fontWeight: 400, color: '#111827' }}>Иван Петров</div>
+          <button
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 16px',
+              backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer',
+              fontSize: '14px', fontWeight: 500, fontFamily: 'Tahoma, Segoe UI, Geneva, Verdana, sans-serif'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2980b9'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3498db'}
+          >
+            +
+            Создать RFC
+          </button>
+        </div>
       </div>
 
         {/* Stats Container */}
