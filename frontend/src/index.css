@@ -1,3 +1,4 @@
+@import './templates.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,8 +7,10 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    height: 100%;
   }
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
   }
 }
