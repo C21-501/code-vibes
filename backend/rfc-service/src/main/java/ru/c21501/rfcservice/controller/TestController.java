@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.c21501.rfcservice.dto.request.LoginRequest;
-import ru.c21501.rfcservice.dto.response.KeycloakTokenResponse;
-import ru.c21501.rfcservice.service.impl.KeycloakAuthService;
+import ru.c21501.rfcservice.dto.LoginRequest;
+import ru.c21501.rfcservice.dto.KeycloakTokenResponse;
+import ru.c21501.rfcservice.service.KeycloakAuthService;
 
 @Slf4j
 @RestController

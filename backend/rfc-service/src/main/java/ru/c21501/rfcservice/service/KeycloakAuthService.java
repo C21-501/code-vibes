@@ -1,4 +1,4 @@
-package ru.c21501.rfcservice.service.impl;
+package ru.c21501.rfcservice.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,8 +9,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.c21501.rfcservice.dto.request.LoginRequest;
-import ru.c21501.rfcservice.dto.response.KeycloakTokenResponse;
+import ru.c21501.rfcservice.dto.LoginRequest;
+import ru.c21501.rfcservice.dto.KeycloakTokenResponse;
 
 @Slf4j
 @Service

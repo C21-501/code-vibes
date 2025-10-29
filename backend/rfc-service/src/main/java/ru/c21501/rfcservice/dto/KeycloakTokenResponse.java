@@ -1,4 +1,4 @@
-package ru.c21501.rfcservice.dto.response;
+package ru.c21501.rfcservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

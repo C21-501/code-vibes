@@ -1,4 +1,4 @@
-package ru.c21501.rfcservice.dto.request;
+package ru.c21501.rfcservice.dto;
 
 import lombok.Data;
 
