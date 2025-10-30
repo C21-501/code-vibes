@@ -1,0 +1,274 @@
+components:
+  schemas:
+    RfcResponse:
+      type: object
+      description: Данные RFC
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор RFC
+        title:
+          type: string
+          description: Название RFC
+        description:
+          type: string
+          nullable: true
+          description: Описание изменения
+        implementationDate:
+          type: string
+          format: date-time
+          description: Дата релиза изменений
+        urgency:
+          $ref: '#/components/schemas/Urgency'
+        status:
+          $ref: '#/components/schemas/RfcStatus'
+        requesterId:
+          type: integer
+          format: int64
+          description: ID создателя RFC
+        affectedSystems:
+          type: array
+          description: Затронутые системы с подсистемами
+          items:
+            $ref: '#/components/schemas/AffectedSystemResponse'
+        attachments:
+          type: array
+          description: Прикрепленные файлы
+          items:
+            $ref: '#/components/schemas/AttachmentResponse'
+        createDatetime:
+          type: string
+          format: date-time
+          description: Дата и время создания
+        updateDatetime:
+          type: string
+          format: date-time
+          description: Дата и время последнего обновления
+      required:
+        - id
+        - title
+        - implementationDate
+        - urgency
+        - status
+        - requesterId
+        - affectedSystems
+        - attachments
+        - createDatetime
+        - updateDatetime
+
+    RfcRequest:
+      type: object
+      description: Данные для создания/обновления RFC
+      properties:
+        title:
+          type: string
+          description: Название RFC
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          description: Описание изменения
+          maxLength: 5000
+        implementationDate:
+          type: string
+          format: date-time
+          description: Дата релиза изменений
+        urgency:
+          $ref: '#/components/schemas/Urgency'
+        affectedSystems:
+          type: array
+          description: Затронутые системы с подсистемами и исполнителями
+          items:
+            $ref: '#/components/schemas/AffectedSystemRequest'
+          minItems: 1
+      required:
+        - title
+        - implementationDate
+        - urgency
+        - affectedSystems
+
+    AffectedSystemResponse:
+      type: object
+      description: Затронутая система с подсистемами
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID связи с системой
+        systemId:
+          type: integer
+          format: int64
+          description: ID системы
+        systemName:
+          type: string
+          description: Название системы
+        affectedSubsystems:
+          type: array
+          description: Затронутые подсистемы
+          items:
+            $ref: '#/components/schemas/AffectedSubsystemResponse'
+      required:
+        - id
+        - systemId
+        - systemName
+        - affectedSubsystems
+
+    AffectedSystemRequest:
+      type: object
+      description: Затронутая система для создания/обновления
+      properties:
+        systemId:
+          type: integer
+          format: int64
+          description: ID системы
+        affectedSubsystems:
+          type: array
+          description: Затронутые подсистемы с исполнителями
+          items:
+            $ref: '#/components/schemas/AffectedSubsystemRequest'
+          minItems: 1
+      required:
+        - systemId
+        - affectedSubsystems
+
+    AffectedSubsystemResponse:
+      type: object
+      description: Затронутая подсистема с исполнителем
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID связи с подсистемой
+        subsystemId:
+          type: integer
+          format: int64
+          description: ID подсистемы
+        subsystemName:
+          type: string
+          description: Название подсистемы
+        executorId:
+          type: integer
+          format: int64
+          description: ID исполнителя
+        executorName:
+          type: string
+          description: Имя исполнителя
+        confirmationStatus:
+          $ref: '#/components/schemas/ConfirmationStatus'
+        executionStatus:
+          $ref: '#/components/schemas/ExecutionStatus'
+      required:
+        - id
+        - subsystemId
+        - subsystemName
+        - executorId
+        - executorName
+        - confirmationStatus
+        - executionStatus
+
+    AffectedSubsystemRequest:
+      type: object
+      description: Затронутая подсистема для создания/обновления
+      properties:
+        subsystemId:
+          type: integer
+          format: int64
+          description: ID подсистемы
+        executorId:
+          type: integer
+          format: int64
+          description: ID исполнителя из команды подсистемы
+      required:
+        - subsystemId
+        - executorId
+
+    Urgency:
+      type: string
+      description: Срочность RFC
+      enum:
+        - EMERGENCY
+        - URGENT
+        - PLANNED
+
+    RfcStatus:
+      type: string
+      description: Статус RFC
+      enum:
+        - NEW
+        - UNDER_REVIEW
+        - APPROVED
+        - IMPLEMENTED
+        - REJECTED
+
+    ConfirmationStatus:
+      type: string
+      description: Статус подтверждения исполнителем
+      enum:
+        - PENDING
+        - CONFIRMED
+        - REJECTED
+
+    ExecutionStatus:
+      type: string
+      description: Статус выполнения задачи исполнителем
+      enum:
+        - PENDING
+        - IN_PROGRESS
+        - DONE
+
+    AttachmentResponse:
+      type: object
+      description: Данные прикрепленного файла
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор вложения
+        rfcId:
+          type: integer
+          format: int64
+          description: ID RFC
+        originalFilename:
+          type: string
+          description: Оригинальное имя файла
+        fileSize:
+          type: integer
+          format: int64
+          description: Размер файла в байтах
+        contentType:
+          type: string
+          description: MIME тип файла
+          nullable: true
+        uploadedById:
+          type: integer
+          format: int64
+          description: ID пользователя, загрузившего файл
+        uploadedByName:
+          type: string
+          description: Имя пользователя, загрузившего файл
+        createDatetime:
+          type: string
+          format: date-time
+          description: Дата и время загрузки
+      required:
+        - id
+        - rfcId
+        - originalFilename
+        - fileSize
+        - uploadedById
+        - uploadedByName
+        - createDatetime
+
+    RfcPageResponse:
+      allOf:
+        - $ref: '../../common/Common.yaml#/components/schemas/PageResponse'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/RfcResponse'
+          required:
+            - content

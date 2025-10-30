@@ -1,0 +1,53 @@
+openapi: 3.0.3
+info:
+  title: RFC Management System API
+  version: 1.0.0
+  description: API для системы управления запросами на изменение (RFC)
+
+paths:
+  # Users
+  /user:
+    $ref: './api/user/User.yaml'
+  /user/{id}:
+    $ref: './api/user/UserById.yaml'
+
+  #   Teams
+  /team:
+    $ref: './api/team/Team.yaml'
+  /team/{id}:
+    $ref: './api/team/TeamById.yaml'
+
+  # Systems
+  /system:
+    $ref: './api/system/System.yaml'
+  /system/{id}:
+    $ref: './api/system/SystemById.yaml'
+  /system/{id}/subsystem:
+    $ref: './api/system/SystemSubsystem.yaml'
+  /system/{id}/subsystem/{subsystemId}:
+    $ref: './api/system/SystemSubsystemById.yaml'
+
+  # RFC
+  /rfc:
+    $ref: './api/rfc/Rfc.yaml'
+  /rfc/{id}:
+    $ref: './api/rfc/RfcById.yaml'
+  /rfc/{rfcId}/subsystem/{subsystemId}/confirmation:
+    $ref: './api/rfc/RfcSubsystemConfirmation.yaml'
+  /rfc/{rfcId}/subsystem/{subsystemId}/execution:
+    $ref: './api/rfc/RfcSubsystemExecution.yaml'
+  /rfc/{rfcId}/attachments:
+    $ref: './api/rfc/RfcAttachments.yaml'
+  /rfc/{rfcId}/attachments/{attachmentId}:
+    $ref: './api/rfc/RfcAttachmentById.yaml'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token
+
+security:
+  - bearerAuth: [ ]

@@ -1,0 +1,91 @@
+get:
+  operationId: getRfcById
+  tags:
+    - RFC
+  summary: Получить RFC по ID
+  description: Возвращает детальную информацию об RFC
+  parameters:
+    - name: id
+      in: path
+      description: ID RFC
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    '200':
+      description: Успешный возврат RFC
+      content:
+        application/json:
+          schema:
+            $ref: './model/Rfc.yaml#/components/schemas/RfcResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+put:
+  operationId: updateRfc
+  tags:
+    - RFC
+  summary: Обновить RFC
+  description: Обновление существующего RFC (статус обновляется автоматически и не может быть изменен через этот эндпоинт)
+  parameters:
+    - name: id
+      in: path
+      description: ID RFC
+      required: true
+      schema:
+        type: integer
+        format: int64
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/Rfc.yaml#/components/schemas/RfcRequest'
+  responses:
+    '200':
+      description: RFC успешно обновлен
+      content:
+        application/json:
+          schema:
+            $ref: './model/Rfc.yaml#/components/schemas/RfcResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+delete:
+  operationId: deleteRfc
+  tags:
+    - RFC
+  summary: Удалить RFC
+  description: Удаление RFC по ID
+  parameters:
+    - name: id
+      in: path
+      description: ID RFC
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    '204':
+      description: RFC успешно удален
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

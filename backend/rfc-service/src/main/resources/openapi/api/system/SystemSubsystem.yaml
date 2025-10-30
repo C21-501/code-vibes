@@ -1,0 +1,53 @@
+get:
+  operationId: getSystemSubsystems
+  tags:
+    - Subsystems
+  summary: Получить список подсистем системы
+  description: Возвращает список подсистем для указанной системы
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  responses:
+    '200':
+      description: Успешный возврат списка подсистем
+      content:
+        application/json:
+          schema:
+            $ref: './model/System.yaml#/components/schemas/SubsystemPageResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+post:
+  operationId: createSubsystem
+  tags:
+    - Subsystems
+  summary: Создать подсистему
+  description: Создание новой подсистемы для указанной системы
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/System.yaml#/components/schemas/SubsystemRequest'
+  responses:
+    '201':
+      description: Подсистема успешно создана
+      content:
+        application/json:
+          schema:
+            $ref: './model/System.yaml#/components/schemas/SubsystemResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

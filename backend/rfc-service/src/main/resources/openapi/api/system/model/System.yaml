@@ -1,0 +1,117 @@
+components:
+  schemas:
+    SystemResponse:
+      type: object
+      description: Данные системы
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор системы
+        name:
+          type: string
+          description: Название системы
+        description:
+          type: string
+          nullable: true
+          description: Описание системы
+        subsystems:
+          type: array
+          description: Список подсистем
+          items:
+            $ref: '#/components/schemas/SubsystemResponse'
+      required:
+        - id
+        - name
+        - subsystems
+
+    SystemRequest:
+      type: object
+      description: Данные для создания/обновления системы
+      properties:
+        name:
+          type: string
+          description: Название системы
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          description: Описание системы
+          maxLength: 1000
+      required:
+        - name
+
+    SystemPageResponse:
+      allOf:
+        - $ref: '../../common/Common.yaml#/components/schemas/PageResponse'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/SystemResponse'
+          required:
+            - content
+
+    SubsystemResponse:
+      type: object
+      description: Данные подсистемы
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор подсистемы
+        name:
+          type: string
+          description: Название подсистемы
+        description:
+          type: string
+          nullable: true
+          description: Описание подсистемы
+        systemId:
+          type: integer
+          format: int64
+          description: ID родительской системы
+        teamId:
+          type: integer
+          format: int64
+          description: ID ответственной команды
+      required:
+        - id
+        - name
+        - systemId
+        - teamId
+
+    SubsystemRequest:
+      type: object
+      description: Данные для создания/обновления подсистемы
+      properties:
+        name:
+          type: string
+          description: Название подсистемы
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          description: Описание подсистемы
+          maxLength: 1000
+        systemId:
+          type: integer
+          format: int64
+          description: ID родительской системы
+        teamId:
+          type: integer
+          format: int64
+          description: ID ответственной команды
+      required:
+        - name
+        - systemId
+        - teamId
+
+    SubsystemPageResponse:
+      type: array
+      description: Список подсистем
+      items:
+        $ref: '#/components/schemas/SubsystemResponse'

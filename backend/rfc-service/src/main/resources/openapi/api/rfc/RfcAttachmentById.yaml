@@ -1,0 +1,70 @@
+get:
+  operationId: downloadRfcAttachment
+  tags:
+    - RFC Attachments
+  summary: Скачать файл
+  description: Скачивание файла по ID
+  parameters:
+    - name: rfcId
+      in: path
+      description: ID RFC
+      required: true
+      schema:
+        type: integer
+        format: int64
+    - name: attachmentId
+      in: path
+      description: ID файла
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    '200':
+      description: Успешное скачивание файла
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+delete:
+  operationId: deleteRfcAttachment
+  tags:
+    - RFC Attachments
+  summary: Удалить файл
+  description: Удаление прикрепленного файла
+  parameters:
+    - name: rfcId
+      in: path
+      description: ID RFC
+      required: true
+      schema:
+        type: integer
+        format: int64
+    - name: attachmentId
+      in: path
+      description: ID файла
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    '204':
+      description: Файл успешно удален
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

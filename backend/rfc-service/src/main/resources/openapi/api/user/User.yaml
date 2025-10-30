@@ -1,0 +1,58 @@
+get:
+  operationId: getUsers
+  tags:
+    - Users
+  summary: Получить пагинированный список пользователей
+  description: |
+    Возвращает список пользователей с поддержкой пагинации и фильтрации по имени.
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/pageable-page'
+    - $ref: '../common/Common.yaml#/components/parameters/pageable-size'
+    - name: name
+      in: query
+      description: Фильтр по имени (поиск по совпадению в username, firstName, lastName)
+      required: false
+      schema:
+        type: string
+        minLength: 1
+  responses:
+    '200':
+      description: Успешный возврат списка пользователей
+      content:
+        application/json:
+          schema:
+            $ref: './model/User.yaml#/components/schemas/UserPageResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+post:
+  operationId: createUser
+  tags:
+    - Users
+  summary: Создать нового пользователя
+  description: Создание нового пользователя в системе
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/User.yaml#/components/schemas/UserRequest'
+  responses:
+    '201':
+      description: Пользователь успешно создан
+      content:
+        application/json:
+          schema:
+            $ref: './model/User.yaml#/components/schemas/UserResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '409':
+      $ref: '../common/Common.yaml#/components/responses/Conflict'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

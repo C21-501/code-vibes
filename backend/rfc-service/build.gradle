@@ -53,7 +53,7 @@ tasks.named('test') {
 
 openApiGenerate {
     generatorName = "spring"
-    inputSpec = "$project.projectDir/src/main/resources/api/spec.yaml".toString()
+    inputSpec = "$project.projectDir/src/main/resources/openapi/openapi.yaml".toString()
     outputDir = "$buildDir/generated/openapi".toString()
     apiPackage = "ru.c21501.rfcservice.openapi.api"
     modelPackage = "ru.c21501.rfcservice.openapi.model"

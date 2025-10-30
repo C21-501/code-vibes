@@ -1,0 +1,73 @@
+get:
+  operationId: getSystemById
+  tags:
+    - Systems
+  summary: Получить систему по ID
+  description: Возвращает детальную информацию о системе по её идентификатору
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  responses:
+    '200':
+      description: Успешный возврат системы
+      content:
+        application/json:
+          schema:
+            $ref: './model/System.yaml#/components/schemas/SystemResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+put:
+  operationId: updateSystem
+  tags:
+    - Systems
+  summary: Обновить систему
+  description: Полное обновление информации о системе
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/System.yaml#/components/schemas/SystemRequest'
+  responses:
+    '200':
+      description: Система успешно обновлена
+      content:
+        application/json:
+          schema:
+            $ref: './model/System.yaml#/components/schemas/SystemResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+delete:
+  operationId: deleteSystem
+  tags:
+    - Systems
+  summary: Удалить систему
+  description: Удаление системы по идентификатору
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  responses:
+    '204':
+      description: Система успешно удалена
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

@@ -1,0 +1,73 @@
+get:
+  operationId: getTeamById
+  tags:
+    - Teams
+  summary: Получить команду по ID
+  description: Возвращает детальную информацию о команде по её идентификатору
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  responses:
+    '200':
+      description: Успешный возврат команды
+      content:
+        application/json:
+          schema:
+            $ref: './model/Team.yaml#/components/schemas/TeamResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+put:
+  operationId: updateTeam
+  tags:
+    - Teams
+  summary: Обновить команду
+  description: Полное обновление информации о команде
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/Team.yaml#/components/schemas/TeamRequest'
+  responses:
+    '200':
+      description: Команда успешно обновлена
+      content:
+        application/json:
+          schema:
+            $ref: './model/Team.yaml#/components/schemas/TeamResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+delete:
+  operationId: deleteTeam
+  tags:
+    - Teams
+  summary: Удалить команду
+  description: Удаление команды по идентификатору
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  responses:
+    '204':
+      description: Команда успешно удалена
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

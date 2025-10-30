@@ -1,0 +1,139 @@
+components:
+  parameters:
+    path-id:
+      in: path
+      name: id
+      schema:
+        type: integer
+        format: int64
+        nullable: false
+      required: true
+      description: ID элемента
+
+    pageable-page:
+      name: page
+      in: query
+      description: Номер страницы (начиная с 0)
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+
+    pageable-size:
+      name: size
+      in: query
+      description: Размер страницы
+      required: false
+      schema:
+        type: integer
+
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      nullable: false
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+      required:
+        - errors
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+
+    PageResponse:
+      type: object
+      description: Общая схема для пагинированных ответов
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+          description: Общее количество элементов
+        totalPages:
+          type: integer
+          description: Общее количество страниц
+        size:
+          type: integer
+          description: Размер страницы
+        number:
+          type: integer
+          description: Номер текущей страницы (начиная с 0)
+        first:
+          type: boolean
+          description: Является ли текущая страница первой
+        last:
+          type: boolean
+          description: Является ли текущая страница последней
+      required:
+        - totalElements
+        - totalPages
+        - size
+        - number
+        - first
+        - last
+
+    UserRole:
+      type: string
+      enum:
+        - REQUESTER
+        - EXECUTOR
+        - CAB_MANAGER
+        - ADMIN
+      description: Роль пользователя в системе

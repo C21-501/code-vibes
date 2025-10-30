@@ -1,0 +1,55 @@
+get:
+  operationId: getTeams
+  tags:
+    - Teams
+  summary: Получить пагинированный список команд
+  description: Возвращает список команд с поддержкой пагинации и фильтрации по названию
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/pageable-page'
+    - $ref: '../common/Common.yaml#/components/parameters/pageable-size'
+    - name: name
+      in: query
+      description: Фильтр по названию команды (поиск по совпадению)
+      required: false
+      schema:
+        type: string
+        minLength: 1
+  responses:
+    '200':
+      description: Успешный возврат списка команд
+      content:
+        application/json:
+          schema:
+            $ref: './model/Team.yaml#/components/schemas/TeamPageResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+post:
+  operationId: createTeam
+  tags:
+    - Teams
+  summary: Создать новую команду
+  description: Создание новой команды в системе
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/Team.yaml#/components/schemas/TeamRequest'
+  responses:
+    '201':
+      description: Команда успешно создана
+      content:
+        application/json:
+          schema:
+            $ref: './model/Team.yaml#/components/schemas/TeamResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

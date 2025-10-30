@@ -1,0 +1,67 @@
+components:
+  schemas:
+    UserResponse:
+      type: object
+      description: Данные пользователя
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор пользователя
+        username:
+          type: string
+          description: Имя пользователя
+        firstName:
+          type: string
+          description: Имя
+        lastName:
+          type: string
+          description: Фамилия
+        role:
+          $ref: '../../common/Common.yaml#/components/schemas/UserRole'
+      required:
+        - id
+        - username
+        - firstName
+        - lastName
+        - role
+
+    UserRequest:
+      type: object
+      description: Данные для создания/обновления пользователя
+      properties:
+        username:
+          type: string
+          description: Имя пользователя (уникальное)
+          minLength: 3
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_-]+$'
+        firstName:
+          type: string
+          description: Имя
+          minLength: 1
+          maxLength: 100
+        lastName:
+          type: string
+          description: Фамилия
+          minLength: 1
+          maxLength: 100
+        role:
+          $ref: '../../common/Common.yaml#/components/schemas/UserRole'
+      required:
+        - username
+        - firstName
+        - lastName
+        - role
+
+    UserPageResponse:
+      allOf:
+        - $ref: '../../common/Common.yaml#/components/schemas/PageResponse'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserResponse'
+          required:
+            - content

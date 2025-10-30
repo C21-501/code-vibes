@@ -1,0 +1,63 @@
+components:
+  schemas:
+    TeamResponse:
+      type: object
+      description: Данные команды
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор команды
+        name:
+          type: string
+          description: Название команды
+        description:
+          type: string
+          nullable: true
+          description: Описание команды
+        members:
+          type: array
+          description: Список членов команды
+          items:
+            $ref: '../../user/model/User.yaml#/components/schemas/UserResponse'
+      required:
+        - id
+        - name
+        - members
+
+    TeamRequest:
+      type: object
+      description: Данные для создания/обновления команды
+      properties:
+        name:
+          type: string
+          description: Название команды
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          description: Описание команды
+          maxLength: 1000
+        memberIds:
+          type: array
+          description: Список ID членов команды
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+      required:
+        - name
+        - memberIds
+
+    TeamPageResponse:
+      allOf:
+        - $ref: '../../common/Common.yaml#/components/schemas/PageResponse'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/TeamResponse'
+          required:
+            - content

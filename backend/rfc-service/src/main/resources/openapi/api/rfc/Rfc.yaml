@@ -1,0 +1,77 @@
+get:
+  operationId: getRfcs
+  tags:
+    - RFC
+  summary: Получить пагинированный список RFC
+  description: Возвращает список RFC с поддержкой пагинации и фильтрации
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/pageable-page'
+    - $ref: '../common/Common.yaml#/components/parameters/pageable-size'
+    - name: status
+      in: query
+      description: Фильтр по статусу RFC
+      required: false
+      schema:
+        type: string
+        enum:
+          - NEW
+          - UNDER_REVIEW
+          - APPROVED
+          - IMPLEMENTED
+          - REJECTED
+    - name: urgency
+      in: query
+      description: Фильтр по срочности
+      required: false
+      schema:
+        type: string
+        enum:
+          - EMERGENCY
+          - URGENT
+          - PLANNED
+    - name: requesterId
+      in: query
+      description: Фильтр по ID создателя
+      required: false
+      schema:
+        type: integer
+        format: int64
+  responses:
+    '200':
+      description: Успешный возврат списка RFC
+      content:
+        application/json:
+          schema:
+            $ref: './model/Rfc.yaml#/components/schemas/RfcPageResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+post:
+  operationId: createRfc
+  tags:
+    - RFC
+  summary: Создать новый RFC
+  description: Создание нового RFC с затронутыми системами, подсистемами и исполнителями
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/Rfc.yaml#/components/schemas/RfcRequest'
+  responses:
+    '201':
+      description: RFC успешно создан
+      content:
+        application/json:
+          schema:
+            $ref: './model/Rfc.yaml#/components/schemas/RfcResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
