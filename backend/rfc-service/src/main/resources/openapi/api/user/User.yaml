@@ -4,13 +4,14 @@ get:
     - Users
   summary: Получить пагинированный список пользователей
   description: |
-    Возвращает список пользователей с поддержкой пагинации и фильтрации по имени.
+    Возвращает список пользователей с поддержкой пагинации и поиска.
+    Поиск осуществляется по ID, username, firstName и lastName (case-insensitive).
   parameters:
     - $ref: '../common/Common.yaml#/components/parameters/pageable-page'
     - $ref: '../common/Common.yaml#/components/parameters/pageable-size'
-    - name: name
+    - name: searchString
       in: query
-      description: Фильтр по имени (поиск по совпадению в username, firstName, lastName)
+      description: Строка поиска (по ID, username, firstName, lastName)
       required: false
       schema:
         type: string

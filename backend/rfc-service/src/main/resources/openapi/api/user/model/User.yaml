@@ -28,7 +28,42 @@ components:
 
     UserRequest:
       type: object
-      description: Данные для создания/обновления пользователя
+      description: Данные для создания пользователя
+      properties:
+        username:
+          type: string
+          description: Имя пользователя (уникальное)
+          minLength: 3
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_-]+$'
+        firstName:
+          type: string
+          description: Имя
+          minLength: 1
+          maxLength: 100
+        lastName:
+          type: string
+          description: Фамилия
+          minLength: 1
+          maxLength: 100
+        role:
+          $ref: '../../common/Common.yaml#/components/schemas/UserRole'
+        password:
+          type: string
+          description: Пароль (обязательное поле при создании)
+          format: password
+          minLength: 8
+          maxLength: 100
+      required:
+        - username
+        - firstName
+        - lastName
+        - role
+        - password
+
+    UpdateUserRequest:
+      type: object
+      description: Данные для обновления пользователя
       properties:
         username:
           type: string
@@ -53,6 +88,49 @@ components:
         - firstName
         - lastName
         - role
+
+    LoginRequest:
+      type: object
+      description: Данные для входа в систему
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+          minLength: 1
+          maxLength: 50
+        password:
+          type: string
+          description: Пароль
+          format: password
+          minLength: 1
+          maxLength: 100
+      required:
+        - username
+        - password
+
+    LoginResponse:
+      type: object
+      description: Токены доступа после успешной аутентификации
+      properties:
+        accessToken:
+          type: string
+          description: JWT токен доступа
+        refreshToken:
+          type: string
+          description: Refresh токен для обновления access токена
+        expiresIn:
+          type: integer
+          description: Время жизни токена в секундах
+        refreshExpiresIn:
+          type: integer
+          description: Время жизни refresh токена в секундах
+        tokenType:
+          type: string
+          description: Тип токена (обычно "Bearer")
+      required:
+        - accessToken
+        - tokenType
+        - expiresIn
 
     UserPageResponse:
       allOf:

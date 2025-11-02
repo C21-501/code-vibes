@@ -35,7 +35,7 @@ put:
     content:
       application/json:
         schema:
-          $ref: './model/User.yaml#/components/schemas/UserRequest'
+          $ref: './model/User.yaml#/components/schemas/UpdateUserRequest'
   responses:
     '200':
       description: Пользователь успешно обновлен
