@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список RFC - RFC Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .logo {
+            padding: 0 20px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding-bottom: 80px; /* Space for logout button */
+        }
+
+        .nav-item {
+            margin: 5px 0;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 15px 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        /* Logout button */
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 12px;
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-logout:hover {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* User info */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .role-requester {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .role-executor {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .role-cab-manager {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .role-admin {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-view {
+            padding: 6px 12px;
+            background: white;
+            color: #3498db;
+            border: 1px solid #3498db;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: #3498db;
+            color: white;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        /* Filters */
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        /* My RFC Filter Checkbox */
+        .my-rfc-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .my-rfc-filter:hover {
+            background: #e9ecef;
+        }
+
+        .filter-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #3498db;
+        }
+
+        .checkbox-label {
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            user-select: none;
+            margin: 0;
+        }
+
+        .my-rfc-filter input[type="checkbox"]:checked ~ .checkbox-label {
+            color: #3498db;
+        }
+
+        /* RFC Table */
+        .rfc-table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .rfc-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .rfc-table thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .rfc-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .rfc-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+
+        .rfc-table tbody tr {
+            transition: background 0.2s ease;
+            cursor: pointer;
+        }
+
+        .rfc-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-new {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-under-review {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .status-approved {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status-implemented {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .status-rejected {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Urgency badges */
+        .urgency-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .urgency-emergency {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .urgency-urgent {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .urgency-planned {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .pagination-info {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #f8f9fa;
+            border-color: #3498db;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .pagination-dots {
+            padding: 0 8px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+        }
+
+        /* RFC ID link */
+        .rfc-id-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .rfc-id-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Subsystems list */
+        .subsystems-list {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .system-group {
+            margin-bottom: 5px;
+        }
+
+        .system-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .system-group strong {
+            display: block;
+            color: #495057;
+            font-size: 11px;
+            margin-bottom: 3px;
+        }
+
+        .subsystem-item {
+            display: inline-block;
+            margin-right: 5px;
+            margin-bottom: 3px;
+            padding: 2px 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        /* Attachment badge */
+        .attachment-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #495057;
+            border: 1px solid #e9ecef;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #6c757d;
+            line-height: 1;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-section {
+            margin-bottom: 24px;
+        }
+
+        .modal-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .modal-field {
+            margin-bottom: 16px;
+        }
+
+        .modal-field-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+
+        .modal-field-value {
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .modal-description {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 6px;
+            border-left: 3px solid #3498db;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #495057;
+        }
+
+        .affected-system-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .affected-system-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .system-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subsystem-card {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .subsystem-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .subsystem-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .subsystem-name {
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .subsystem-info {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .attachment-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .attachment-icon {
+            font-size: 24px;
+        }
+
+        .attachment-details {
+            flex: 1;
+        }
+
+        .attachment-name {
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .attachment-meta {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .confirmation-badge,
+        .execution-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .confirmation-pending,
+        .execution-pending {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .confirmation-confirmed,
+        .execution-in-progress {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .confirmation-rejected {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .execution-done {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .rfc-table {
+                font-size: 12px;
+            }
+
+            .rfc-table th,
+            .rfc-table td {
+                padding: 10px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .header-right {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+
+            .user-info {
+                width: 100%;
+            }
+
+            .header .btn-primary {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">RFC System</div>
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">📋 Список RFC</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">📚 Справочники</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-logout" id="logout-btn">
+                    <span>🚪</span>
+                    <span>Выйти</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h1>Список RFC</h1>
+                <div class="header-right">
+                    <div class="user-info">
+                        <div class="user-avatar" id="user-avatar">ИИ</div>
+                        <div class="user-details">
+                            <div class="user-name" id="user-name">Иванов Иван</div>
+                            <div class="user-role">
+                                <span class="role-badge role-admin" id="user-role-badge">Admin</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary">+ Создать RFC</button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="status-filter">Статус</label>
+                        <select id="status-filter">
+                            <option value="">Все статусы</option>
+                            <option value="NEW">Новый</option>
+                            <option value="UNDER_REVIEW">На рассмотрении</option>
+                            <option value="APPROVED">Одобрен</option>
+                            <option value="IMPLEMENTED">Внедрен</option>
+                            <option value="REJECTED">Отклонен</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="urgency-filter">Срочность</label>
+                        <select id="urgency-filter">
+                            <option value="">Все</option>
+                            <option value="EMERGENCY">Безотлагательное</option>
+                            <option value="URGENT">Срочное</option>
+                            <option value="PLANNED">Плановое</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="requester-filter">ID создателя</label>
+                        <input type="number" id="requester-filter" placeholder="Введите ID">
+                    </div>
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <div class="my-rfc-filter">
+                            <input type="checkbox" id="my-rfc-filter" class="filter-checkbox">
+                            <label for="my-rfc-filter" class="checkbox-label">Только мои RFC</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-primary" style="width: 100%;">Применить фильтры</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RFC Table -->
+            <div class="rfc-table-container">
+                <table class="rfc-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">ID</th>
+                            <th>Название</th>
+                            <th style="width: 140px;">Статус</th>
+                            <th style="width: 130px;">Срочность</th>
+                            <th style="width: 150px;">Дата исполнения</th>
+                            <th style="width: 120px;">Создатель</th>
+                            <th style="width: 150px;">Дата создания</th>
+                            <th style="width: 100px;">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Sample RFC 1 - Created by current user (Ivanov) -->
+                        <tr data-rfc-id="1">
+                            <td><a href="#" class="rfc-id-link">RFC-001</a></td>
+                            <td>
+                                <div style="font-weight: 500; margin-bottom: 4px;">Обновление базы данных пользователей</div>
+                                <div style="font-size: 11px; color: #6c757d;">
+                                    <span title="Системы">🖥️ 1</span> · 
+                                    <span title="Подсистемы">📦 2</span> · 
+                                    <span title="Вложения">📎 2</span>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-new">Новый</span></td>
+                            <td><span class="urgency-badge urgency-planned">Плановое</span></td>
+                            <td>2025-11-10 14:00</td>
+                            <td>Иванов И.</td>
+                            <td>2025-11-03 10:30</td>
+                            <td>
+                                <button class="btn-view" onclick="openRfcModal(1)">👁️ Просмотр</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample RFC 2 -->
+                        <tr data-rfc-id="2">
+                            <td><a href="#" class="rfc-id-link">RFC-002</a></td>
+                            <td>
+                                <div style="font-weight: 500; margin-bottom: 4px;">Экстренное исправление критической уязвимости</div>
+                                <div style="font-size: 11px; color: #6c757d;">
+                                    <span title="Системы">🖥️ 1</span> · 
+                                    <span title="Подсистемы">📦 2</span> · 
+                                    <span title="Вложения">📎 1</span>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-under-review">На рассмотрении</span></td>
+                            <td><span class="urgency-badge urgency-emergency">Безотлагательное</span></td>
+                            <td>2025-11-04 09:00</td>
+                            <td>Петров П.</td>
+                            <td>2025-11-03 08:15</td>
+                            <td>
+                                <button class="btn-view" onclick="openRfcModal(2)">👁️ Просмотр</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample RFC 3 -->
+                        <tr data-rfc-id="3">
+                            <td><a href="#" class="rfc-id-link">RFC-003</a></td>
+                            <td>
+                                <div style="font-weight: 500; margin-bottom: 4px;">Миграция на новую версию фреймворка</div>
+                                <div style="font-size: 11px; color: #6c757d;">
+                                    <span title="Системы">🖥️ 1</span> · 
+                                    <span title="Подсистемы">📦 3</span> · 
+                                    <span title="Вложения">📎 5</span>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-approved">Одобрен</span></td>
+                            <td><span class="urgency-badge urgency-urgent">Срочное</span></td>
+                            <td>2025-11-15 16:00</td>
+                            <td>Сидорова С.</td>
+                            <td>2025-11-02 14:20</td>
+                            <td>
+                                <button class="btn-view" onclick="openRfcModal(3)">👁️ Просмотр</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample RFC 4 -->
+                        <tr data-rfc-id="4">
+                            <td><a href="#" class="rfc-id-link">RFC-004</a></td>
+                            <td>
+                                <div style="font-weight: 500; margin-bottom: 4px;">Добавление новых полей в профиль пользователя</div>
+                                <div style="font-size: 11px; color: #6c757d;">
+                                    <span title="Системы">🖥️ 1</span> · 
+                                    <span title="Подсистемы">📦 1</span> · 
+                                    <span title="Вложения" style="opacity: 0.5;">📎 0</span>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-implemented">Внедрен</span></td>
+                            <td><span class="urgency-badge urgency-planned">Плановое</span></td>
+                            <td>2025-11-01 12:00</td>
+                            <td>Козлов К.</td>
+                            <td>2025-10-28 11:45</td>
+                            <td>
+                                <button class="btn-view" onclick="openRfcModal(4)">👁️ Просмотр</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample RFC 5 -->
+                        <tr data-rfc-id="5">
+                            <td><a href="#" class="rfc-id-link">RFC-005</a></td>
+                            <td>
+                                <div style="font-weight: 500; margin-bottom: 4px;">Настройка мониторинга производительности</div>
+                                <div style="font-size: 11px; color: #6c757d;">
+                                    <span title="Системы">🖥️ 1</span> · 
+                                    <span title="Подсистемы">📦 2</span> · 
+                                    <span title="Вложения" style="opacity: 0.5;">📎 0</span>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-rejected">Отклонен</span></td>
+                            <td><span class="urgency-badge urgency-planned">Плановое</span></td>
+                            <td>2025-11-20 10:00</td>
+                            <td>Морозова М.</td>
+                            <td>2025-11-01 09:00</td>
+                            <td>
+                                <button class="btn-view" onclick="openRfcModal(5)">👁️ Просмотр</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample RFC 6 -->
+                        <tr data-rfc-id="6">
+                            <td><a href="#" class="rfc-id-link">RFC-006</a></td>
+                            <td>
+                                <div style="font-weight: 500; margin-bottom: 4px;">Оптимизация запросов к базе данных</div>
+                                <div style="font-size: 11px; color: #6c757d;">
+                                    <span title="Системы">🖥️ 1</span> · 
+                                    <span title="Подсистемы">📦 2</span> · 
+                                    <span title="Вложения">📎 3</span>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-under-review">На рассмотрении</span></td>
+                            <td><span class="urgency-badge urgency-urgent">Срочное</span></td>
+                            <td>2025-11-08 15:00</td>
+                            <td>Новиков Н.</td>
+                            <td>2025-11-03 13:25</td>
+                            <td>
+                                <button class="btn-view" onclick="openRfcModal(6)">👁️ Просмотр</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Pagination - based on PageResponse from OpenAPI spec -->
+                <div class="pagination">
+                    <div class="pagination-info" id="paginationInfo">
+                        Показано 1-6 из 6 записей (страница 1 из 1)
+                    </div>
+                    <div class="pagination-controls" id="paginationControls">
+                        <button class="pagination-btn" id="prevPageBtn" disabled>← Предыдущая</button>
+                        <div id="pageNumbers" style="display: flex; gap: 5px;">
+                            <button class="pagination-btn active">1</button>
+                        </div>
+                        <button class="pagination-btn" id="nextPageBtn" disabled>Следующая →</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- RFC Details Modal -->
+    <div class="modal-overlay" id="rfcModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">RFC Details</h2>
+                <button class="modal-close" onclick="closeRfcModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * RFC List Page - OpenAPI Contract Compliance
+         * 
+         * Data Structures:
+         * 
+         * UserResponse (from api/user/model/User.yaml):
+         * - id: integer(int64) - Unique user identifier
+         * - username: string - Username
+         * - firstName: string - First name
+         * - lastName: string - Last name
+         * - role: UserRole enum (REQUESTER, EXECUTOR, CAB_MANAGER, ADMIN)
+         * 
+         * RfcPageResponse (from api/rfc/model/Rfc.yaml):
+         * Extends PageResponse from Common.yaml with:
+         * - content: array of RfcResponse
+         * - totalElements: integer(int64) - Total number of RFC items
+         * - totalPages: integer - Total number of pages
+         * - size: integer - Page size
+         * - number: integer - Current page number (0-indexed)
+         * - first: boolean - Is first page
+         * - last: boolean - Is last page
+         * 
+         * RfcResponse (from api/rfc/model/Rfc.yaml):
+         * - id: integer(int64) - Unique RFC identifier
+         * - title: string - RFC title
+         * - description: string (nullable) - Change description
+         * - implementationDate: string(date-time) - Implementation date
+         * - urgency: Urgency enum (EMERGENCY, URGENT, PLANNED)
+         * - status: RfcStatus enum (NEW, UNDER_REVIEW, APPROVED, IMPLEMENTED, REJECTED)
+         * - requesterId: integer(int64) - Creator user ID
+         * - affectedSystems: array of AffectedSystemResponse
+         *   - id: integer(int64) - System relation ID
+         *   - systemId: integer(int64) - System ID
+         *   - systemName: string - System name
+         *   - affectedSubsystems: array of AffectedSubsystemResponse
+         *     - id: integer(int64) - Subsystem relation ID
+         *     - subsystemId: integer(int64) - Subsystem ID
+         *     - subsystemName: string - Subsystem name
+         *     - executorId: integer(int64) - Executor user ID
+         *     - executorName: string - Executor name
+         *     - confirmationStatus: enum (PENDING, CONFIRMED, REJECTED)
+         *     - executionStatus: enum (PENDING, IN_PROGRESS, DONE)
+         * - attachments: array of AttachmentResponse
+         *   - id: integer(int64) - Attachment ID
+         *   - originalFilename: string - File name
+         *   - fileSize: integer(int64) - Size in bytes
+         *   - uploadedById: integer(int64) - Uploader user ID
+         *   - uploadedByName: string - Uploader name
+         *   - createDatetime: string(date-time) - Upload timestamp
+         * - createDatetime: string(date-time) - Creation timestamp
+         * - updateDatetime: string(date-time) - Last update timestamp
+         * 
+         * Table Display Format:
+         * - User names: "LastName F." (e.g., "Иванов И.")
+         * - Systems/Subsystems: "SystemName: subsystem1, subsystem2..."
+         * - Attachments: "📎 N" (count)
+         * - Dates: "📅 createDatetime" and "🔄 updateDatetime"
+         * 
+         * Header Display Format:
+         * - User names: "FirstName LastName" (e.g., "Иван Иванов")
+         * - User avatar initials: "FL" (e.g., "ИИ")
+         */
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulated current user data (in real app, would come from authentication)
+            // Following UserResponse schema from OpenAPI spec
+            const currentUser = {
+                id: 1,
+                username: 'i.ivanov',
+                firstName: 'Иван',
+                lastName: 'Иванов',
+                role: 'ADMIN' // REQUESTER, EXECUTOR, CAB_MANAGER, ADMIN
+            };
+
+            // Initialize user info in header
+            initializeUserInfo(currentUser);
+
+            const currentUserId = currentUser.id;
+            // Format: "LastName F." for display in table (matching RfcResponse format)
+            const currentUserFullName = `${currentUser.lastName} ${currentUser.firstName.charAt(0)}.`;
+
+            // Initialize pagination with sample data matching PageResponse schema
+            // In real app, this would come from API response: GET /rfc?page=0&size=20
+            // Simulating scenario with multiple pages for demonstration
+            // Count actual RFC items in DOM
+            const rfcItemsCount = document.querySelectorAll('.rfc-table tbody tr').length;
+            
+            const samplePageResponse = {
+                content: [], // RFC array (already in DOM, showing actual count)
+                totalElements: 156, // Total RFC count across all pages (simulated)
+                totalPages: 8,      // ceil(156 / 20) = 8 pages
+                size: 20,           // Items per page
+                number: 0,          // Current page (0-indexed, so page 1 in UI)
+                first: true,        // This is the first page
+                last: false         // Not the last page
+            };
+            
+            updatePaginationUI(samplePageResponse);
+
+            // Table row click handler (removed - using button instead)
+            // const rows = document.querySelectorAll('.rfc-table tbody tr');
+            // rows.forEach(row => {
+            //     row.addEventListener('click', function(e) {
+            //         // Don't navigate if clicking on a link or button
+            //         if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+            //             const rfcId = this.getAttribute('data-rfc-id');
+            //             if (rfcId) {
+            //                 openRfcModal(parseInt(rfcId));
+            //             }
+            //         }
+            //     });
+            // });
+
+            // Filter handlers
+            const statusFilter = document.getElementById('status-filter');
+            const urgencyFilter = document.getElementById('urgency-filter');
+            const requesterFilter = document.getElementById('requester-filter');
+            const myRfcFilter = document.getElementById('my-rfc-filter');
+
+            statusFilter.addEventListener('change', function() {
+                console.log('Status filter changed:', this.value);
+                applyFilters();
+            });
+
+            urgencyFilter.addEventListener('change', function() {
+                console.log('Urgency filter changed:', this.value);
+                applyFilters();
+            });
+
+            requesterFilter.addEventListener('input', function() {
+                console.log('Requester filter changed:', this.value);
+                applyFilters();
+            });
+
+            // My RFC filter handler
+            myRfcFilter.addEventListener('change', function() {
+                console.log('My RFC filter:', this.checked);
+                if (this.checked) {
+                    // Auto-fill requester filter with current user ID
+                    requesterFilter.value = currentUserId;
+                    requesterFilter.disabled = true;
+                    requesterFilter.style.opacity = '0.6';
+                } else {
+                    // Clear and enable requester filter
+                    requesterFilter.value = '';
+                    requesterFilter.disabled = false;
+                    requesterFilter.style.opacity = '1';
+                }
+                applyFilters();
+            });
+
+            // Apply filters function
+            function applyFilters() {
+                const rows = document.querySelectorAll('.rfc-table tbody tr');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    let shouldShow = true;
+
+                    // Status filter
+                    if (statusFilter.value) {
+                        const statusBadge = row.querySelector('.status-badge');
+                        const statusText = statusBadge.textContent.trim().toUpperCase();
+                        const statusValue = statusFilter.value;
+                        
+                        const statusMap = {
+                            'NEW': 'НОВЫЙ',
+                            'UNDER_REVIEW': 'НА РАССМОТРЕНИИ',
+                            'APPROVED': 'ОДОБРЕН',
+                            'IMPLEMENTED': 'ВНЕДРЕН',
+                            'REJECTED': 'ОТКЛОНЕН'
+                        };
+                        
+                        if (statusMap[statusValue] !== statusText) {
+                            shouldShow = false;
+                        }
+                    }
+
+                    // Urgency filter
+                    if (urgencyFilter.value && shouldShow) {
+                        const urgencyBadge = row.querySelector('.urgency-badge');
+                        const urgencyText = urgencyBadge.textContent.trim().toUpperCase();
+                        const urgencyValue = urgencyFilter.value;
+                        
+                        const urgencyMap = {
+                            'EMERGENCY': 'БЕЗОТЛАГАТЕЛЬНОЕ',
+                            'URGENT': 'СРОЧНОЕ',
+                            'PLANNED': 'ПЛАНОВОЕ'
+                        };
+                        
+                        if (urgencyMap[urgencyValue] !== urgencyText) {
+                            shouldShow = false;
+                        }
+                    }
+
+                    // Requester filter (or My RFC filter)
+                    if (requesterFilter.value && shouldShow) {
+                        const creatorCell = row.cells[5]; // Creator column (0-indexed: ID=0, Title=1, Status=2, Urgency=3, Date=4, Creator=5)
+                        const creatorName = creatorCell.textContent.trim();
+                        
+                        // In real app, would compare by ID from RfcResponse.requesterId
+                        // For demo, we check if "My RFC" is checked and compare names
+                        if (myRfcFilter.checked) {
+                            if (creatorName !== currentUserFullName) {
+                                shouldShow = false;
+                            }
+                        }
+                    }
+
+                    // Show/hide row
+                    if (shouldShow) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Update pagination info
+                updatePaginationInfo(visibleCount, rows.length);
+            }
+
+            // Update pagination information
+            function updatePaginationInfo(visible, total) {
+                const paginationInfo = document.querySelector('.pagination-info');
+                if (visible === 0) {
+                    paginationInfo.textContent = 'Нет записей для отображения';
+                } else if (visible === total) {
+                    paginationInfo.textContent = `Показано 1-${visible} из ${total} записей`;
+                } else {
+                    paginationInfo.textContent = `Показано ${visible} из ${total} записей (отфильтровано)`;
+                }
+            }
+
+            // Update pagination UI based on PageResponse from API
+            // Following PageResponse schema from Common.yaml
+            function updatePaginationUI(pageResponse) {
+                const {
+                    totalElements,
+                    totalPages,
+                    size,
+                    number,  // 0-indexed current page
+                    first,
+                    last
+                } = pageResponse;
+
+                const paginationInfo = document.getElementById('paginationInfo');
+                const prevBtn = document.getElementById('prevPageBtn');
+                const nextBtn = document.getElementById('nextPageBtn');
+                const pageNumbers = document.getElementById('pageNumbers');
+
+                // Calculate display range
+                const startItem = number * size + 1;
+                const endItem = Math.min((number + 1) * size, totalElements);
+
+                // Update info text
+                if (totalElements === 0) {
+                    paginationInfo.textContent = 'Нет записей для отображения';
+                } else {
+                    paginationInfo.textContent = `Показано ${startItem}-${endItem} из ${totalElements} записей (страница ${number + 1} из ${totalPages})`;
+                }
+
+                // Update Previous button
+                prevBtn.disabled = first;
+
+                // Update Next button
+                nextBtn.disabled = last;
+
+                // Generate page number buttons
+                pageNumbers.innerHTML = '';
+                
+                // Show max 5 page buttons
+                const maxButtons = 5;
+                let startPage = Math.max(0, number - Math.floor(maxButtons / 2));
+                let endPage = Math.min(totalPages - 1, startPage + maxButtons - 1);
+                
+                // Adjust if at the end
+                if (endPage - startPage < maxButtons - 1) {
+                    startPage = Math.max(0, endPage - maxButtons + 1);
+                }
+
+                // First page button
+                if (startPage > 0) {
+                    const firstBtn = document.createElement('button');
+                    firstBtn.className = 'pagination-btn';
+                    firstBtn.textContent = '1';
+                    firstBtn.onclick = () => goToPage(0);
+                    pageNumbers.appendChild(firstBtn);
+                    
+                    if (startPage > 1) {
+                        const dots = document.createElement('span');
+                        dots.className = 'pagination-dots';
+                        dots.textContent = '...';
+                        pageNumbers.appendChild(dots);
+                    }
+                }
+
+                // Page number buttons
+                for (let i = startPage; i <= endPage; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = 'pagination-btn' + (i === number ? ' active' : '');
+                    btn.textContent = i + 1;
+                    btn.onclick = () => goToPage(i);
+                    pageNumbers.appendChild(btn);
+                }
+
+                // Last page button
+                if (endPage < totalPages - 1) {
+                    if (endPage < totalPages - 2) {
+                        const dots = document.createElement('span');
+                        dots.className = 'pagination-dots';
+                        dots.textContent = '...';
+                        pageNumbers.appendChild(dots);
+                    }
+                    
+                    const lastBtn = document.createElement('button');
+                    lastBtn.className = 'pagination-btn';
+                    lastBtn.textContent = totalPages;
+                    lastBtn.onclick = () => goToPage(totalPages - 1);
+                    pageNumbers.appendChild(lastBtn);
+                }
+
+                // Update button click handlers
+                prevBtn.onclick = () => {
+                    if (!first) {
+                        goToPage(number - 1);
+                    }
+                };
+
+                nextBtn.onclick = () => {
+                    if (!last) {
+                        goToPage(number + 1);
+                    }
+                };
+            }
+
+            // Navigate to specific page (0-indexed)
+            function goToPage(pageNumber) {
+                console.log('Navigate to page:', pageNumber);
+                // In real app, make API call with page parameter
+                // GET /rfc?page=${pageNumber}&size=${pageSize}&status=...&urgency=...
+                // Then update table and call updatePaginationUI with new PageResponse
+                
+                // For demo, just log
+                alert(`В реальном приложении здесь будет запрос: GET /rfc?page=${pageNumber}&size=20`);
+            }
+
+            // Apply filters button
+            const applyFiltersBtn = document.querySelector('.filters .btn-primary');
+            applyFiltersBtn.addEventListener('click', function() {
+                console.log('Applying filters...');
+                applyFilters();
+            });
+
+            // Create RFC button
+            const createBtn = document.querySelector('.header .btn-primary');
+            createBtn.addEventListener('click', function() {
+                console.log('Create new RFC');
+                // window.location.href = '/rfc/create';
+            });
+
+            // Logout button
+            const logoutBtn = document.getElementById('logout-btn');
+            logoutBtn.addEventListener('click', function() {
+                if (confirm('Вы уверены, что хотите выйти из системы?')) {
+                    console.log('Logging out...');
+                    // In real app: clear session, tokens, redirect to login
+                    // window.location.href = '/logout';
+                    alert('Выход из системы выполнен');
+                }
+            });
+
+            // Initialize user info function
+            // Following UserResponse schema from OpenAPI spec
+            function initializeUserInfo(user) {
+                const userAvatar = document.getElementById('user-avatar');
+                const userName = document.getElementById('user-name');
+                const userRoleBadge = document.getElementById('user-role-badge');
+
+                // Set avatar initials from firstName and lastName
+                const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
+                userAvatar.textContent = initials;
+
+                // Set user name as "firstName lastName"
+                const fullName = `${user.firstName} ${user.lastName}`;
+                userName.textContent = fullName;
+
+                // Set role badge according to UserRole enum from Common.yaml
+                const roleMap = {
+                    'REQUESTER': { class: 'role-requester', text: 'Инициатор' },
+                    'EXECUTOR': { class: 'role-executor', text: 'Исполнитель' },
+                    'CAB_MANAGER': { class: 'role-cab-manager', text: 'Менеджер CAB' },
+                    'ADMIN': { class: 'role-admin', text: 'Администратор' }
+                };
+
+                const roleInfo = roleMap[user.role] || roleMap['REQUESTER'];
+                userRoleBadge.className = 'role-badge ' + roleInfo.class;
+                userRoleBadge.textContent = roleInfo.text;
+            }
+        });
+
+        // Modal functions - defined globally for onclick handlers
+        function openRfcModal(rfcId) {
+            const rfcData = getRfcData(rfcId);
+            if (!rfcData) {
+                console.error('RFC not found:', rfcId);
+                return;
+            }
+
+            const modal = document.getElementById('rfcModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            modalTitle.textContent = `RFC-${String(rfcId).padStart(3, '0')}`;
+            modalBody.innerHTML = generateModalContent(rfcData);
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRfcModal() {
+            const modal = document.getElementById('rfcModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on overlay click
+        document.getElementById('rfcModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeRfcModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeRfcModal();
+            }
+        });
+
+        function getRfcData(rfcId) {
+            // Sample RFC data - in real app, fetch from API
+            const rfcDatabase = {
+                1: {
+                    id: 1,
+                    title: 'Обновление базы данных пользователей',
+                    description: 'Необходимо добавить новые поля в таблицу пользователей для поддержки расширенного профиля и двухфакторной аутентификации.',
+                    status: 'NEW',
+                    urgency: 'PLANNED',
+                    implementationDate: '2025-11-10T14:00:00',
+                    requesterId: 1,
+                    requesterName: 'Иванов И.',
+                    createDatetime: '2025-11-03T10:30:00',
+                    updateDatetime: '2025-11-03T15:45:00',
+                    affectedSystems: [
+                        {
+                            systemName: 'Auth System',
+                            affectedSubsystems: [
+                                {
+                                    subsystemName: 'Auth Service',
+                                    executorName: 'Петров П.',
+                                    confirmationStatus: 'PENDING',
+                                    executionStatus: 'PENDING'
+                                },
+                                {
+                                    subsystemName: 'User DB',
+                                    executorName: 'Сидорова С.',
+                                    confirmationStatus: 'CONFIRMED',
+                                    executionStatus: 'PENDING'
+                                }
+                            ]
+                        }
+                    ],
+                    attachments: [
+                        {
+                            originalFilename: 'database-schema.sql',
+                            fileSize: 15360,
+                            uploadedByName: 'Иванов И.',
+                            createDatetime: '2025-11-03T10:35:00'
+                        },
+                        {
+                            originalFilename: 'migration-plan.pdf',
+                            fileSize: 245760,
+                            uploadedByName: 'Иванов И.',
+                            createDatetime: '2025-11-03T10:40:00'
+                        }
+                    ]
+                },
+                2: {
+                    id: 2,
+                    title: 'Экстренное исправление критической уязвимости',
+                    description: 'Обнаружена критическая уязвимость в API Gateway, требуется немедленное исправление.',
+                    status: 'UNDER_REVIEW',
+                    urgency: 'EMERGENCY',
+                    implementationDate: '2025-11-04T09:00:00',
+                    requesterId: 2,
+                    requesterName: 'Петров П.',
+                    createDatetime: '2025-11-03T08:15:00',
+                    updateDatetime: '2025-11-03T09:30:00',
+                    affectedSystems: [
+                        {
+                            systemName: 'Security System',
+                            affectedSubsystems: [
+                                {
+                                    subsystemName: 'API Gateway',
+                                    executorName: 'Козлов К.',
+                                    confirmationStatus: 'CONFIRMED',
+                                    executionStatus: 'IN_PROGRESS'
+                                },
+                                {
+                                    subsystemName: 'Security Module',
+                                    executorName: 'Морозова М.',
+                                    confirmationStatus: 'CONFIRMED',
+                                    executionStatus: 'PENDING'
+                                }
+                            ]
+                        }
+                    ],
+                    attachments: [
+                        {
+                            originalFilename: 'vulnerability-report.pdf',
+                            fileSize: 512000,
+                            uploadedByName: 'Петров П.',
+                            createDatetime: '2025-11-03T08:20:00'
+                        }
+                    ]
+                }
+                // Add more RFC data as needed
+            };
+
+            return rfcDatabase[rfcId] || null;
+        }
+
+        function generateModalContent(rfc) {
+            const statusMap = {
+                'NEW': { class: 'status-new', text: 'Новый' },
+                'UNDER_REVIEW': { class: 'status-under-review', text: 'На рассмотрении' },
+                'APPROVED': { class: 'status-approved', text: 'Одобрен' },
+                'IMPLEMENTED': { class: 'status-implemented', text: 'Внедрен' },
+                'REJECTED': { class: 'status-rejected', text: 'Отклонен' }
+            };
+
+            const urgencyMap = {
+                'EMERGENCY': { class: 'urgency-emergency', text: 'Безотлагательное' },
+                'URGENT': { class: 'urgency-urgent', text: 'Срочное' },
+                'PLANNED': { class: 'urgency-planned', text: 'Плановое' }
+            };
+
+            const confirmationMap = {
+                'PENDING': { class: 'confirmation-pending', text: 'Ожидание' },
+                'CONFIRMED': { class: 'confirmation-confirmed', text: 'Подтверждено' },
+                'REJECTED': { class: 'confirmation-rejected', text: 'Отклонено' }
+            };
+
+            const executionMap = {
+                'PENDING': { class: 'execution-pending', text: 'Ожидание' },
+                'IN_PROGRESS': { class: 'execution-in-progress', text: 'В работе' },
+                'DONE': { class: 'execution-done', text: 'Выполнено' }
+            };
+
+            let html = `
+                <div class="modal-section">
+                    <div class="modal-section-title">Основная информация</div>
+                    <div class="modal-field">
+                        <div class="modal-field-label">Название</div>
+                        <div class="modal-field-value" style="font-weight: 600; font-size: 16px;">${rfc.title}</div>
+                    </div>
+                    ${rfc.description ? `
+                    <div class="modal-field">
+                        <div class="modal-field-label">Описание</div>
+                        <div class="modal-description">${rfc.description}</div>
+                    </div>
+                    ` : ''}
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                        <div class="modal-field">
+                            <div class="modal-field-label">Статус</div>
+                            <div class="modal-field-value">
+                                <span class="status-badge ${statusMap[rfc.status].class}">${statusMap[rfc.status].text}</span>
+                            </div>
+                        </div>
+                        <div class="modal-field">
+                            <div class="modal-field-label">Срочность</div>
+                            <div class="modal-field-value">
+                                <span class="urgency-badge ${urgencyMap[rfc.urgency].class}">${urgencyMap[rfc.urgency].text}</span>
+                            </div>
+                        </div>
+                        <div class="modal-field">
+                            <div class="modal-field-label">Дата исполнения</div>
+                            <div class="modal-field-value">${new Date(rfc.implementationDate).toLocaleString('ru-RU')}</div>
+                        </div>
+                        <div class="modal-field">
+                            <div class="modal-field-label">Создатель</div>
+                            <div class="modal-field-value">${rfc.requesterName}</div>
+                        </div>
+                        <div class="modal-field">
+                            <div class="modal-field-label">Дата создания</div>
+                            <div class="modal-field-value">${new Date(rfc.createDatetime).toLocaleString('ru-RU')}</div>
+                        </div>
+                        <div class="modal-field">
+                            <div class="modal-field-label">Последнее обновление</div>
+                            <div class="modal-field-value">${new Date(rfc.updateDatetime).toLocaleString('ru-RU')}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">Затронутые системы и подсистемы</div>
+                    ${rfc.affectedSystems.map(system => `
+                        <div class="affected-system-card">
+                            <div class="system-title">🖥️ ${system.systemName}</div>
+                            ${system.affectedSubsystems.map(subsystem => `
+                                <div class="subsystem-card">
+                                    <div class="subsystem-header">
+                                        <div class="subsystem-name">📦 ${subsystem.subsystemName}</div>
+                                    </div>
+                                    <div class="subsystem-info">
+                                        <div>
+                                            <strong>Исполнитель:</strong> ${subsystem.executorName}
+                                        </div>
+                                        <div>
+                                            <strong>Подтверждение:</strong>
+                                            <span class="confirmation-badge ${confirmationMap[subsystem.confirmationStatus].class}">
+                                                ${confirmationMap[subsystem.confirmationStatus].text}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <strong>Выполнение:</strong>
+                                            <span class="execution-badge ${executionMap[subsystem.executionStatus].class}">
+                                                ${executionMap[subsystem.executionStatus].text}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${rfc.attachments && rfc.attachments.length > 0 ? `
+                <div class="modal-section">
+                    <div class="modal-section-title">Вложения (${rfc.attachments.length})</div>
+                    ${rfc.attachments.map(attachment => `
+                        <div class="attachment-item">
+                            <div class="attachment-icon">📎</div>
+                            <div class="attachment-details">
+                                <div class="attachment-name">${attachment.originalFilename}</div>
+                                <div class="attachment-meta">
+                                    ${formatFileSize(attachment.fileSize)} · 
+                                    Загрузил: ${attachment.uploadedByName} · 
+                                    ${new Date(attachment.createDatetime).toLocaleString('ru-RU')}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+            `;
+
+            return html;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+    </script>
+</body>
+</html>
+
