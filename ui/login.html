@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в систему - RFC Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .login-logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 2px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 18px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 12px 12px 42px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input.error {
+            border-color: #e74c3c;
+        }
+
+        .form-group input.error:focus {
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 18px;
+            padding: 4px;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle-btn:hover {
+            color: #495057;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 6px;
+            color: #6c757d;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-top: 8px;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-login:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-login .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        .btn-login.loading .spinner {
+            display: block;
+        }
+
+        .btn-login.loading .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .login-footer {
+            text-align: center;
+            padding: 20px 30px 30px;
+            color: #6c757d;
+            font-size: 13px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: none;
+            animation: slideInRight 0.3s ease;
+            z-index: 2000;
+            min-width: 320px;
+            max-width: 420px;
+        }
+
+        .toast.show {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .toast.success .toast-icon {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .toast.error .toast-icon {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .toast.info .toast-icon {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-container {
+                max-width: 100%;
+            }
+
+            .login-header {
+                padding: 30px 20px;
+            }
+
+            .login-body {
+                padding: 30px 20px;
+            }
+
+            .login-footer {
+                padding: 15px 20px 25px;
+            }
+
+            .toast {
+                top: 20px;
+                right: 20px;
+                left: 20px;
+                max-width: calc(100% - 40px);
+            }
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Container -->
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-logo">🔐</div>
+            <h1>RFC Management System</h1>
+            <p>Войдите в систему для продолжения работы</p>
+        </div>
+
+        <div class="login-body">
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">
+                        Имя пользователя <span class="required">*</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username"
+                            required 
+                            minlength="1" 
+                            maxlength="50"
+                            placeholder="Введите ваше имя пользователя"
+                            autocomplete="username"
+                        >
+                    </div>
+                    <small>От 1 до 50 символов (required, minLength: 1, maxLength: 50)</small>
+                    <div class="error-message" id="usernameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        Пароль <span class="required">*</span>
+                    </label>
+                    <div class="input-wrapper password-toggle">
+                        <span class="input-icon">🔒</span>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password"
+                            required
+                            minlength="1" 
+                            maxlength="100"
+                            placeholder="Введите ваш пароль"
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility()">
+                            👁️
+                        </button>
+                    </div>
+                    <small>От 1 до 100 символов (required, minLength: 1, maxLength: 100)</small>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <span class="btn-text">Войти в систему</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+        </div>
+
+        <div class="login-footer">
+            RFC Management System v1.0<br>
+            © 2025 Все права защищены
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-content">
+            <div class="toast-title" id="toastTitle">Успех</div>
+            <div class="toast-message" id="toastMessage">Операция выполнена успешно</div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        // ==========================================
+        // LOGIN FORM HANDLER
+        // According to OpenAPI specification: POST /user/login
+        // ==========================================
+
+        /**
+         * Handles login form submission
+         * API Endpoint: POST /user/login
+         * Request Body: LoginRequest { username, password }
+         * Response: LoginResponse { accessToken, refreshToken?, expiresIn, refreshExpiresIn?, tokenType }
+         */
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            // Clear previous errors
+            clearErrors();
+            
+            // Get form values
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Validate according to LoginRequest schema from OpenAPI spec
+            if (!validateLoginForm(username, password)) {
+                return;
+            }
+            
+            // Prepare request body according to LoginRequest schema
+            // LoginRequest structure from User.yaml:
+            // {
+            //   username: string,        // Required, minLength: 1, maxLength: 50
+            //   password: string        // Required, format: password, minLength: 1, maxLength: 100
+            // }
+            const loginRequest = {
+                username: username,
+                password: password
+            };
+            
+            // Disable form during submission
+            setFormLoading(true);
+            
+            // In real app, make API call: POST /user/login
+            // 
+            // Handle responses according to OpenAPI spec:
+            // - 200 OK: LoginResponse {
+            //     accessToken: string,        // Required - JWT токен доступа
+            //     refreshToken: string,       // Optional - Refresh токен для обновления access токена
+            //     expiresIn: integer,         // Required - Время жизни токена в секундах
+            //     refreshExpiresIn: integer,  // Optional - Время жизни refresh токена в секундах
+            //     tokenType: string          // Required - Тип токена (обычно "Bearer")
+            //   }
+            //   - Store tokens in localStorage or sessionStorage
+            //   - Redirect to main application page (e.g., rfc-list.html)
+            // 
+            // - 400 BadRequest: ErrorResponse with validation errors
+            //   - Display error messages from response.errors array
+            //   - Common validation errors:
+            //     * Username is empty or exceeds length limits
+            //     * Password is empty or exceeds length limits
+            // 
+            // - 401 Unauthorized: ErrorResponse (invalid credentials)
+            //   - Display error message about incorrect username or password
+            //   - Allow user to retry login
+            // 
+            // - 500 InternalServerError: ErrorResponse
+            //   - Display generic server error message
+            //   - Log error details for debugging
+            //
+            // Example API call:
+            // fetch('/user/login', {
+            //   method: 'POST',
+            //   headers: { 
+            //     'Content-Type': 'application/json'
+            //   },
+            //   body: JSON.stringify(loginRequest)
+            // })
+            //   .then(response => {
+            //     if (response.status === 200) {
+            //       return response.json().then(data => {
+            //         // data is LoginResponse
+            //         handleSuccessfulLogin(data);
+            //       });
+            //     } else if (response.status === 400) {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse with errors array
+            //         const errorMessage = data.errors?.map(e => e.message).join(', ') || 'Ошибка валидации данных';
+            //         showToast('error', 'Ошибка валидации', errorMessage);
+            //         setFormLoading(false);
+            //       });
+            //     } else if (response.status === 401) {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse
+            //         const errorMessage = data.errors?.[0]?.message || 'Неверное имя пользователя или пароль';
+            //         showToast('error', 'Ошибка аутентификации', errorMessage);
+            //         setFormLoading(false);
+            //         // Highlight form fields
+            //         document.getElementById('username').classList.add('error');
+            //         document.getElementById('password').classList.add('error');
+            //       });
+            //     } else if (response.status === 500) {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse
+            //         showToast('error', 'Ошибка сервера', 'Произошла внутренняя ошибка сервера. Попробуйте позже.');
+            //         setFormLoading(false);
+            //       });
+            //     } else {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse
+            //         showToast('error', 'Ошибка', data.errors?.[0]?.message || 'Произошла ошибка при входе в систему');
+            //         setFormLoading(false);
+            //       });
+            //     }
+            //   })
+            //   .catch(error => {
+            //     console.error('Login error:', error);
+            //     showToast('error', 'Ошибка подключения', 'Не удалось подключиться к серверу. Проверьте ваше интернет-соединение.');
+            //     setFormLoading(false);
+            //   });
+            
+            // MOCK IMPLEMENTATION for demonstration purposes
+            // Remove this and uncomment the real API call above for production
+            mockApiCall(loginRequest);
+        }
+
+        /**
+         * Validates login form according to LoginRequest schema
+         * @param {string} username - Username from form
+         * @param {string} password - Password from form
+         * @returns {boolean} - True if validation passes
+         */
+        function validateLoginForm(username, password) {
+            let isValid = true;
+            
+            // Validate username according to LoginRequest schema
+            // username: string, required, minLength: 1, maxLength: 50
+            if (!username || username.length === 0) {
+                showFieldError('username', 'Имя пользователя обязательно для заполнения');
+                isValid = false;
+            } else if (username.length > 50) {
+                showFieldError('username', 'Имя пользователя не должно превышать 50 символов');
+                isValid = false;
+            }
+            
+            // Validate password according to LoginRequest schema
+            // password: string, required, format: password, minLength: 1, maxLength: 100
+            if (!password || password.length === 0) {
+                showFieldError('password', 'Пароль обязателен для заполнения');
+                isValid = false;
+            } else if (password.length > 100) {
+                showFieldError('password', 'Пароль не должен превышать 100 символов');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        /**
+         * Handles successful login response
+         * Stores tokens and redirects to main application
+         * @param {Object} loginResponse - LoginResponse from API
+         */
+        function handleSuccessfulLogin(loginResponse) {
+            // loginResponse structure according to LoginResponse schema:
+            // {
+            //   accessToken: string,        // Required - JWT токен доступа
+            //   refreshToken: string,       // Optional - Refresh токен
+            //   expiresIn: integer,         // Required - Время жизни токена в секундах
+            //   refreshExpiresIn: integer,  // Optional - Время жизни refresh токена
+            //   tokenType: string          // Required - Тип токена (обычно "Bearer")
+            // }
+            
+            console.log('Login successful, storing tokens...');
+            
+            // Store tokens in localStorage for persistence across sessions
+            // Alternative: use sessionStorage for single-session storage
+            localStorage.setItem('accessToken', loginResponse.accessToken);
+            localStorage.setItem('tokenType', loginResponse.tokenType);
+            localStorage.setItem('expiresIn', loginResponse.expiresIn.toString());
+            
+            // Calculate token expiration timestamp
+            const expirationTime = new Date().getTime() + (loginResponse.expiresIn * 1000);
+            localStorage.setItem('tokenExpiration', expirationTime.toString());
+            
+            // Store refresh token if provided
+            if (loginResponse.refreshToken) {
+                localStorage.setItem('refreshToken', loginResponse.refreshToken);
+            }
+            
+            // Store refresh token expiration if provided
+            if (loginResponse.refreshExpiresIn) {
+                const refreshExpirationTime = new Date().getTime() + (loginResponse.refreshExpiresIn * 1000);
+                localStorage.setItem('refreshTokenExpiration', refreshExpirationTime.toString());
+            }
+            
+            // Show success message
+            showToast('success', 'Успешный вход', 'Добро пожаловать! Перенаправление...');
+            
+            // Redirect to main application page after short delay
+            setTimeout(() => {
+                // In real app, redirect to the appropriate page based on user role
+                // For now, redirect to RFC list page
+                window.location.href = 'rfc-list.html';
+            }, 1500);
+        }
+
+        /**
+         * Mock API call for demonstration purposes
+         * Replace with real API call in production
+         */
+        function mockApiCall(loginRequest) {
+            // Simulate network delay
+            setTimeout(() => {
+                // Mock successful login with valid credentials
+                // For demonstration: username "admin" with any password will succeed
+                // For demonstration: any other username will show 401 error
+                
+                if (loginRequest.username === 'admin') {
+                    // Mock LoginResponse according to OpenAPI spec
+                    const mockLoginResponse = {
+                        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibmFtZSI6IkFkbWluIFVzZXIiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE2MTYyMzkwMjIsImV4cCI6MTYxNjI0MjYyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+                        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNjE2MjM5MDIyLCJleHAiOjE2MTYzMjU0MjJ9.4X8sF3r0_wZBxH6N8j1KdD7mN9vP2wQ8jY5xT3nR8aA',
+                        expiresIn: 3600,
+                        refreshExpiresIn: 86400,
+                        tokenType: 'Bearer'
+                    };
+                    
+                    handleSuccessfulLogin(mockLoginResponse);
+                } else if (loginRequest.username.length > 50) {
+                    // Mock 400 BadRequest for validation error
+                    setFormLoading(false);
+                    showFieldError('username', 'Имя пользователя не должно превышать 50 символов');
+                    showToast('error', 'Ошибка валидации', 'Имя пользователя не должно превышать 50 символов');
+                } else if (loginRequest.password.length > 100) {
+                    // Mock 400 BadRequest for validation error
+                    setFormLoading(false);
+                    showFieldError('password', 'Пароль не должен превышать 100 символов');
+                    showToast('error', 'Ошибка валидации', 'Пароль не должен превышать 100 символов');
+                } else {
+                    // Mock 401 Unauthorized for invalid credentials
+                    setFormLoading(false);
+                    document.getElementById('username').classList.add('error');
+                    document.getElementById('password').classList.add('error');
+                    showToast('error', 'Ошибка аутентификации', 'Неверное имя пользователя или пароль');
+                }
+            }, 1500); // Simulate 1.5s network delay
+        }
+
+        // ==========================================
+        // UTILITY FUNCTIONS
+        // ==========================================
+
+        /**
+         * Toggle password visibility
+         */
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.querySelector('.password-toggle-btn');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
+
+        /**
+         * Set form loading state
+         * @param {boolean} isLoading - Whether form is in loading state
+         */
+        function setFormLoading(isLoading) {
+            const loginBtn = document.getElementById('loginBtn');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            
+            if (isLoading) {
+                loginBtn.classList.add('loading');
+                loginBtn.disabled = true;
+                usernameInput.disabled = true;
+                passwordInput.disabled = true;
+            } else {
+                loginBtn.classList.remove('loading');
+                loginBtn.disabled = false;
+                usernameInput.disabled = false;
+                passwordInput.disabled = false;
+            }
+        }
+
+        /**
+         * Show field-specific error message
+         * @param {string} fieldId - ID of the form field
+         * @param {string} message - Error message to display
+         */
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            field.classList.add('error');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+        }
+
+        /**
+         * Clear all error messages and states
+         */
+        function clearErrors() {
+            const fields = ['username', 'password'];
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const errorElement = document.getElementById(fieldId + 'Error');
+                
+                field.classList.remove('error');
+                errorElement.textContent = '';
+                errorElement.classList.remove('show');
+            });
+        }
+
+        /**
+         * Show toast notification
+         * @param {string} type - Toast type: 'success', 'error', 'info'
+         * @param {string} title - Toast title
+         * @param {string} message - Toast message
+         */
+        function showToast(type, title, message) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = toast.querySelector('.toast-icon');
+            
+            // Set icon based on type
+            if (type === 'success') {
+                toastIcon.textContent = '✓';
+            } else if (type === 'error') {
+                toastIcon.textContent = '✕';
+            } else if (type === 'info') {
+                toastIcon.textContent = 'ℹ';
+            }
+            
+            toast.className = `toast ${type}`;
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Login page initialized');
+            
+            // Check if user is already logged in
+            const accessToken = localStorage.getItem('accessToken');
+            const tokenExpiration = localStorage.getItem('tokenExpiration');
+            
+            if (accessToken && tokenExpiration) {
+                const now = new Date().getTime();
+                const expirationTime = parseInt(tokenExpiration);
+                
+                // If token is still valid, redirect to main application
+                if (now < expirationTime) {
+                    console.log('User already logged in, redirecting...');
+                    showToast('info', 'Вы уже вошли', 'Перенаправление на главную страницу...');
+                    setTimeout(() => {
+                        window.location.href = 'rfc-list.html';
+                    }, 1000);
+                    return;
+                }
+            }
+            
+            // Clear error states on input
+            document.getElementById('username').addEventListener('input', function() {
+                this.classList.remove('error');
+                document.getElementById('usernameError').classList.remove('show');
+            });
+            
+            document.getElementById('password').addEventListener('input', function() {
+                this.classList.remove('error');
+                document.getElementById('passwordError').classList.remove('show');
+            });
+            
+            // Focus username field on page load
+            document.getElementById('username').focus();
+        });
+
+        // ==========================================
+        // TOKEN MANAGEMENT HELPER FUNCTIONS
+        // These functions can be used across the application
+        // ==========================================
+
+        /**
+         * Get stored access token with Bearer prefix
+         * @returns {string|null} - Authorization header value or null
+         */
+        function getAuthorizationHeader() {
+            const accessToken = localStorage.getItem('accessToken');
+            const tokenType = localStorage.getItem('tokenType') || 'Bearer';
+            
+            if (accessToken) {
+                return `${tokenType} ${accessToken}`;
+            }
+            
+            return null;
+        }
+
+        /**
+         * Check if access token is expired
+         * @returns {boolean} - True if token is expired
+         */
+        function isTokenExpired() {
+            const tokenExpiration = localStorage.getItem('tokenExpiration');
+            
+            if (!tokenExpiration) {
+                return true;
+            }
+            
+            const now = new Date().getTime();
+            const expirationTime = parseInt(tokenExpiration);
+            
+            // Add 1 minute buffer before expiration
+            return now >= (expirationTime - 60000);
+        }
+
+        /**
+         * Clear all stored authentication data
+         */
+        function clearAuthData() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('tokenType');
+            localStorage.removeItem('expiresIn');
+            localStorage.removeItem('tokenExpiration');
+            localStorage.removeItem('refreshTokenExpiration');
+        }
+
+        /**
+         * Logout user and redirect to login page
+         */
+        function logout() {
+            clearAuthData();
+            window.location.href = 'login.html';
+        }
+
+        // ==========================================
+        // EXAMPLE USAGE IN OTHER PAGES
+        // ==========================================
+        // 
+        // To make authenticated API calls from other pages:
+        // 
+        // fetch('/api/endpoint', {
+        //   method: 'GET',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //     'Authorization': getAuthorizationHeader()
+        //   }
+        // })
+        //   .then(response => {
+        //     if (response.status === 401) {
+        //       // Token expired or invalid, redirect to login
+        //       clearAuthData();
+        //       window.location.href = 'login.html';
+        //       return;
+        //     }
+        //     return response.json();
+        //   })
+        //   .then(data => {
+        //     // Handle response data
+        //   });
+        //
+        // ==========================================
+    </script>
+</body>
+</html>
+
