@@ -12,6 +12,7 @@ import ViewUserModal from './ViewUserModal';
 import UserFormModal from './UserFormModal';
 import Toast from './Toast';
 import { getUsers, createUser, updateUser, deleteUser } from '../api/userApi';
+import { getCurrentUser } from '../utils/jwtUtils';
 import './UserManagement.css';
 
 export default function UserManagement() {
@@ -43,14 +44,20 @@ export default function UserManagement() {
   // State for loading
   const [loading, setLoading] = useState(false);
 
-  // Mock current user (in real app, would come from auth context)
-  const currentUser = {
-    id: 1,
-    username: 'i.ivanov',
-    firstName: 'Иван',
-    lastName: 'Иванов',
-    role: 'ADMIN'
-  };
+  // Get current user from JWT token
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Load current user from token on mount
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+    } else {
+      // If no valid user, redirect to login
+      console.warn('No valid user token found');
+      // Optional: redirect to login or show error
+    }
+  }, []);
 
   // Fetch users on component mount and when filters change
   useEffect(() => {
@@ -163,7 +170,7 @@ export default function UserManagement() {
         <div className="header">
           <h1>Управление пользователями</h1>
           <div className="header-right">
-            <UserHeader user={currentUser} />
+            {currentUser && <UserHeader user={currentUser} />}
             <button className="btn btn-primary" onClick={handleCreateUser}>
               ➕ Создать пользователя
             </button>

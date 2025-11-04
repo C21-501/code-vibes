@@ -61,15 +61,17 @@ export default function UserFormModal({ user, isOpen, onClose, onSave }) {
   const validateForm = () => {
     const newErrors = {};
     
-    // Username validation (minLength: 3, maxLength: 50, pattern: ^[a-zA-Z0-9_-]+$)
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username обязателен';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username должен быть не менее 3 символов';
-    } else if (formData.username.length > 50) {
-      newErrors.username = 'Username должен быть не более 50 символов';
-    } else if (!/^[a-zA-Z0-9_-]+$/.test(formData.username)) {
-      newErrors.username = 'Username может содержать только буквы, цифры, подчеркивание и дефис';
+    // Username validation (only for create mode, minLength: 3, maxLength: 50, pattern: ^[a-zA-Z0-9_-]+$)
+    if (!isEditMode) {
+      if (!formData.username.trim()) {
+        newErrors.username = 'Username обязателен';
+      } else if (formData.username.length < 3) {
+        newErrors.username = 'Username должен быть не менее 3 символов';
+      } else if (formData.username.length > 50) {
+        newErrors.username = 'Username должен быть не более 50 символов';
+      } else if (!/^[a-zA-Z0-9_-]+$/.test(formData.username)) {
+        newErrors.username = 'Username может содержать только буквы, цифры, подчеркивание и дефис';
+      }
     }
     
     // FirstName validation (minLength: 1, maxLength: 100)
@@ -115,14 +117,14 @@ export default function UserFormModal({ user, isOpen, onClose, onSave }) {
     
     // Prepare data according to API spec
     const userData = {
-      username: formData.username.trim(),
       firstName: formData.firstName.trim(),
       lastName: formData.lastName.trim(),
       role: formData.role
     };
     
-    // Add password only for create mode
+    // Add username and password only for create mode
     if (!isEditMode) {
+      userData.username = formData.username.trim();
       userData.password = formData.password;
     }
     
@@ -154,9 +156,15 @@ export default function UserFormModal({ user, isOpen, onClose, onSave }) {
                 onChange={handleChange}
                 placeholder="Введите username (только буквы, цифры, _, -)"
                 className={errors.username ? 'error' : ''}
+                disabled={isEditMode}
+                readOnly={isEditMode}
               />
               {errors.username && <div className="error-message">{errors.username}</div>}
-              <small>От 3 до 50 символов. Только буквы, цифры, подчеркивание и дефис</small>
+              <small>
+                {isEditMode 
+                  ? 'Username нельзя изменить после создания' 
+                  : 'От 3 до 50 символов. Только буквы, цифры, подчеркивание и дефис'}
+              </small>
             </div>
 
             <div className="form-group">

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './LoginForm.css';
 
 /**
@@ -16,7 +17,8 @@ import './LoginForm.css';
  *   tokenType: string 
  * }
  */
-function LoginForm({ onLoginSuccess }) {
+function LoginForm() {
+  const navigate = useNavigate();
   // Form state
   const [formData, setFormData] = useState({
     username: '',
@@ -169,18 +171,16 @@ function LoginForm({ onLoginSuccess }) {
           localStorage.setItem('refreshTokenExpiration', refreshExpirationTime.toString());
         }
 
-        // Show success notification (без редиректа по требованию)
+        // Show success notification
         showToast('success', 'Успешный вход', 'Вы успешно авторизованы в системе!');
-        
-        // Call onLoginSuccess callback if provided
-        if (onLoginSuccess) {
-          setTimeout(() => {
-            onLoginSuccess();
-          }, 1000); // Delay to show success message
-        }
         
         // Clear form
         setFormData({ username: '', password: '' });
+        
+        // Redirect to users page after short delay
+        setTimeout(() => {
+          navigate('/users');
+        }, 1000); // Delay to show success message
 
       } else if (response.status === 400) {
         // Bad Request: Validation errors

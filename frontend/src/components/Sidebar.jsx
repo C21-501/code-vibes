@@ -2,14 +2,27 @@
  * Sidebar Component
  * Navigation sidebar with menu items and logout button
  */
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
 export default function Sidebar({ currentPage = 'users' }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const handleLogout = () => {
     if (confirm('Вы уверены, что хотите выйти из системы?')) {
       console.log('Logging out...');
-      // TODO: Implement actual logout logic
-      // window.location.href = '/login';
+      
+      // Clear all authentication data from localStorage
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('tokenType');
+      localStorage.removeItem('expiresIn');
+      localStorage.removeItem('tokenExpiration');
+      localStorage.removeItem('refreshTokenExpiration');
+      
+      // Redirect to login page using React Router
+      navigate('/login', { replace: true });
     }
   };
 
@@ -19,32 +32,32 @@ export default function Sidebar({ currentPage = 'users' }) {
       <nav>
         <ul className="nav-menu">
           <li className="nav-item">
-            <a href="#rfc-list" className="nav-link">
+            <span className="nav-link disabled">
               📋 Список RFC
-            </a>
+            </span>
           </li>
           <li className="nav-item">
-            <a href="#teams" className="nav-link">
+            <span className="nav-link disabled">
               👥 Команды
-            </a>
+            </span>
           </li>
           <li className="nav-item">
-            <a href="#systems" className="nav-link">
+            <span className="nav-link disabled">
               🖥️ Системы
-            </a>
+            </span>
           </li>
           <li className="nav-item">
-            <a href="#subsystems" className="nav-link">
+            <span className="nav-link disabled">
               🔧 Подсистемы
-            </a>
+            </span>
           </li>
           <li className="nav-item">
-            <a 
-              href="#users" 
-              className={`nav-link ${currentPage === 'users' ? 'active' : ''}`}
+            <Link 
+              to="/users" 
+              className={`nav-link ${location.pathname === '/users' ? 'active' : ''}`}
             >
               👤 Пользователи
-            </a>
+            </Link>
           </li>
         </ul>
       </nav>

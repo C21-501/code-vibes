@@ -91,16 +91,21 @@ body {
   color: #6c757d;
   font-size: 18px;
   pointer-events: none;
+  z-index: 1;
+  user-select: none;
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px 12px 12px 42px;
+  padding: 12px 12px 12px 45px;
   border: 2px solid #e9ecef;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
+  background-color: white;
 }
 
 .form-group input:focus {

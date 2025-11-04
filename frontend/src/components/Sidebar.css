@@ -51,6 +51,12 @@
   border-left-color: #3498db;
 }
 
+.nav-link.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .sidebar-footer {
   position: absolute;
   bottom: 0;
