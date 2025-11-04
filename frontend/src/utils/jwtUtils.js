@@ -135,3 +135,53 @@ export function isAdmin() {
   return user.roles && user.roles.includes('ADMIN');
 }
 
+/**
+ * Get time remaining until token expires
+ * @param {string} token - JWT token
+ * @returns {number} Milliseconds until expiration, or 0 if expired/invalid
+ */
+export function getTokenTimeRemaining(token) {
+  const payload = decodeJWT(token);
+  if (!payload || !payload.exp) return 0;
+  
+  // exp is in seconds, Date.now() is in milliseconds
+  const expirationTime = payload.exp * 1000;
+  const timeRemaining = expirationTime - Date.now();
+  
+  return Math.max(0, timeRemaining);
+}
+
+/**
+ * Get time remaining until current token expires
+ * @returns {number} Milliseconds until expiration, or 0 if expired/invalid
+ */
+export function getCurrentTokenTimeRemaining() {
+  const token = localStorage.getItem('accessToken');
+  if (!token) return 0;
+  
+  return getTokenTimeRemaining(token);
+}
+
+/**
+ * Check if token should be refreshed (e.g., expires in less than 5 minutes)
+ * @param {string} token - JWT token
+ * @param {number} thresholdMs - Threshold in milliseconds (default: 5 minutes)
+ * @returns {boolean} True if token should be refreshed
+ */
+export function shouldRefreshToken(token, thresholdMs = 5 * 60 * 1000) {
+  const timeRemaining = getTokenTimeRemaining(token);
+  return timeRemaining > 0 && timeRemaining < thresholdMs;
+}
+
+/**
+ * Check if current token should be refreshed
+ * @param {number} thresholdMs - Threshold in milliseconds (default: 5 minutes)
+ * @returns {boolean} True if token should be refreshed
+ */
+export function shouldRefreshCurrentToken(thresholdMs = 5 * 60 * 1000) {
+  const token = localStorage.getItem('accessToken');
+  if (!token) return false;
+  
+  return shouldRefreshToken(token, thresholdMs);
+}
+

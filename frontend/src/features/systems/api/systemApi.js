@@ -4,26 +4,9 @@
  * Based on OpenAPI specification: /system and /system/{id} endpoints
  */
 
-const API_BASE_URL = '/api';
+import apiClient from '../../../utils/apiClient';
 
-/**
- * Get authentication headers with token from localStorage
- * @returns {Object} Headers object with Authorization if token exists
- */
-function getAuthHeaders() {
-  const token = localStorage.getItem('accessToken');
-  const tokenType = localStorage.getItem('tokenType') || 'Bearer';
-  
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-  
-  if (token) {
-    headers['Authorization'] = `${tokenType} ${token}`;
-  }
-  
-  return headers;
-}
+const API_BASE_URL = '/api';
 
 /**
  * Get paginated list of systems with optional name search
@@ -46,9 +29,8 @@ export async function getSystems({ page = 0, size = 20, name = '' } = {}) {
     params.append('name', name.trim());
   }
   
-  const response = await fetch(`${API_BASE_URL}/system?${params.toString()}`, {
-    method: 'GET',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/system?${params.toString()}`, {
+    method: 'GET'
   });
   
   if (!response.ok) {
@@ -67,9 +49,8 @@ export async function getSystems({ page = 0, size = 20, name = '' } = {}) {
  * @returns {Promise<Object>} SystemResponse
  */
 export async function getSystemById(id) {
-  const response = await fetch(`${API_BASE_URL}/system/${id}`, {
-    method: 'GET',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/system/${id}`, {
+    method: 'GET'
   });
   
   if (!response.ok) {
@@ -90,9 +71,8 @@ export async function getSystemById(id) {
  * @returns {Promise<Object>} SystemResponse (201 Created)
  */
 export async function createSystem(systemData) {
-  const response = await fetch(`${API_BASE_URL}/system`, {
+  const response = await apiClient.request(`${API_BASE_URL}/system`, {
     method: 'POST',
-    headers: getAuthHeaders(),
     body: JSON.stringify(systemData)
   });
   
@@ -115,9 +95,8 @@ export async function createSystem(systemData) {
  * @returns {Promise<Object>} SystemResponse (200 OK)
  */
 export async function updateSystem(id, systemData) {
-  const response = await fetch(`${API_BASE_URL}/system/${id}`, {
+  const response = await apiClient.request(`${API_BASE_URL}/system/${id}`, {
     method: 'PUT',
-    headers: getAuthHeaders(),
     body: JSON.stringify(systemData)
   });
   
@@ -137,9 +116,8 @@ export async function updateSystem(id, systemData) {
  * @returns {Promise<void>} No content (204 No Content)
  */
 export async function deleteSystem(id) {
-  const response = await fetch(`${API_BASE_URL}/system/${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/system/${id}`, {
+    method: 'DELETE'
   });
   
   if (!response.ok) {

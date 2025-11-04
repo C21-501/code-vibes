@@ -5,6 +5,7 @@ import TeamManagement from './features/teams/components/TeamManagement'
 import SystemManagement from './features/systems/components/SystemManagement'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
 import { isCurrentTokenExpired } from './utils/jwtUtils'
+import { clearAuthTokens } from './utils/authContext'
 import './App.css'
 
 /**
@@ -16,7 +17,14 @@ function App() {
   // Check if user is authenticated
   const isAuthenticated = () => {
     const token = localStorage.getItem('accessToken');
-    return token && !isCurrentTokenExpired();
+    
+    // If token exists but is expired/invalid, clean it up
+    if (token && isCurrentTokenExpired()) {
+      clearAuthTokens();
+      return false;
+    }
+    
+    return !!token;
   };
 
   return (

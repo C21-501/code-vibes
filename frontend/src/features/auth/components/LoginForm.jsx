@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Toast from '../../../shared/components/Toast';
+import { getAndClearReturnUrl, clearAuthTokens } from '../../../utils/authContext';
+import { isCurrentTokenExpired } from '../../../utils/jwtUtils';
+import apiClient from '../../../utils/apiClient';
 import './LoginForm.css';
 
 /**
@@ -20,6 +23,15 @@ import './LoginForm.css';
  */
 function LoginForm() {
   const navigate = useNavigate();
+  
+  // Clean up expired/invalid tokens on mount
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token && isCurrentTokenExpired()) {
+      clearAuthTokens();
+    }
+  }, []);
+  
   // Form state
   const [formData, setFormData] = useState({
     username: '',
@@ -178,9 +190,16 @@ function LoginForm() {
         // Clear form
         setFormData({ username: '', password: '' });
         
-        // Redirect to users page after short delay
+        // Notify API client that login was successful (for request queue processing)
+        // This will replay any pending requests that were queued before redirect
+        await apiClient.onLoginSuccess();
+        
+        // Get saved return URL or default to /users
+        const returnUrl = getAndClearReturnUrl() || '/users';
+        
+        // Redirect after short delay to show success message
         setTimeout(() => {
-          navigate('/users');
+          navigate(returnUrl);
         }, 1000); // Delay to show success message
 
       } else if (response.status === 400) {

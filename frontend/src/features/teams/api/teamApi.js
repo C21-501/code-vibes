@@ -4,26 +4,9 @@
  * Based on OpenAPI specification: /team and /team/{id} endpoints
  */
 
-const API_BASE_URL = '/api';
+import apiClient from '../../../utils/apiClient';
 
-/**
- * Get authentication headers with token from localStorage
- * @returns {Object} Headers object with Authorization if token exists
- */
-function getAuthHeaders() {
-  const token = localStorage.getItem('accessToken');
-  const tokenType = localStorage.getItem('tokenType') || 'Bearer';
-  
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-  
-  if (token) {
-    headers['Authorization'] = `${tokenType} ${token}`;
-  }
-  
-  return headers;
-}
+const API_BASE_URL = '/api';
 
 /**
  * Get paginated list of teams with optional name search
@@ -46,9 +29,8 @@ export async function getTeams({ page = 0, size = 20, name = '' } = {}) {
     params.append('name', name.trim());
   }
   
-  const response = await fetch(`${API_BASE_URL}/team?${params.toString()}`, {
-    method: 'GET',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/team?${params.toString()}`, {
+    method: 'GET'
   });
   
   if (!response.ok) {
@@ -67,9 +49,8 @@ export async function getTeams({ page = 0, size = 20, name = '' } = {}) {
  * @returns {Promise<Object>} TeamResponse
  */
 export async function getTeamById(id) {
-  const response = await fetch(`${API_BASE_URL}/team/${id}`, {
-    method: 'GET',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/team/${id}`, {
+    method: 'GET'
   });
   
   if (!response.ok) {
@@ -91,9 +72,8 @@ export async function getTeamById(id) {
  * @returns {Promise<Object>} TeamResponse (201 Created)
  */
 export async function createTeam(teamData) {
-  const response = await fetch(`${API_BASE_URL}/team`, {
+  const response = await apiClient.request(`${API_BASE_URL}/team`, {
     method: 'POST',
-    headers: getAuthHeaders(),
     body: JSON.stringify(teamData)
   });
   
@@ -117,9 +97,8 @@ export async function createTeam(teamData) {
  * @returns {Promise<Object>} TeamResponse (200 OK)
  */
 export async function updateTeam(id, teamData) {
-  const response = await fetch(`${API_BASE_URL}/team/${id}`, {
+  const response = await apiClient.request(`${API_BASE_URL}/team/${id}`, {
     method: 'PUT',
-    headers: getAuthHeaders(),
     body: JSON.stringify(teamData)
   });
   
@@ -139,9 +118,8 @@ export async function updateTeam(id, teamData) {
  * @returns {Promise<void>} No content (204 No Content)
  */
 export async function deleteTeam(id) {
-  const response = await fetch(`${API_BASE_URL}/team/${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/team/${id}`, {
+    method: 'DELETE'
   });
   
   if (!response.ok) {

@@ -4,26 +4,9 @@
  * Based on OpenAPI specification: /system/{id}/subsystem endpoints
  */
 
-const API_BASE_URL = '/api';
+import apiClient from '../../../utils/apiClient';
 
-/**
- * Get authentication headers with token from localStorage
- * @returns {Object} Headers object with Authorization if token exists
- */
-function getAuthHeaders() {
-  const token = localStorage.getItem('accessToken');
-  const tokenType = localStorage.getItem('tokenType') || 'Bearer';
-  
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-  
-  if (token) {
-    headers['Authorization'] = `${tokenType} ${token}`;
-  }
-  
-  return headers;
-}
+const API_BASE_URL = '/api';
 
 /**
  * Get list of subsystems for a specific system
@@ -33,9 +16,8 @@ function getAuthHeaders() {
  * @returns {Promise<Array>} Array of SubsystemResponse objects
  */
 export async function getSystemSubsystems(systemId) {
-  const response = await fetch(`${API_BASE_URL}/system/${systemId}/subsystem`, {
-    method: 'GET',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/system/${systemId}/subsystem`, {
+    method: 'GET'
   });
   
   if (!response.ok) {
@@ -55,9 +37,8 @@ export async function getSystemSubsystems(systemId) {
  * @returns {Promise<Object>} SubsystemResponse
  */
 export async function getSubsystemById(systemId, subsystemId) {
-  const response = await fetch(`${API_BASE_URL}/system/${systemId}/subsystem/${subsystemId}`, {
-    method: 'GET',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/system/${systemId}/subsystem/${subsystemId}`, {
+    method: 'GET'
   });
   
   if (!response.ok) {
@@ -81,9 +62,8 @@ export async function getSubsystemById(systemId, subsystemId) {
  * @returns {Promise<Object>} SubsystemResponse (201 Created)
  */
 export async function createSubsystem(systemId, subsystemData) {
-  const response = await fetch(`${API_BASE_URL}/system/${systemId}/subsystem`, {
+  const response = await apiClient.request(`${API_BASE_URL}/system/${systemId}/subsystem`, {
     method: 'POST',
-    headers: getAuthHeaders(),
     body: JSON.stringify(subsystemData)
   });
   
@@ -109,9 +89,8 @@ export async function createSubsystem(systemId, subsystemData) {
  * @returns {Promise<Object>} SubsystemResponse (200 OK)
  */
 export async function updateSubsystem(systemId, subsystemId, subsystemData) {
-  const response = await fetch(`${API_BASE_URL}/system/${systemId}/subsystem/${subsystemId}`, {
+  const response = await apiClient.request(`${API_BASE_URL}/system/${systemId}/subsystem/${subsystemId}`, {
     method: 'PUT',
-    headers: getAuthHeaders(),
     body: JSON.stringify(subsystemData)
   });
   
@@ -132,9 +111,8 @@ export async function updateSubsystem(systemId, subsystemId, subsystemData) {
  * @returns {Promise<void>} No content (204 No Content)
  */
 export async function deleteSubsystem(systemId, subsystemId) {
-  const response = await fetch(`${API_BASE_URL}/system/${systemId}/subsystem/${subsystemId}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/system/${systemId}/subsystem/${subsystemId}`, {
+    method: 'DELETE'
   });
   
   if (!response.ok) {

@@ -4,26 +4,9 @@
  * Based on OpenAPI specification: /user and /user/{id} endpoints
  */
 
-const API_BASE_URL = '/api';
+import apiClient from '../../../utils/apiClient';
 
-/**
- * Get authentication headers with token from localStorage
- * @returns {Object} Headers object with Authorization if token exists
- */
-function getAuthHeaders() {
-  const token = localStorage.getItem('accessToken');
-  const tokenType = localStorage.getItem('tokenType') || 'Bearer';
-  
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-  
-  if (token) {
-    headers['Authorization'] = `${tokenType} ${token}`;
-  }
-  
-  return headers;
-}
+const API_BASE_URL = '/api';
 
 /**
  * Get paginated list of users with optional search
@@ -46,9 +29,8 @@ export async function getUsers({ page = 0, size = 20, searchString = '' } = {}) 
     params.append('searchString', searchString.trim());
   }
   
-  const response = await fetch(`${API_BASE_URL}/user?${params.toString()}`, {
-    method: 'GET',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/user?${params.toString()}`, {
+    method: 'GET'
   });
   
   if (!response.ok) {
@@ -67,9 +49,8 @@ export async function getUsers({ page = 0, size = 20, searchString = '' } = {}) 
  * @returns {Promise<Object>} UserResponse
  */
 export async function getUserById(id) {
-  const response = await fetch(`${API_BASE_URL}/user/${id}`, {
-    method: 'GET',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/user/${id}`, {
+    method: 'GET'
   });
   
   if (!response.ok) {
@@ -93,9 +74,8 @@ export async function getUserById(id) {
  * @returns {Promise<Object>} UserResponse (201 Created)
  */
 export async function createUser(userData) {
-  const response = await fetch(`${API_BASE_URL}/user`, {
+  const response = await apiClient.request(`${API_BASE_URL}/user`, {
     method: 'POST',
-    headers: getAuthHeaders(),
     body: JSON.stringify(userData)
   });
   
@@ -120,9 +100,8 @@ export async function createUser(userData) {
  * @returns {Promise<Object>} UserResponse (200 OK)
  */
 export async function updateUser(id, userData) {
-  const response = await fetch(`${API_BASE_URL}/user/${id}`, {
+  const response = await apiClient.request(`${API_BASE_URL}/user/${id}`, {
     method: 'PUT',
-    headers: getAuthHeaders(),
     body: JSON.stringify(userData)
   });
   
@@ -142,9 +121,8 @@ export async function updateUser(id, userData) {
  * @returns {Promise<void>} No content (204 No Content)
  */
 export async function deleteUser(id) {
-  const response = await fetch(`${API_BASE_URL}/user/${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders()
+  const response = await apiClient.request(`${API_BASE_URL}/user/${id}`, {
+    method: 'DELETE'
   });
   
   if (!response.ok) {
