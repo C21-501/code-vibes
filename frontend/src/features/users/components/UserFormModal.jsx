@@ -122,8 +122,11 @@ export default function UserFormModal({ user, isOpen, onClose, onSave }) {
       role: formData.role
     };
     
-    // Add username and password only for create mode
-    if (!isEditMode) {
+    if (isEditMode) {
+      // In edit mode, include username (required by API) but don't allow user to change it
+      userData.username = formData.username.trim();
+    } else {
+      // Add username and password only for create mode
       userData.username = formData.username.trim();
       userData.password = formData.password;
     }

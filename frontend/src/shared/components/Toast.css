@@ -1,22 +1,37 @@
 /* Toast Notification Styles */
 .toast {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
+  position: fixed !important;
+  top: 30px !important;
+  right: 30px !important;
+  bottom: auto !important;
+  left: auto !important;
   background: white;
-  padding: 15px 20px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: none;
   animation: slideInRight 0.3s ease;
   z-index: 2000;
-  min-width: 300px;
+  min-width: 320px;
+  max-width: 400px;
+  overflow: hidden;
+  height: auto !important;
+  max-height: none !important;
+  width: auto !important;
 }
 
 .toast.show {
+  display: flex !important;
+  flex-direction: column !important;
+  width: auto !important;
+  height: auto !important;
+  align-items: stretch !important;
+}
+
+.toast-header {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 12px 16px;
 }
 
 .toast-icon {
@@ -27,6 +42,8 @@
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  flex-shrink: 0;
+  font-size: 14px;
 }
 
 .toast.success .toast-icon {
@@ -41,16 +58,66 @@
 
 .toast-content {
   flex: 1;
+  min-width: 0;
 }
 
 .toast-title {
   font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 14px;
+  margin-bottom: 2px;
+  line-height: 1.4;
 }
 
 .toast-message {
-  font-size: 13px;
+  font-size: 12px;
   color: #6c757d;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+  line-height: 1;
+}
+
+.toast-close:hover {
+  color: #333;
+}
+
+.toast-progress-container {
+  width: 100%;
+  height: 3px;
+  background: #e0e0e0;
+  position: relative;
+  overflow: hidden;
+}
+
+.toast-progress-bar {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: none;
+}
+
+.toast.success .toast-progress-bar {
+  background: #388e3c;
+}
+
+.toast.error .toast-progress-bar {
+  background: #c62828;
 }
 
 @keyframes slideInRight {
