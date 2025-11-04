@@ -1,0 +1,44 @@
+components:
+  schemas:
+    AttachmentResponse:
+      type: object
+      description: Данные прикрепленного файла
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор вложения
+        rfcId:
+          type: integer
+          format: int64
+          nullable: true
+          description: ID RFC (если привязан)
+        originalFilename:
+          type: string
+          description: Оригинальное имя файла
+        fileSize:
+          type: integer
+          format: int64
+          description: Размер файла в байтах
+        contentType:
+          type: string
+          description: MIME тип файла
+          nullable: true
+        uploadedById:
+          type: integer
+          format: int64
+          description: ID пользователя, загрузившего файл
+        uploadedByName:
+          type: string
+          description: Имя пользователя, загрузившего файл
+        createDatetime:
+          type: string
+          format: date-time
+          description: Дата и время загрузки
+      required:
+        - id
+        - originalFilename
+        - fileSize
+        - uploadedById
+        - uploadedByName
+        - createDatetime

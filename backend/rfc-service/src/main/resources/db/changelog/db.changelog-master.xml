@@ -1,16 +1,44 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--suppress XmlUnusedNamespaceDeclaration -->
+<?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd
-       http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <!-- Initial schema creation -->
-    <include file="db/changelog/001-initial-schema.xml"/>
+    <!-- User table -->
+    <include file="001-create-users-table.xml" relativeToChangelogFile="true"/>
 
-    <!-- RFC Attachments table -->
-    <include file="db/changelog/010-create-rfc-attachments-table.xml"/>
-    
+    <!-- Team table -->
+    <include file="002-create-team-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- System table -->
+    <include file="003-create-system-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- Subsystem table -->
+    <include file="004-create-subsystem-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- Team member junction table -->
+    <include file="005-create-team-member-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- RFC table -->
+    <include file="006-create-rfc-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- RFC affected system table -->
+    <include file="007-create-rfc-affected-system-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- RFC affected subsystem table -->
+    <include file="008-create-rfc-affected-subsystem-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- RFC affected subsystem history table -->
+    <include file="009-create-rfc-affected-subsystem-history-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- RFC audit log table -->
+    <include file="010-create-rfc-audit-log-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- RFC attachment table -->
+    <include file="011-create-rfc-attachment-table.xml" relativeToChangelogFile="true"/>
+
+    <!-- Alter RFC attachment table for DB storage -->
+    <include file="012-alter-rfc-attachment-for-db-storage.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>

@@ -1,0 +1,75 @@
+get:
+  operationId: getUserById
+  tags:
+    - Users
+  summary: Получить пользователя по ID
+  description: Возвращает детальную информацию о пользователе по его идентификатору
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  responses:
+    '200':
+      description: Успешный возврат пользователя
+      content:
+        application/json:
+          schema:
+            $ref: './model/User.yaml#/components/schemas/UserResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+put:
+  operationId: updateUser
+  tags:
+    - Users
+  summary: Обновить пользователя
+  description: Полное обновление информации о пользователе
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/User.yaml#/components/schemas/UpdateUserRequest'
+  responses:
+    '200':
+      description: Пользователь успешно обновлен
+      content:
+        application/json:
+          schema:
+            $ref: './model/User.yaml#/components/schemas/UserResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '409':
+      $ref: '../common/Common.yaml#/components/responses/Conflict'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+delete:
+  operationId: deleteUser
+  tags:
+    - Users
+  summary: Удалить пользователя
+  description: Удаление пользователя из системы по идентификатору
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+  responses:
+    '204':
+      description: Пользователь успешно удален
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

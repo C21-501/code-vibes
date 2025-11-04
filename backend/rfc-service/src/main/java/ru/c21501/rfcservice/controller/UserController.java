@@ -1,152 +1,93 @@
 package ru.c21501.rfcservice.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import ru.c21501.rfcservice.dto.request.CreateUserRequest;
-import ru.c21501.rfcservice.dto.request.UpdateUserRequest;
-import ru.c21501.rfcservice.dto.response.UserResponse;
-import ru.c21501.rfcservice.mapper.UserMapper;
-import ru.c21501.rfcservice.model.entity.User;
-import ru.c21501.rfcservice.service.UserService;
-
-import java.util.List;
-import java.util.UUID;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import ru.c21501.rfcservice.client.KeycloakClient;
+import ru.c21501.rfcservice.client.dto.KeycloakTokenResponse;
+import ru.c21501.rfcservice.openapi.api.UsersApi;
+import ru.c21501.rfcservice.openapi.model.LoginRequest;
+import ru.c21501.rfcservice.openapi.model.LoginResponse;
+import ru.c21501.rfcservice.openapi.model.UpdateUserRequest;
+import ru.c21501.rfcservice.openapi.model.UserPageResponse;
+import ru.c21501.rfcservice.openapi.model.UserRequest;
+import ru.c21501.rfcservice.openapi.model.UserResponse;
+import ru.c21501.rfcservice.service.UserApiService;
 
 /**
- * REST контроллер для работы с пользователями
+ * Контроллер для работы с пользователями
  */
-@RestController
-@RequestMapping("/api/users")
-@RequiredArgsConstructor
 @Slf4j
-public class UserController {
+@RestController
+@RequestMapping
+@RequiredArgsConstructor
+public class UserController implements UsersApi {
 
-    private final UserService userService;
-    private final UserMapper userMapper;
+    private final UserApiService userApiService;
+    private final KeycloakClient keycloakClient;
 
-    /**
-     * Получить список всех пользователей
-     */
-    @GetMapping
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        log.info("Getting all users");
-
-        List<User> users = userService.findAll();
-        List<UserResponse> response = users.stream()
-                .map(userMapper::toResponse)
-                .toList();
-
-        return ResponseEntity.ok(response);
+    @Override
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse createUser(UserRequest userRequest) {
+        log.info("POST /api/users - Creating user: {}", userRequest.getUsername());
+        return userApiService.createUser(userRequest);
     }
 
-    /**
-     * Получить пользователя по ID
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
-        log.info("Getting user by id: {}", id);
-
-        return userService.findById(id)
-                .map(userMapper::toResponse)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @Override
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(Long id) {
+        log.info("DELETE /api/users/{} - Deleting user", id);
+        userApiService.deleteUser(id);
     }
 
-    /**
-     * Получить пользователя по имени пользователя
-     */
-    @GetMapping("/by-username/{username}")
-    public ResponseEntity<UserResponse> getUserByUsername(@PathVariable String username) {
-        log.info("Getting user by username: {}", username);
-
-        return userService.findByUsername(username)
-                .map(userMapper::toResponse)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @Override
+    @ResponseStatus(HttpStatus.OK)
+    public UserResponse getUserById(Long id) {
+        log.info("GET /api/users/{} - Getting user by ID", id);
+        return userApiService.getUserById(id);
     }
 
-    /**
-     * Получить пользователя по email
-     */
-    @GetMapping("/by-email/{email}")
-    public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
-        log.info("Getting user by email: {}", email);
-
-        return userService.findByEmail(email)
-                .map(userMapper::toResponse)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @Override
+    @ResponseStatus(HttpStatus.OK)
+    public UserPageResponse getUsers(Integer page, Integer size, String searchString) {
+        log.info("GET /api/users - Getting users list (page: {}, size: {}, searchString: {})", page, size, searchString);
+        return userApiService.getUsers(page, size, searchString);
     }
 
-    /**
-     * Создать нового пользователя
-     */
-    @PostMapping
-    @PreAuthorize("hasAnyRole('CAB_MANAGER', 'ADMIN')")
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
-        log.info("Creating user: {}", request.getUsername());
-
-        User user = User.builder()
-                .keycloakId(request.getKeycloakId())
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .role(request.getRole())
-                .build();
-
-        User savedUser = userService.createUser(user);
-        UserResponse response = userMapper.toResponse(savedUser);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @Override
+    @ResponseStatus(HttpStatus.OK)
+    public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest) {
+        log.info("PUT /api/users/{} - Updating user: {}", id, updateUserRequest.getUsername());
+        return userApiService.updateUser(id, updateUserRequest);
     }
 
-    /**
-     * Обновить пользователя
-     */
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CAB_MANAGER', 'ADMIN')")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequest request) {
-        log.info("Updating user with id: {}", id);
+    @Override
+    @ResponseStatus(HttpStatus.OK)
+    public LoginResponse loginUser(LoginRequest loginRequest) {
+        log.info("POST /api/users/login - Login request for user: {}", loginRequest.getUsername());
 
-        if (!userService.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
+        // Аутентификация через Keycloak
+        KeycloakTokenResponse keycloakResponse = keycloakClient.login(
+                loginRequest.getUsername(),
+                loginRequest.getPassword()
+        );
 
-        User user = User.builder()
-                .id(id)
-                .keycloakId(request.getKeycloakId())
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .role(request.getRole())
-                .build();
+        // Маппинг Keycloak ответа в наш контракт
+        LoginResponse response = new LoginResponse();
+        response.setAccessToken(keycloakResponse.getAccessToken());
+        response.setRefreshToken(keycloakResponse.getRefreshToken());
+        response.setExpiresIn(keycloakResponse.getExpiresIn() != null
+                ? keycloakResponse.getExpiresIn().intValue()
+                : null);
+        response.setRefreshExpiresIn(keycloakResponse.getRefreshExpiresIn() != null
+                ? keycloakResponse.getRefreshExpiresIn().intValue()
+                : null);
+        response.setTokenType(keycloakResponse.getTokenType());
 
-        User updatedUser = userService.updateUser(user);
-        UserResponse response = userMapper.toResponse(updatedUser);
-
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Удалить пользователя
-     */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CAB_MANAGER', 'ADMIN')")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        log.info("Deleting user with id: {}", id);
-
-        if (!userService.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        userService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        log.info("User {} successfully authenticated", loginRequest.getUsername());
+        return response;
     }
 }

@@ -1,0 +1,55 @@
+get:
+  operationId: getSystems
+  tags:
+    - Systems
+  summary: Получить пагинированный список систем
+  description: Возвращает список систем с поддержкой пагинации и фильтрации по названию
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/pageable-page'
+    - $ref: '../common/Common.yaml#/components/parameters/pageable-size'
+    - name: name
+      in: query
+      description: Фильтр по названию системы (поиск по совпадению)
+      required: false
+      schema:
+        type: string
+        minLength: 1
+  responses:
+    '200':
+      description: Успешный возврат списка систем
+      content:
+        application/json:
+          schema:
+            $ref: './model/System.yaml#/components/schemas/SystemPageResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+post:
+  operationId: createSystem
+  tags:
+    - Systems
+  summary: Создать новую систему
+  description: Создание новой системы в системе
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/System.yaml#/components/schemas/SystemRequest'
+  responses:
+    '201':
+      description: Система успешно создана
+      content:
+        application/json:
+          schema:
+            $ref: './model/System.yaml#/components/schemas/SystemResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

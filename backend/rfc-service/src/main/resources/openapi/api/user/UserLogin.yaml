@@ -1,0 +1,25 @@
+post:
+  operationId: loginUser
+  tags:
+    - Users
+  summary: Аутентификация пользователя
+  description: Аутентификация пользователя по имени и паролю, возвращает JWT токены
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/User.yaml#/components/schemas/LoginRequest'
+  responses:
+    '200':
+      description: Успешная аутентификация
+      content:
+        application/json:
+          schema:
+            $ref: './model/User.yaml#/components/schemas/LoginResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

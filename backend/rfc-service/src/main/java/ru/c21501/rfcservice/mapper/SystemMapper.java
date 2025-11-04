@@ -1,17 +1,40 @@
 package ru.c21501.rfcservice.mapper;
 
 import org.mapstruct.Mapper;
-import ru.c21501.rfcservice.dto.response.SystemResponse;
-import ru.c21501.rfcservice.model.entity.System;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
+import ru.c21501.rfcservice.model.entity.SystemEntity;
+import ru.c21501.rfcservice.openapi.model.SystemRequest;
+import ru.c21501.rfcservice.openapi.model.SystemResponse;
 
 /**
- * MapStruct маппер для System
+ * Mapper для преобразования между SystemEntity и DTO
  */
-@Mapper(componentModel = "spring", uses = {TeamMapper.class})
+@Mapper(
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        uses = SubsystemMapper.class
+)
 public interface SystemMapper {
 
     /**
-     * Преобразование System entity в DTO ответа
+     * Преобразует SystemRequest в SystemEntity
+     *
+     * @param request запрос с данными системы
+     * @return сущность системы
      */
-    SystemResponse toResponse(System system);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "subsystems", ignore = true)
+    @Mapping(target = "createDatetime", ignore = true)
+    @Mapping(target = "updateDatetime", ignore = true)
+    SystemEntity toEntity(SystemRequest request);
+
+    /**
+     * Преобразует SystemEntity в SystemResponse
+     *
+     * @param entity сущность системы
+     * @return ответ с данными системы
+     */
+    SystemResponse toResponse(SystemEntity entity);
 }

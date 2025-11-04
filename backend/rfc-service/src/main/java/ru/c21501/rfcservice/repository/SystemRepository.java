@@ -1,42 +1,38 @@
 package ru.c21501.rfcservice.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import ru.c21501.rfcservice.model.entity.System;
-import ru.c21501.rfcservice.model.entity.Team;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import ru.c21501.rfcservice.model.entity.SystemEntity;
 
 /**
- * Репозиторий для работы с подсистемами
+ * Репозиторий для работы с системами
  */
 @Repository
-public interface SystemRepository extends JpaRepository<System, UUID> {
+public interface SystemRepository extends JpaRepository<SystemEntity, Long> {
 
     /**
-     * Найти подсистему по названию
-     */
-    Optional<System> findByName(String name);
-
-    /**
-     * Найти подсистемы по типу
-     */
-    List<System> findByType(String type);
-
-    /**
-     * Найти подсистемы по ответственной команде
-     */
-    List<System> findByResponsibleTeam(Team responsibleTeam);
-
-    /**
-     * Найти подсистемы по ID ответственной команды
-     */
-    List<System> findByResponsibleTeamId(UUID responsibleTeamId);
-
-    /**
-     * Проверить существование подсистемы по названию
+     * Проверка существования системы по названию
+     *
+     * @param name название системы
+     * @return true, если система существует
      */
     boolean existsByName(String name);
+
+    /**
+     * Поиск систем по строке поиска с пагинацией
+     * Поиск осуществляется по ID (если строка - число), name, description
+     *
+     * @param searchString строка поиска
+     * @param pageable     параметры пагинации
+     * @return страница систем
+     */
+    @Query("SELECT s FROM SystemEntity s WHERE " +
+            "CAST(s.id AS string) LIKE LOWER(CONCAT('%', :searchString, '%')) OR " +
+            "LOWER(s.name) LIKE LOWER(CONCAT('%', :searchString, '%')) OR " +
+            "LOWER(s.description) LIKE LOWER(CONCAT('%', :searchString, '%'))")
+    Page<SystemEntity> searchSystems(@Param("searchString") String searchString, Pageable pageable);
 }

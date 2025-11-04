@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/openapi/api/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

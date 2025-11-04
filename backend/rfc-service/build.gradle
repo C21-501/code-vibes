@@ -1,7 +1,10 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openapi.generator' version '7.16.0'
 }
 
 group = 'ru.c21-501'
@@ -9,7 +12,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -48,4 +51,66 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$project.projectDir/src/main/resources/openapi/openapi.yaml".toString()
+    outputDir = "$buildDir/generated/openapi".toString()
+    apiPackage = "ru.c21501.rfcservice.openapi.api"
+    modelPackage = "ru.c21501.rfcservice.openapi.model"
+    skipOperationExample = true
+    configOptions = [
+            generateConstructorWithAllArgs : "true",
+            interfaceOnly                  : "true",
+            skipDefaultInterface           : "true",
+            performBeanValidation          : "true",
+            documentationProvider          : "none",
+            useTags                        : "true",
+            useResponseEntity              : "false",
+            useSpringBoot3                 : "true",
+            useBeanValidation              : "true",
+            openApiNullable                : "false"
+    ]
+    generateModelDocumentation = false
+    generateApiDocumentation = false
+    generateApiTests = false
+}
+
+tasks.register('mergeOpenApiFile', GenerateTask) {
+    generatorName = 'openapi-yaml'
+    inputSpec = "$project.projectDir/src/main/resources/openapi/openapi.yaml".toString()
+    outputDir = "$buildDir/generated/openapi".toString()
+    configOptions = [
+            gradleBuildFile: "false"
+    ]
+    group = "openapi tools"
+}
+
+tasks.register("copyMergedOpenApiFile", Copy) {
+    from("$buildDir/generated/openapi/openapi/openapi.yaml")
+    into("$project.projectDir/src/main/resources/static")
+    group = "openapi tools"
+}
+
+sourceSets {
+    main.java.srcDirs += "$buildDir/generated/openapi/src/main/java"
+}
+
+tasks {
+    copyMergedOpenApiFile {
+        dependsOn tasks.mergeOpenApiFile
+    }
+
+    mergeOpenApiFile {
+        dependsOn tasks.openApiGenerate
+    }
+}
+
+compileJava {
+    dependsOn tasks.mergeOpenApiFile
+}
+
+processResources {
+    dependsOn tasks.copyMergedOpenApiFile
 }

@@ -1,73 +1,53 @@
 package ru.c21501.rfcservice.service;
 
-import ru.c21501.rfcservice.model.entity.User;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ru.c21501.rfcservice.model.entity.UserEntity;
 
 /**
- * Сервис для работы с пользователями
+ * Сервис для работы с пользователями (бизнес-логика)
  */
 public interface UserService {
 
     /**
-     * Создать нового пользователя
+     * Создает нового пользователя в системе и Keycloak
+     *
+     * @param userEntity данные пользователя
+     * @param password   пароль пользователя
+     * @return созданный пользователь
      */
-    User createUser(User user);
+    UserEntity createUser(UserEntity userEntity, String password);
 
     /**
-     * Обновить пользователя
+     * Обновляет данные пользователя в системе и Keycloak
+     *
+     * @param id         ID пользователя
+     * @param userEntity новые данные пользователя
+     * @return обновленный пользователь
      */
-    User updateUser(User user);
+    UserEntity updateUser(Long id, UserEntity userEntity);
 
     /**
-     * Найти пользователя по ID
+     * Получает пользователя по ID
+     *
+     * @param id ID пользователя
+     * @return пользователь
      */
-    Optional<User> findById(UUID id);
+    UserEntity getUserById(Long id);
 
     /**
-     * Найти пользователя по Keycloak ID
+     * Удаляет пользователя из системы и Keycloak
+     *
+     * @param id ID пользователя
      */
-    Optional<User> findByKeycloakId(String keycloakId);
+    void deleteUser(Long id);
 
     /**
-     * Найти пользователя по имени пользователя
+     * Получает пагинированный список пользователей с поиском
+     *
+     * @param searchString строка поиска (опционально)
+     * @param pageable     параметры пагинации
+     * @return страница пользователей
      */
-    Optional<User> findByUsername(String username);
-
-    /**
-     * Найти пользователя по email
-     */
-    Optional<User> findByEmail(String email);
-
-    /**
-     * Получить всех пользователей
-     */
-    List<User> findAll();
-
-    /**
-     * Проверить существование пользователя по ID
-     */
-    boolean existsById(UUID id);
-
-    /**
-     * Проверить существование пользователя по Keycloak ID
-     */
-    boolean existsByKeycloakId(String keycloakId);
-
-    /**
-     * Проверить существование пользователя по имени пользователя
-     */
-    boolean existsByUsername(String username);
-
-    /**
-     * Проверить существование пользователя по email
-     */
-    boolean existsByEmail(String email);
-
-    /**
-     * Удалить пользователя по ID
-     */
-    void deleteById(UUID id);
+    Page<UserEntity> getUsers(String searchString, Pageable pageable);
 }

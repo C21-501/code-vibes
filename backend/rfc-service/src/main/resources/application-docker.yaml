@@ -8,4 +8,4 @@ spring:
           issuer-uri: http://keycloak:8080/realms/cab-realm
 
 keycloak:
-  auth-server-url: http://keycloak:8080
+  auth-server-url: ://keycloak:8080http

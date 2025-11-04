@@ -1,0 +1,38 @@
+post:
+  operationId: uploadAttachment
+  tags:
+    - Attachments
+  summary: Загрузить файл
+  description: Загрузка нового файла (максимум 5MB). Файл загружается независимо и позже привязывается к RFC.
+  requestBody:
+    required: true
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            file:
+              type: string
+              format: binary
+              description: Файл для загрузки (максимум 5MB)
+          required:
+            - file
+  responses:
+    '201':
+      description: Файл успешно загружен
+      content:
+        application/json:
+          schema:
+            $ref: './model/Attachment.yaml#/components/schemas/AttachmentResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '413':
+      description: Файл слишком большой (максимум 5MB)
+      content:
+        application/json:
+          schema:
+            $ref: '../common/Common.yaml#/components/schemas/ErrorResponse'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

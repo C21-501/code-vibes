@@ -1,64 +1,56 @@
 package ru.c21501.rfcservice.service;
 
-import ru.c21501.rfcservice.model.entity.Team;
-import ru.c21501.rfcservice.model.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ru.c21501.rfcservice.model.entity.TeamEntity;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.Set;
 
 /**
- * Сервис для работы с командами
+ * Сервис для работы с командами (бизнес-логика)
  */
 public interface TeamService {
 
     /**
-     * Создать новую команду
+     * Создает новую команду
+     *
+     * @param teamEntity данные команды
+     * @param memberIds  список ID членов команды
+     * @return созданная команда
      */
-    Team createTeam(Team team);
+    TeamEntity createTeam(TeamEntity teamEntity, Set<Long> memberIds);
 
     /**
-     * Обновить команду
+     * Обновляет данные команды
+     *
+     * @param id         ID команды
+     * @param teamEntity новые данные команды
+     * @param memberIds  список ID членов команды
+     * @return обновленная команда
      */
-    Team updateTeam(Team team);
+    TeamEntity updateTeam(Long id, TeamEntity teamEntity, Set<Long> memberIds);
 
     /**
-     * Найти команду по ID
+     * Получает команду по ID
+     *
+     * @param id ID команды
+     * @return команда
      */
-    Optional<Team> findById(UUID id);
+    TeamEntity getTeamById(Long id);
 
     /**
-     * Найти команду по названию
+     * Удаляет команду
+     *
+     * @param id ID команды
      */
-    Optional<Team> findByName(String name);
+    void deleteTeam(Long id);
 
     /**
-     * Найти команды по руководителю
+     * Получает пагинированный список команд с поиском
+     *
+     * @param searchString строка поиска (опционально)
+     * @param pageable     параметры пагинации
+     * @return страница команд
      */
-    List<Team> findByLeader(User leader);
-
-    /**
-     * Найти команды по ID руководителя
-     */
-    List<Team> findByLeaderId(UUID leaderId);
-
-    /**
-     * Получить все команды
-     */
-    List<Team> findAll();
-
-    /**
-     * Проверить существование команды по ID
-     */
-    boolean existsById(UUID id);
-
-    /**
-     * Проверить существование команды по названию
-     */
-    boolean existsByName(String name);
-
-    /**
-     * Удалить команду по ID
-     */
-    void deleteById(UUID id);
+    Page<TeamEntity> getTeams(String searchString, Pageable pageable);
 }

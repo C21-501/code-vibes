@@ -1,5 +1,5 @@
 # Стадия сборки
-FROM gradle:8.5-jdk17 AS build
+FROM gradle:8.5-jdk21 AS build
 
 # Установка рабочей директории
 WORKDIR /app
@@ -18,7 +18,7 @@ COPY src ./src
 RUN ./gradlew clean build -x test --no-daemon
 
 # Стадия запуска
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 # Создание пользователя для безопасности
 RUN addgroup --system spring && adduser --system spring --ingroup spring

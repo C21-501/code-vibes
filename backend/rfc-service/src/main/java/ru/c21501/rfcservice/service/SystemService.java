@@ -1,69 +1,52 @@
 package ru.c21501.rfcservice.service;
 
-import ru.c21501.rfcservice.model.entity.System;
-import ru.c21501.rfcservice.model.entity.Team;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ru.c21501.rfcservice.model.entity.SystemEntity;
 
 /**
- * Сервис для работы с подсистемами
+ * Сервис для работы с системами (бизнес-логика)
  */
 public interface SystemService {
 
     /**
-     * Создать новую подсистему
+     * Создает новую систему
+     *
+     * @param systemEntity данные системы
+     * @return созданная система
      */
-    System createSystem(System system);
+    SystemEntity createSystem(SystemEntity systemEntity);
 
     /**
-     * Обновить подсистему
+     * Обновляет данные системы
+     *
+     * @param id           ID системы
+     * @param systemEntity новые данные системы
+     * @return обновленная система
      */
-    System updateSystem(System system);
+    SystemEntity updateSystem(Long id, SystemEntity systemEntity);
 
     /**
-     * Найти подсистему по ID
+     * Получает систему по ID
+     *
+     * @param id ID системы
+     * @return система
      */
-    Optional<System> findById(UUID id);
+    SystemEntity getSystemById(Long id);
 
     /**
-     * Найти подсистему по названию
+     * Удаляет систему
+     *
+     * @param id ID системы
      */
-    Optional<System> findByName(String name);
+    void deleteSystem(Long id);
 
     /**
-     * Найти подсистемы по типу
+     * Получает пагинированный список систем с поиском
+     *
+     * @param searchString строка поиска (опционально)
+     * @param pageable     параметры пагинации
+     * @return страница систем
      */
-    List<System> findByType(String type);
-
-    /**
-     * Найти подсистемы по ответственной команде
-     */
-    List<System> findByResponsibleTeam(Team responsibleTeam);
-
-    /**
-     * Найти подсистемы по ID ответственной команды
-     */
-    List<System> findByResponsibleTeamId(UUID responsibleTeamId);
-
-    /**
-     * Получить все подсистемы
-     */
-    List<System> findAll();
-
-    /**
-     * Проверить существование подсистемы по ID
-     */
-    boolean existsById(UUID id);
-
-    /**
-     * Проверить существование подсистемы по названию
-     */
-    boolean existsByName(String name);
-
-    /**
-     * Удалить подсистему по ID
-     */
-    void deleteById(UUID id);
+    Page<SystemEntity> getSystems(String searchString, Pageable pageable);
 }

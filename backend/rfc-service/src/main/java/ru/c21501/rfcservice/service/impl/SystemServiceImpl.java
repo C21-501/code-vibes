@@ -2,106 +2,113 @@ package ru.c21501.rfcservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.c21501.rfcservice.model.entity.System;
-import ru.c21501.rfcservice.model.entity.Team;
+import ru.c21501.rfcservice.exception.ResourceNotFoundException;
+import ru.c21501.rfcservice.exception.SystemAlreadyExistsException;
+import ru.c21501.rfcservice.model.entity.SystemEntity;
 import ru.c21501.rfcservice.repository.SystemRepository;
 import ru.c21501.rfcservice.service.SystemService;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 /**
- * Реализация сервиса для работы с подсистемами
+ * Реализация сервиса для работы с системами
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class SystemServiceImpl implements SystemService {
 
     private final SystemRepository systemRepository;
 
     @Override
     @Transactional
-    public System createSystem(System system) {
-        log.debug("Создание подсистемы: {}", system.getName());
-        System savedSystem = systemRepository.save(system);
-        log.info("Создана подсистема с ID: {}", savedSystem.getId());
+    public SystemEntity createSystem(SystemEntity systemEntity) {
+        log.info("Creating system: {}", systemEntity.getName());
+
+        // Проверяем, что система с таким названием еще не существует
+        if (systemRepository.existsByName(systemEntity.getName())) {
+            throw new SystemAlreadyExistsException(
+                    String.format("System with name '%s' already exists", systemEntity.getName())
+            );
+        }
+
+        // Сохраняем систему в БД
+        SystemEntity savedSystem = systemRepository.save(systemEntity);
+        log.info("System saved to database with ID: {}", savedSystem.getId());
+
         return savedSystem;
     }
 
     @Override
     @Transactional
-    public System updateSystem(System system) {
-        log.debug("Обновление подсистемы с ID: {}", system.getId());
-        System updatedSystem = systemRepository.save(system);
-        log.info("Обновлена подсистема с ID: {}", updatedSystem.getId());
+    public SystemEntity updateSystem(Long id, SystemEntity systemEntity) {
+        log.info("Updating system with ID: {}", id);
+
+        // Проверяем, что система существует
+        SystemEntity existingSystem = getSystemById(id);
+
+        // Проверяем, что новое название не занято другой системой
+        if (!existingSystem.getName().equals(systemEntity.getName())
+                && systemRepository.existsByName(systemEntity.getName())) {
+            throw new SystemAlreadyExistsException(
+                    String.format("System with name '%s' already exists", systemEntity.getName())
+            );
+        }
+
+        // Обновляем данные
+        existingSystem.setName(systemEntity.getName());
+        existingSystem.setDescription(systemEntity.getDescription());
+
+        // Сохраняем обновленную систему
+        SystemEntity updatedSystem = systemRepository.save(existingSystem);
+        log.info("System updated successfully: {}", updatedSystem.getId());
+
         return updatedSystem;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<System> findById(UUID id) {
-        log.debug("Поиск подсистемы по ID: {}", id);
-        return systemRepository.findById(id);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<System> findByName(String name) {
-        log.debug("Поиск подсистемы по названию: {}", name);
-        return systemRepository.findByName(name);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<System> findByType(String type) {
-        log.debug("Поиск подсистем по типу: {}", type);
-        return systemRepository.findByType(type);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<System> findByResponsibleTeam(Team responsibleTeam) {
-        log.debug("Поиск подсистем по ответственной команде: {}", responsibleTeam.getId());
-        return systemRepository.findByResponsibleTeam(responsibleTeam);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<System> findByResponsibleTeamId(UUID responsibleTeamId) {
-        log.debug("Поиск подсистем по ID ответственной команды: {}", responsibleTeamId);
-        return systemRepository.findByResponsibleTeamId(responsibleTeamId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<System> findAll() {
-        log.debug("Получение всех подсистем");
-        return systemRepository.findAll();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existsById(UUID id) {
-        log.debug("Проверка существования подсистемы по ID: {}", id);
-        return systemRepository.existsById(id);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existsByName(String name) {
-        log.debug("Проверка существования подсистемы по названию: {}", name);
-        return systemRepository.existsByName(name);
+    public SystemEntity getSystemById(Long id) {
+        log.info("Getting system by ID: {}", id);
+        return systemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format("System with ID %d not found", id)
+                ));
     }
 
     @Override
     @Transactional
-    public void deleteById(UUID id) {
-        log.debug("Удаление подсистемы по ID: {}", id);
-        systemRepository.deleteById(id);
-        log.info("Удалена подсистема с ID: {}", id);
+    public void deleteSystem(Long id) {
+        log.info("Deleting system with ID: {}", id);
+
+        // Проверяем, что система существует
+        SystemEntity system = getSystemById(id);
+
+        // Удаляем систему из БД (подсистемы удалятся автоматически благодаря CASCADE)
+        systemRepository.delete(system);
+        log.info("System deleted from database: {}", id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SystemEntity> getSystems(String searchString, Pageable pageable) {
+        log.info("Getting systems with searchString: {}, page: {}, size: {}",
+                searchString, pageable.getPageNumber(), pageable.getPageSize());
+
+        Page<SystemEntity> systems;
+
+        if (searchString != null && !searchString.trim().isEmpty()) {
+            // Поиск по строке
+            systems = systemRepository.searchSystems(searchString.trim(), pageable);
+            log.info("Found {} systems matching search string '{}'", systems.getTotalElements(), searchString);
+        } else {
+            // Получить все системы
+            systems = systemRepository.findAll(pageable);
+            log.info("Retrieved all systems, total: {}", systems.getTotalElements());
+        }
+
+        return systems;
     }
 }

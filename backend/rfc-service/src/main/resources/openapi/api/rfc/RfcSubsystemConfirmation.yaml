@@ -1,0 +1,55 @@
+patch:
+  operationId: updateSubsystemConfirmationStatus
+  tags:
+    - RFC
+  summary: Обновить статус подтверждения подсистемы
+  description: Изменение статуса подтверждения исполнителем (PENDING → CONFIRMED/REJECTED)
+  parameters:
+    - name: rfcId
+      in: path
+      description: ID RFC
+      required: true
+      schema:
+        type: integer
+        format: int64
+    - name: subsystemId
+      in: path
+      description: ID затронутой подсистемы
+      required: true
+      schema:
+        type: integer
+        format: int64
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - CONFIRMED
+                - REJECTED
+            comment:
+              type: string
+              description: Комментарий к изменению статуса
+              maxLength: 1000
+              nullable: true
+          required:
+            - status
+  responses:
+    '200':
+      description: Статус успешно обновлен
+      content:
+        application/json:
+          schema:
+            $ref: './model/Rfc.yaml#/components/schemas/AffectedSubsystemResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

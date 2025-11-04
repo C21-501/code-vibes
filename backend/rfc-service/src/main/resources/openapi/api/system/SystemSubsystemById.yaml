@@ -1,0 +1,94 @@
+get:
+  operationId: getSubsystemById
+  tags:
+    - Subsystems
+  summary: Получить подсистему по ID
+  description: Возвращает детальную информацию о подсистеме
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+    - name: subsystemId
+      in: path
+      required: true
+      description: ID подсистемы
+      schema:
+        type: integer
+        format: int64
+  responses:
+    '200':
+      description: Успешный возврат подсистемы
+      content:
+        application/json:
+          schema:
+            $ref: './model/System.yaml#/components/schemas/SubsystemResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+put:
+  operationId: updateSubsystem
+  tags:
+    - Subsystems
+  summary: Обновить подсистему
+  description: Полное обновление информации о подсистеме
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+    - name: subsystemId
+      in: path
+      required: true
+      description: ID подсистемы
+      schema:
+        type: integer
+        format: int64
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: './model/System.yaml#/components/schemas/SubsystemRequest'
+  responses:
+    '200':
+      description: Подсистема успешно обновлена
+      content:
+        application/json:
+          schema:
+            $ref: './model/System.yaml#/components/schemas/SubsystemResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
+
+delete:
+  operationId: deleteSubsystem
+  tags:
+    - Subsystems
+  summary: Удалить подсистему
+  description: Удаление подсистемы
+  parameters:
+    - $ref: '../common/Common.yaml#/components/parameters/path-id'
+    - name: subsystemId
+      in: path
+      required: true
+      description: ID подсистемы
+      schema:
+        type: integer
+        format: int64
+  responses:
+    '204':
+      description: Подсистема успешно удалена
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'
