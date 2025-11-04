@@ -4,7 +4,7 @@
  */
 import './UserTable.css';
 
-export default function UserTable({ users, onView, onEdit, onDelete }) {
+export default function UserTable({ users, onView, onEdit, onDelete, isAdmin }) {
   // Role mapping based on UserRole enum from OpenAPI spec
   const getRoleLabel = (role) => {
     const labels = {
@@ -74,20 +74,24 @@ export default function UserTable({ users, onView, onEdit, onDelete }) {
                 >
                   👁️ Просмотр
                 </button>
-                <button 
-                  className="btn-edit" 
-                  onClick={() => onEdit(user)}
-                  title="Изменить"
-                >
-                  ✏️ Изменить
-                </button>
-                <button 
-                  className="btn-delete" 
-                  onClick={() => onDelete(user)}
-                  title="Удалить"
-                >
-                  🗑️ Удалить
-                </button>
+                {isAdmin && (
+                  <>
+                    <button 
+                      className="btn-edit" 
+                      onClick={() => onEdit(user)}
+                      title="Изменить"
+                    >
+                      ✏️ Изменить
+                    </button>
+                    <button 
+                      className="btn-delete" 
+                      onClick={() => onDelete(user)}
+                      title="Удалить"
+                    >
+                      🗑️ Удалить
+                    </button>
+                  </>
+                )}
               </div>
             </td>
           </tr>

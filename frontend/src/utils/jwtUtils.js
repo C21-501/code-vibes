@@ -123,3 +123,15 @@ export function getTokenExpiration(token) {
   return new Date(payload.exp * 1000);
 }
 
+/**
+ * Check if current user has ADMIN role
+ * @returns {boolean} True if user is admin
+ */
+export function isAdmin() {
+  const user = getCurrentUser();
+  if (!user) return false;
+  
+  // Check if user has ADMIN role in their roles array
+  return user.roles && user.roles.includes('ADMIN');
+}
+

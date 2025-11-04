@@ -4,7 +4,7 @@
  */
 import './TeamTable.css';
 
-export default function TeamTable({ teams, onView, onEdit, onDelete }) {
+export default function TeamTable({ teams, onView, onEdit, onDelete, isAdmin }) {
   if (!teams || teams.length === 0) {
     return (
       <div className="empty-state">
@@ -63,12 +63,16 @@ export default function TeamTable({ teams, onView, onEdit, onDelete }) {
                 <button className="btn-view" onClick={() => onView(team)}>
                   👁️ Просмотр
                 </button>
-                <button className="btn-edit" onClick={() => onEdit(team)}>
-                  ✏️ Изменить
-                </button>
-                <button className="btn-delete" onClick={() => onDelete(team)}>
-                  🗑️ Удалить
-                </button>
+                {isAdmin && (
+                  <>
+                    <button className="btn-edit" onClick={() => onEdit(team)}>
+                      ✏️ Изменить
+                    </button>
+                    <button className="btn-delete" onClick={() => onDelete(team)}>
+                      🗑️ Удалить
+                    </button>
+                  </>
+                )}
               </div>
             </td>
           </tr>

@@ -14,7 +14,7 @@ import ViewSubsystemModal from './ViewSubsystemModal';
 import Toast from '../../../shared/components/Toast';
 import { getSystems, createSystem, updateSystem, deleteSystem } from '../api/systemApi';
 import { createSubsystem, updateSubsystem, deleteSubsystem } from '../api/subsystemApi';
-import { getCurrentUser } from '../../../utils/jwtUtils';
+import { getCurrentUser, isAdmin } from '../../../utils/jwtUtils';
 import './SystemManagement.css';
 
 export default function SystemManagement() {
@@ -60,12 +60,14 @@ export default function SystemManagement() {
 
   // Get current user from JWT token
   const [currentUser, setCurrentUser] = useState(null);
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
 
   // Load current user from token on mount
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
       setCurrentUser(user);
+      setUserIsAdmin(isAdmin());
     } else {
       console.warn('No valid user token found');
     }
@@ -285,7 +287,7 @@ export default function SystemManagement() {
       
       <main className="main-content">
         <div className="header">
-          <h1>Управление системами</h1>
+          <h1>{userIsAdmin ? 'Управление системами' : 'Системы'}</h1>
           <div className="header-right">
             {currentUser && (
               <div className="user-info">
@@ -304,9 +306,11 @@ export default function SystemManagement() {
                 </div>
               </div>
             )}
-            <button className="btn btn-primary" onClick={handleCreateSystem}>
-              ➕ Создать систему
-            </button>
+            {userIsAdmin && (
+              <button className="btn btn-primary" onClick={handleCreateSystem}>
+                ➕ Создать систему
+              </button>
+            )}
           </div>
         </div>
 
@@ -352,6 +356,7 @@ export default function SystemManagement() {
                 onDeleteSubsystem={handleDeleteSubsystem}
                 onAddSubsystem={handleAddSubsystem}
                 subsystemRefreshTrigger={subsystemRefreshTrigger}
+                isAdmin={userIsAdmin}
               />
               
               {systems.length > 0 && (

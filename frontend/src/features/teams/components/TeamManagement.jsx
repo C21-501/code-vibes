@@ -11,7 +11,7 @@ import ViewTeamModal from './ViewTeamModal';
 import TeamFormModal from './TeamFormModal';
 import Toast from '../../../shared/components/Toast';
 import { getTeams, createTeam, updateTeam, deleteTeam } from '../api/teamApi';
-import { getCurrentUser } from '../../../utils/jwtUtils';
+import { getCurrentUser, isAdmin } from '../../../utils/jwtUtils';
 import './TeamManagement.css';
 
 export default function TeamManagement() {
@@ -47,12 +47,14 @@ export default function TeamManagement() {
 
   // Get current user from JWT token
   const [currentUser, setCurrentUser] = useState(null);
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
 
   // Load current user from token on mount
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
       setCurrentUser(user);
+      setUserIsAdmin(isAdmin());
     } else {
       console.warn('No valid user token found');
     }
@@ -213,7 +215,7 @@ export default function TeamManagement() {
       
       <main className="main-content">
         <div className="header">
-          <h1>Управление командами</h1>
+          <h1>{userIsAdmin ? 'Управление командами' : 'Команды'}</h1>
           <div className="header-right">
             {currentUser && (
               <div className="user-info">
@@ -232,9 +234,11 @@ export default function TeamManagement() {
                 </div>
               </div>
             )}
-            <button className="btn btn-primary" onClick={handleCreateTeam}>
-              ➕ Создать команду
-            </button>
+            {userIsAdmin && (
+              <button className="btn btn-primary" onClick={handleCreateTeam}>
+                ➕ Создать команду
+              </button>
+            )}
           </div>
         </div>
 
@@ -275,6 +279,7 @@ export default function TeamManagement() {
                 onView={handleViewTeam}
                 onEdit={handleEditTeam}
                 onDelete={handleDeleteTeam}
+                isAdmin={userIsAdmin}
               />
               
               {teams.length > 0 && (

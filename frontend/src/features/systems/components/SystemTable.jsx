@@ -16,7 +16,8 @@ export default function SystemTable({
   onEditSubsystem,
   onDeleteSubsystem,
   onAddSubsystem,
-  subsystemRefreshTrigger
+  subsystemRefreshTrigger,
+  isAdmin
 }) {
   // State for expanded systems and their subsystems
   const [expandedSystems, setExpandedSystems] = useState({});
@@ -207,18 +208,22 @@ export default function SystemTable({
                     <button className="btn-view" onClick={() => onView(system)}>
                       👁️ Просмотр
                     </button>
-                    <button className="btn-edit" onClick={() => onEdit(system)}>
-                      ✏️ Изменить
-                    </button>
-                    <button className="btn-delete" onClick={() => onDelete(system)}>
-                      🗑️ Удалить
-                    </button>
-                    <button 
-                      className="btn-add-subsystem" 
-                      onClick={() => handleSubsystemAction(onAddSubsystem, system.id)}
-                    >
-                      ➕ Подсистему
-                    </button>
+                    {isAdmin && (
+                      <>
+                        <button className="btn-edit" onClick={() => onEdit(system)}>
+                          ✏️ Изменить
+                        </button>
+                        <button className="btn-delete" onClick={() => onDelete(system)}>
+                          🗑️ Удалить
+                        </button>
+                        <button 
+                          className="btn-add-subsystem" 
+                          onClick={() => handleSubsystemAction(onAddSubsystem, system.id)}
+                        >
+                          ➕ Подсистему
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -268,18 +273,22 @@ export default function SystemTable({
                                       >
                                         👁️ Просмотр
                                       </button>
-                                      <button 
-                                        className="btn-edit" 
-                                        onClick={() => handleSubsystemAction(onEditSubsystem, system.id, subsystem)}
-                                      >
-                                        ✏️ Изменить
-                                      </button>
-                                      <button 
-                                        className="btn-delete" 
-                                        onClick={() => handleSubsystemAction(onDeleteSubsystem, system.id, subsystem)}
-                                      >
-                                        🗑️ Удалить
-                                      </button>
+                                      {isAdmin && (
+                                        <>
+                                          <button 
+                                            className="btn-edit" 
+                                            onClick={() => handleSubsystemAction(onEditSubsystem, system.id, subsystem)}
+                                          >
+                                            ✏️ Изменить
+                                          </button>
+                                          <button 
+                                            className="btn-delete" 
+                                            onClick={() => handleSubsystemAction(onDeleteSubsystem, system.id, subsystem)}
+                                          >
+                                            🗑️ Удалить
+                                          </button>
+                                        </>
+                                      )}
                                     </div>
                                   </td>
                                 </tr>

@@ -12,7 +12,7 @@ import ViewUserModal from './ViewUserModal';
 import UserFormModal from './UserFormModal';
 import Toast from '../../../shared/components/Toast';
 import { getUsers, createUser, updateUser, deleteUser } from '../api/userApi';
-import { getCurrentUser } from '../../../utils/jwtUtils';
+import { getCurrentUser, isAdmin } from '../../../utils/jwtUtils';
 import './UserManagement.css';
 
 export default function UserManagement() {
@@ -48,12 +48,14 @@ export default function UserManagement() {
 
   // Get current user from JWT token
   const [currentUser, setCurrentUser] = useState(null);
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
 
   // Load current user from token on mount
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
       setCurrentUser(user);
+      setUserIsAdmin(isAdmin());
     } else {
       // If no valid user, redirect to login
       console.warn('No valid user token found');
@@ -199,12 +201,14 @@ export default function UserManagement() {
       
       <main className="main-content">
         <div className="header">
-          <h1>Управление пользователями</h1>
+          <h1>{userIsAdmin ? 'Управление пользователями' : 'Пользователи'}</h1>
           <div className="header-right">
             {currentUser && <UserHeader user={currentUser} />}
-            <button className="btn btn-primary" onClick={handleCreateUser}>
-              ➕ Создать пользователя
-            </button>
+            {userIsAdmin && (
+              <button className="btn btn-primary" onClick={handleCreateUser}>
+                ➕ Создать пользователя
+              </button>
+            )}
           </div>
         </div>
 
@@ -240,6 +244,7 @@ export default function UserManagement() {
                 onView={handleViewUser}
                 onEdit={handleEditUser}
                 onDelete={handleDeleteUser}
+                isAdmin={userIsAdmin}
               />
               
               {users.length > 0 && (
