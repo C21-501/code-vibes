@@ -1462,10 +1462,19 @@
             <nav>
                 <ul class="nav-menu">
                     <li class="nav-item">
-                        <a href="#" class="nav-link active">📋 Список RFC</a>
+                        <a href="rfc-list.html" class="nav-link active">📋 Список RFC</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">📚 Справочники</a>
+                        <a href="reference-team.html" class="nav-link">👥 Команды</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">🖥️ Системы</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">🔧 Подсистемы</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">👤 Пользователи</a>
                     </li>
                 </ul>
             </nav>
@@ -2027,8 +2036,8 @@
          * - content: array of RfcResponse
          * - totalElements: integer(int64) - Total number of RFC items
          * - totalPages: integer - Total number of pages
-         * - size: integer - Page size
-         * - number: integer - Current page number (0-indexed)
+         * - size: integer - Page size (fixed to 20 as per pageable-size default)
+         * - number: integer - Current page number (0-indexed as per pageable-page parameter)
          * - first: boolean - Is first page
          * - last: boolean - Is last page
          * 
@@ -2093,16 +2102,16 @@
 
             // Initialize pagination with sample data matching PageResponse schema
             // In real app, this would come from API response: GET /rfc?page=0&size=20
+            // Following pageable-page (0-indexed) and pageable-size (default: 20) parameters
             // Simulating scenario with multiple pages for demonstration
-            // Count actual RFC items in DOM
             const rfcItemsCount = document.querySelectorAll('.rfc-table tbody tr').length;
             
             const samplePageResponse = {
                 content: [], // RFC array (already in DOM, showing actual count)
                 totalElements: 156, // Total RFC count across all pages (simulated)
                 totalPages: 8,      // ceil(156 / 20) = 8 pages
-                size: 20,           // Items per page
-                number: 0,          // Current page (0-indexed, so page 1 in UI)
+                size: 20,           // Items per page (fixed as per requirement)
+                number: 0,          // Current page (0-indexed as per pageable-page parameter)
                 first: true,        // This is the first page
                 last: false         // Not the last page
             };
@@ -2347,10 +2356,24 @@
             }
 
             // Navigate to specific page (0-indexed)
+            // In real app, make API call: GET /rfc?page=${pageNumber}&size=20&status=...&urgency=...&requesterId=...
             function goToPage(pageNumber) {
                 console.log('Navigate to page:', pageNumber);
-                // In real app, make API call with page parameter
-                // GET /rfc?page=${pageNumber}&size=${pageSize}&status=...&urgency=...
+                // In real app, make API call with page parameter (size is always 20)
+                // const statusFilter = document.getElementById('status-filter').value;
+                // const urgencyFilter = document.getElementById('urgency-filter').value;
+                // const requesterIdFilter = document.getElementById('requester-filter').value;
+                // 
+                // let url = `/api/rfc?page=${pageNumber}&size=20`;
+                // if (statusFilter) url += `&status=${statusFilter}`;
+                // if (urgencyFilter) url += `&urgency=${urgencyFilter}`;
+                // if (requesterIdFilter) url += `&requesterId=${requesterIdFilter}`;
+                // 
+                // const response = await fetch(url, {
+                //     headers: { 'Authorization': 'Bearer ' + getAuthToken() }
+                // });
+                // const pageResponse = await response.json(); // RfcPageResponse
+                // 
                 // Then update table and call updatePaginationUI with new PageResponse
                 
                 // For demo, just log
@@ -3240,6 +3263,7 @@
         let systemsData = [];
         let teamsData = [];
         let systemCounter = 0;
+        let subsystemCounter = 0;
         let useAutocomplete = false; // Если систем много, включаем autocomplete
         let systemsCache = new Map(); // Кеш для подсистем: systemId -> subsystems[]
 
@@ -3293,6 +3317,7 @@
             try {
                 // УМНАЯ ЗАГРУЗКА: пробуем загрузить первые 200 систем
                 // Если их больше - включаем режим autocomplete с поиском
+                // Note: используем size=200 для загрузки справочников (отличается от page size=20 для основных данных)
                 
                 // В реальном приложении:
                 // const systemsResponse = await fetch('/api/system?page=0&size=200', {
@@ -3641,8 +3666,15 @@
                 return;
             }
 
-            const system = systemsData.find(s => s.id == selectedSystemId);
-            if (!system || !system.subsystems || system.subsystems.length === 0) {
+            // Get subsystems from dataset (loaded by handleSystemChange)
+            const subsystemsJson = systemCard.dataset.subsystems;
+            if (!subsystemsJson) {
+                showToast('error', 'Ошибка', 'Сначала загрузите подсистемы для выбранной системы');
+                return;
+            }
+
+            const subsystems = JSON.parse(subsystemsJson);
+            if (subsystems.length === 0) {
                 showToast('error', 'Ошибка', 'У выбранной системы нет подсистем');
                 return;
             }
@@ -3666,7 +3698,7 @@
                         <label>Подсистема <span style="color: #e74c3c;">*</span></label>
                         <select class="subsystem-select" data-subsystem-id="${subsystemId}" required>
                             <option value="">Выберите подсистему</option>
-                            ${system.subsystems.map(subsystem => 
+                            ${subsystems.map(subsystem => 
                                 `<option value="${subsystem.id}" data-team-id="${subsystem.teamId}">${subsystem.name}</option>`
                             ).join('')}
                         </select>
