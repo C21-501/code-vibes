@@ -26,6 +26,10 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       APP_SECURITY_ENABLED: ${APP_SECURITY_ENABLED:-true}
+      KEYCLOAK_AUTH_SERVER_URL: http://keycloak:8080
+      KEYCLOAK_REALM: cab-realm
+      KEYCLOAK_RESOURCE: cab-backend
+      KEYCLOAK_CREDENTIALS_SECRET: backend-secret-123
     depends_on:
       - db
       - keycloak
