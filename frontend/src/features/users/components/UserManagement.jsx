@@ -27,6 +27,8 @@ export default function UserManagement() {
 
   // State for search
   const [searchString, setSearchString] = useState('');
+  const [searchInput, setSearchInput] = useState(''); // For input field value
+  const [debounceTimeout, setDebounceTimeout] = useState(null);
 
   // State for modals
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -59,6 +61,35 @@ export default function UserManagement() {
     }
   }, []);
 
+  // Debounced search - update searchString after delay
+  useEffect(() => {
+    // Clear previous timeout
+    if (debounceTimeout) {
+      clearTimeout(debounceTimeout);
+    }
+
+    // If search input is empty, immediately clear search
+    if (!searchInput || searchInput.trim().length === 0) {
+      setSearchString('');
+      return;
+    }
+
+    // Set new timeout for search
+    const timeout = setTimeout(() => {
+      setSearchString(searchInput.trim());
+      setCurrentPage(0); // Reset to first page on search
+    }, 500); // 500ms debounce
+
+    setDebounceTimeout(timeout);
+
+    // Cleanup
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
+  }, [searchInput]);
+
   // Fetch users on component mount and when filters change
   useEffect(() => {
     fetchUsers();
@@ -85,9 +116,8 @@ export default function UserManagement() {
     }
   };
 
-  const handleSearch = (value) => {
-    setSearchString(value);
-    setCurrentPage(0); // Reset to first page on search
+  const handleSearchInputChange = (value) => {
+    setSearchInput(value);
   };
 
   const handlePageChange = (newPage) => {
@@ -95,6 +125,7 @@ export default function UserManagement() {
   };
 
   const handleResetFilters = () => {
+    setSearchInput('');
     setSearchString('');
     setCurrentPage(0);
   };
@@ -185,8 +216,8 @@ export default function UserManagement() {
               <input
                 type="text"
                 id="searchString"
-                value={searchString}
-                onChange={(e) => handleSearch(e.target.value)}
+                value={searchInput}
+                onChange={(e) => handleSearchInputChange(e.target.value)}
                 placeholder="Поиск по ID, username, имени или фамилии..."
               />
             </div>

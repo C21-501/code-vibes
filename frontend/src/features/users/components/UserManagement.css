@@ -105,6 +105,21 @@ body {
   border-color: #3498db;
 }
 
+.filter-group input.error {
+  border-color: #f44336;
+}
+
+.filter-group input.error:focus {
+  border-color: #f44336;
+  box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.1);
+}
+
+.filter-group .help-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
 /* User Table Container */
 .user-table-container {
   background: white;
