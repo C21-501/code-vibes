@@ -240,7 +240,6 @@ function LoginForm() {
     <>
       <div className="login-container">
         <div className="login-header">
-          <div className="login-logo">🔐</div>
           <h1>RFC Management System</h1>
           <p>Войдите в систему для продолжения работы</p>
         </div>
@@ -253,7 +252,6 @@ function LoginForm() {
                 Имя пользователя <span className="required">*</span>
               </label>
               <div className="input-wrapper">
-                <span className="input-icon">👤</span>
                 <input
                   type="text"
                   id="username"
@@ -281,7 +279,6 @@ function LoginForm() {
                 Пароль <span className="required">*</span>
               </label>
               <div className="input-wrapper password-toggle">
-                <span className="input-icon">🔒</span>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"

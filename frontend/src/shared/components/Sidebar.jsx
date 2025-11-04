@@ -53,11 +53,6 @@ export default function Sidebar({ currentPage = 'users' }) {
             </Link>
           </li>
           <li className="nav-item">
-            <span className="nav-link disabled">
-              🔧 Подсистемы
-            </span>
-          </li>
-          <li className="nav-item">
             <Link 
               to="/users" 
               className={`nav-link ${location.pathname === '/users' ? 'active' : ''}`}
