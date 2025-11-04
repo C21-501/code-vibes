@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import LoginForm from './components/LoginForm'
-import UserManagement from './components/UserManagement'
-import ProtectedRoute from './components/ProtectedRoute'
+import LoginForm from './features/auth/components/LoginForm'
+import UserManagement from './features/users/components/UserManagement'
+import ProtectedRoute from './features/auth/components/ProtectedRoute'
 import { isCurrentTokenExpired } from './utils/jwtUtils'
 import './App.css'
 

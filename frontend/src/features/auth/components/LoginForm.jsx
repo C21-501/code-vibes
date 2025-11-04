@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Toast from '../../../shared/components/Toast';
 import './LoginForm.css';
 
 /**
@@ -336,19 +337,13 @@ function LoginForm() {
       </div>
 
       {/* Toast Notification */}
-      {toast.show && (
-        <div className={`toast show ${toast.type}`}>
-          <div className="toast-icon">
-            {toast.type === 'success' && '✓'}
-            {toast.type === 'error' && '✕'}
-            {toast.type === 'info' && 'ℹ'}
-          </div>
-          <div className="toast-content">
-            <div className="toast-title">{toast.title}</div>
-            <div className="toast-message">{toast.message}</div>
-          </div>
-        </div>
-      )}
+      <Toast
+        show={toast.show}
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
     </>
   );
 }

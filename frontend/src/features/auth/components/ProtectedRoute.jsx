@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { isCurrentTokenExpired } from '../utils/jwtUtils';
+import { isCurrentTokenExpired } from '../../../utils/jwtUtils';
 
 /**
  * ProtectedRoute Component

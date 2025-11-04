@@ -2,7 +2,7 @@
  * ViewUserModal Component
  * Modal for viewing user details (read-only)
  */
-import './Modal.css';
+import '../../../shared/components/Modal.css';
 
 export default function ViewUserModal({ user, isOpen, onClose }) {
   if (!isOpen || !user) return null;

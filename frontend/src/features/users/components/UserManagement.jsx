@@ -4,15 +4,15 @@
  * Based on reference-user.html and OpenAPI User spec
  */
 import { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
+import Sidebar from '../../../shared/components/Sidebar';
 import UserHeader from './UserHeader';
 import UserTable from './UserTable';
-import Pagination from './Pagination';
+import Pagination from '../../../shared/components/Pagination';
 import ViewUserModal from './ViewUserModal';
 import UserFormModal from './UserFormModal';
-import Toast from './Toast';
+import Toast from '../../../shared/components/Toast';
 import { getUsers, createUser, updateUser, deleteUser } from '../api/userApi';
-import { getCurrentUser } from '../utils/jwtUtils';
+import { getCurrentUser } from '../../../utils/jwtUtils';
 import './UserManagement.css';
 
 export default function UserManagement() {

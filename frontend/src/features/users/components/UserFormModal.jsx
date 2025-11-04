@@ -3,7 +3,7 @@
  * Modal for creating and editing users
  */
 import { useState, useEffect } from 'react';
-import './Modal.css';
+import '../../../shared/components/Modal.css';
 
 export default function UserFormModal({ user, isOpen, onClose, onSave }) {
   const isEditMode = !!user;
