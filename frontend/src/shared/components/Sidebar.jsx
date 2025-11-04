@@ -37,9 +37,12 @@ export default function Sidebar({ currentPage = 'users' }) {
             </span>
           </li>
           <li className="nav-item">
-            <span className="nav-link disabled">
+            <Link 
+              to="/teams" 
+              className={`nav-link ${location.pathname === '/teams' ? 'active' : ''}`}
+            >
               👥 Команды
-            </span>
+            </Link>
           </li>
           <li className="nav-item">
             <span className="nav-link disabled">

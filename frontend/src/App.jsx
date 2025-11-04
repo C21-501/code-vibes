@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import LoginForm from './features/auth/components/LoginForm'
 import UserManagement from './features/users/components/UserManagement'
+import TeamManagement from './features/teams/components/TeamManagement'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
 import { isCurrentTokenExpired } from './utils/jwtUtils'
 import './App.css'
@@ -46,6 +47,17 @@ function App() {
           <ProtectedRoute>
             <div className="app-full-width">
               <UserManagement />
+            </div>
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/teams" 
+        element={
+          <ProtectedRoute>
+            <div className="app-full-width">
+              <TeamManagement />
             </div>
           </ProtectedRoute>
         } 
