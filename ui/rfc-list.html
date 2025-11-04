@@ -1370,6 +1370,119 @@
             font-family: 'Courier New', monospace;
         }
 
+/* Status Action Modal Styles */
+.current-status-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #e9ecef;
+}
+
+.status-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-description {
+    color: #6c757d;
+    font-size: 14px;
+    flex: 1;
+}
+
+.actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.action-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.action-item:hover {
+    border-color: #3498db;
+    background: #f8f9fa;
+}
+
+.action-item.selected {
+    border-color: #3498db;
+    background: #e3f2fd;
+}
+
+.action-radio {
+    margin-top: 2px;
+}
+
+.action-content {
+    flex: 1;
+}
+
+.action-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.action-description {
+    color: #6c757d;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.selected-action-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #e9ecef;
+}
+
+/* Status action button in table */
+.btn-status-action {
+    padding: 6px 12px;
+    background: white;
+    color: #9b59b6;
+    border: 1px solid #9b59b6;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-status-action:hover {
+    background: #9b59b6;
+    color: white;
+    box-shadow: 0 2px 8px rgba(155, 89, 182, 0.3);
+}
+
+.btn-status-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+    color: #999;
+    border-color: #ddd;
+}
+
+.btn-status-action:disabled:hover {
+    background: #f5f5f5;
+    color: #999;
+    box-shadow: none;
+}
+
         /* Loading overlay */
         .loading-overlay {
             position: fixed;
@@ -1580,6 +1693,7 @@
                                 <div class="action-buttons">
                                 <button class="btn-view" onclick="openRfcModal(1)">👁️ Просмотр</button>
                                     <button class="btn-edit" onclick="openEditRfcModal(1)">✏️ Редактировать</button>
+                                    <button class="btn-status-action" onclick="openStatusActionModal(1)">🔄 Изменить статус</button>
                                 </div>
                             </td>
                         </tr>
@@ -1604,6 +1718,7 @@
                                 <div class="action-buttons">
                                 <button class="btn-view" onclick="openRfcModal(2)">👁️ Просмотр</button>
                                     <button class="btn-edit" onclick="openEditRfcModal(2)">✏️ Редактировать</button>
+                                    <button class="btn-status-action" onclick="openStatusActionModal(2)">🔄 Изменить статус</button>
                                 </div>
                             </td>
                         </tr>
@@ -1628,6 +1743,7 @@
                                 <div class="action-buttons">
                                 <button class="btn-view" onclick="openRfcModal(3)">👁️ Просмотр</button>
                                     <button class="btn-edit" onclick="openEditRfcModal(3)" disabled title="RFC уже одобрен и не может быть отредактирован">✏️ Редактировать</button>
+                                    <button class="btn-status-action" onclick="openStatusActionModal(3)">🔄 Изменить статус</button>
                                 </div>
                             </td>
                         </tr>
@@ -1652,6 +1768,7 @@
                                 <div class="action-buttons">
                                 <button class="btn-view" onclick="openRfcModal(4)">👁️ Просмотр</button>
                                     <button class="btn-edit" onclick="openEditRfcModal(4)" disabled title="RFC уже внедрен и не может быть отредактирован">✏️ Редактировать</button>
+                                    <button class="btn-status-action" onclick="openStatusActionModal(4)">🔄 Изменить статус</button>
                                 </div>
                             </td>
                         </tr>
@@ -1676,6 +1793,7 @@
                                 <div class="action-buttons">
                                 <button class="btn-view" onclick="openRfcModal(5)">👁️ Просмотр</button>
                                     <button class="btn-edit" onclick="openEditRfcModal(5)" disabled title="RFC отклонен и не может быть отредактирован">✏️ Редактировать</button>
+                                    <button class="btn-status-action" onclick="openStatusActionModal(5)">🔄 Изменить статус</button>
                                 </div>
                             </td>
                         </tr>
@@ -1700,6 +1818,7 @@
                                 <div class="action-buttons">
                                 <button class="btn-view" onclick="openRfcModal(6)">👁️ Просмотр</button>
                                     <button class="btn-edit" onclick="openEditRfcModal(6)">✏️ Редактировать</button>
+                                    <button class="btn-status-action" onclick="openStatusActionModal(6)">🔄 Изменить статус</button>
                                 </div>
                             </td>
                         </tr>
@@ -2003,6 +2122,83 @@
         </div>
     </div>
 
+    <!-- Status Action Modal -->
+    <div class="modal-overlay" id="statusActionModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="statusModalTitle">Изменение статуса RFC</h2>
+                <button class="modal-close" onclick="closeStatusActionModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- Current Status Info -->
+                <div class="modal-section">
+                    <div class="modal-section-title">Текущий статус</div>
+                    <div class="current-status-info">
+                        <div class="status-display">
+                            <span class="status-badge" id="currentStatusBadge">Новый</span>
+                            <span class="status-description" id="currentStatusDescription">RFC создан, но еще не отправлен на рассмотрение</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Actions -->
+                <div class="modal-section">
+                    <div class="modal-section-title">Доступные действия</div>
+                    <div class="actions-list" id="actionsList">
+                        <!-- Actions will be populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Action Details -->
+                <div class="modal-section" id="actionDetailsSection" style="display: none;">
+                    <div class="modal-section-title">Детали действия</div>
+
+                    <!-- Selected Action Info -->
+                    <div class="selected-action-info" id="selectedActionInfo">
+                        <div class="modal-field">
+                            <div class="modal-field-label">Выбранное действие</div>
+                            <div class="modal-field-value" id="selectedActionLabel"></div>
+                        </div>
+                        <div class="modal-field">
+                            <div class="modal-field-label">Новый статус</div>
+                            <div class="modal-field-value">
+                                <span class="status-badge" id="newStatusBadge"></span>
+                            </div>
+                        </div>
+                        <div class="modal-field">
+                            <div class="modal-field-label">Описание действия</div>
+                            <div class="modal-field-value" id="selectedActionDescription"></div>
+                        </div>
+                    </div>
+
+                    <!-- Comment Input -->
+                    <div class="form-group">
+                        <label for="statusComment">
+                            Комментарий
+                            <span class="required">*</span>
+                        </label>
+                        <textarea
+                                id="statusComment"
+                                placeholder="Опишите причину изменения статуса..."
+                                rows="4"
+                                maxlength="1000"
+                        ></textarea>
+                        <div class="field-counter">
+                            <span id="comment-counter">0</span> / 1000
+                        </div>
+                        <div class="error-message" id="commentError">Комментарий обязателен для заполнения</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeStatusActionModal()">Отмена</button>
+                <button class="btn btn-primary" id="confirmStatusAction" onclick="confirmStatusAction()" disabled>
+                    Подтвердить изменение
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast" id="toast">
         <div class="toast-icon" id="toast-icon">✓</div>
@@ -2081,7 +2277,7 @@
          * - User names: "FirstName LastName" (e.g., "Иван Иванов")
          * - User avatar initials: "FL" (e.g., "ИИ")
          */
-        
+
         document.addEventListener('DOMContentLoaded', function() {
             // Simulated current user data (in real app, would come from authentication)
             // Following UserResponse schema from OpenAPI spec
@@ -2431,10 +2627,205 @@
                 userRoleBadge.className = 'role-badge ' + roleInfo.class;
                 userRoleBadge.textContent = roleInfo.text;
             }
+
         });
 
         // Global variable to store current RFC being viewed
         let currentViewedRfc = null;
+
+// RFC Status Enum (from OpenAPI RfcStatus in Common.yaml)
+const RFC_STATUS = {
+    NEW: 'NEW',
+    UNDER_REVIEW: 'UNDER_REVIEW',
+    APPROVED: 'APPROVED',
+    IMPLEMENTED: 'IMPLEMENTED',
+    REJECTED: 'REJECTED'
+};
+
+// RFC Actions Enum
+const RFC_ACTIONS = {
+    SUBMIT: 'SUBMIT',           // NEW → UNDER_REVIEW
+    APPROVE: 'APPROVE',         // UNDER_REVIEW → APPROVED
+    REJECT: 'REJECT',           // UNDER_REVIEW → REJECTED
+    IMPLEMENT: 'IMPLEMENT',     // APPROVED → IMPLEMENTED
+    REOPEN: 'REOPEN'            // REJECTED → UNDER_REVIEW
+};
+
+// Status transition rules with role-based permissions
+const STATUS_WORKFLOW = {
+    [RFC_STATUS.NEW]: {
+        next: [RFC_STATUS.UNDER_REVIEW],
+        actions: [RFC_ACTIONS.SUBMIT],
+        allowedRoles: ['REQUESTER', 'ADMIN'],
+        label: 'Новый',
+        description: 'RFC создан, но еще не отправлен на рассмотрение'
+    },
+    [RFC_STATUS.UNDER_REVIEW]: {
+        next: [RFC_STATUS.APPROVED, RFC_STATUS.REJECTED],
+        actions: [RFC_ACTIONS.APPROVE, RFC_ACTIONS.REJECT],
+        allowedRoles: ['CAB_MANAGER', 'ADMIN'],
+        label: 'На рассмотрении',
+        description: 'RFC находится на рассмотрении CAB менеджера'
+    },
+    [RFC_STATUS.APPROVED]: {
+        next: [RFC_STATUS.IMPLEMENTED],
+        actions: [RFC_ACTIONS.IMPLEMENT],
+        allowedRoles: ['EXECUTOR', 'ADMIN'],
+        label: 'Одобрен',
+        description: 'RFC одобрен и готов к внедрению'
+    },
+    [RFC_STATUS.IMPLEMENTED]: {
+        next: [],
+        actions: [],
+        allowedRoles: [],
+        label: 'Внедрен',
+        description: 'RFC успешно внедрен'
+    },
+    [RFC_STATUS.REJECTED]: {
+        next: [RFC_STATUS.UNDER_REVIEW],
+        actions: [RFC_ACTIONS.REOPEN],
+        allowedRoles: ['REQUESTER', 'ADMIN'],
+        label: 'Отклонен',
+        description: 'RFC отклонен CAB менеджером'
+    }
+};
+
+// Action labels for UI
+const ACTION_LABELS = {
+    [RFC_ACTIONS.SUBMIT]: 'Отправить на рассмотрение',
+    [RFC_ACTIONS.APPROVE]: 'Одобрить RFC',
+    [RFC_ACTIONS.REJECT]: 'Отклонить RFC',
+    [RFC_ACTIONS.IMPLEMENT]: 'Отметить как внедренный',
+    [RFC_ACTIONS.REOPEN]: 'Переоткрыть RFC'
+};
+
+// Action descriptions
+const ACTION_DESCRIPTIONS = {
+    [RFC_ACTIONS.SUBMIT]: 'Переводит RFC в статус "На рассмотрении" для оценки CAB менеджером',
+    [RFC_ACTIONS.APPROVE]: 'Одобряет RFC для дальнейшего внедрения исполнителями',
+    [RFC_ACTIONS.REJECT]: 'Отклоняет RFC с указанием причины',
+    [RFC_ACTIONS.IMPLEMENT]: 'Отмечает RFC как успешно внедренный',
+    [RFC_ACTIONS.REOPEN]: 'Возвращает отклоненный RFC на повторное рассмотрение'
+};
+
+/**
+ * Check if user can perform action on RFC
+ * @param {Object} rfc - RFC data
+ * @param {string} action - Action to perform
+ * @param {Object} user - Current user
+ * @returns {boolean} - True if action is allowed
+ */
+function canPerformAction(rfc, action, user) {
+    const currentStatus = rfc.status;
+    const userRole = user.role;
+
+    // Get workflow configuration for current status
+    const workflowConfig = STATUS_WORKFLOW[currentStatus];
+    if (!workflowConfig) {
+        console.error('Unknown RFC status:', currentStatus);
+        return false;
+    }
+
+    // Check if action is allowed for current status
+    if (!workflowConfig.actions.includes(action)) {
+        return false;
+    }
+
+    // Check user role permissions
+    if (!workflowConfig.allowedRoles.includes(userRole)) {
+        return false;
+    }
+
+    // Additional business rules
+    switch (action) {
+        case RFC_ACTIONS.SUBMIT:
+            // Only requester (creator) or admin can submit
+            return rfc.requesterId === user.id || userRole === 'ADMIN';
+
+        case RFC_ACTIONS.REOPEN:
+            // Only requester (creator) or admin can reopen rejected RFC
+            return rfc.requesterId === user.id || userRole === 'ADMIN';
+
+        default:
+            return true;
+    }
+}
+
+/**
+ * Get next status for action
+ * @param {string} currentStatus - Current RFC status
+ * @param {string} action - Action to perform
+ * @returns {string} - Next status
+ */
+function getNextStatus(currentStatus, action) {
+    const statusMap = {
+        [RFC_ACTIONS.SUBMIT]: RFC_STATUS.UNDER_REVIEW,
+        [RFC_ACTIONS.APPROVE]: RFC_STATUS.APPROVED,
+        [RFC_ACTIONS.REJECT]: RFC_STATUS.REJECTED,
+        [RFC_ACTIONS.IMPLEMENT]: RFC_STATUS.IMPLEMENTED,
+        [RFC_ACTIONS.REOPEN]: RFC_STATUS.UNDER_REVIEW
+    };
+
+    return statusMap[action] || currentStatus;
+}
+
+/**
+ * Get available actions for RFC and user
+ * @param {Object} rfc - RFC data
+ * @param {Object} user - Current user
+ * @returns {Array} - Array of available actions
+ */
+function getAvailableActions(rfc, user) {
+    const currentStatus = rfc.status;
+    const workflowConfig = STATUS_WORKFLOW[currentStatus];
+
+    if (!workflowConfig) {
+        return [];
+    }
+
+    return workflowConfig.actions.filter(action =>
+        canPerformAction(rfc, action, user)
+    ).map(action => ({
+        value: action,
+        label: ACTION_LABELS[action],
+        description: ACTION_DESCRIPTIONS[action],
+        nextStatus: getNextStatus(currentStatus, action)
+    }));
+}
+
+/**
+ * Update RFC status via API
+ * @param {number} rfcId - RFC ID
+ * @param {string} action - Action to perform
+ * @param {string} comment - Optional comment
+ * @returns {Promise} - API response
+ */
+async function updateRfcStatus(rfcId, action, comment = '') {
+    try {
+        // API call according to OpenAPI: PATCH /rfc/{id}/status
+        const response = await fetch(`/api/rfc/${rfcId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getAuthToken()
+            },
+            body: JSON.stringify({
+                action: action,
+                comment: comment
+            })
+        });
+
+        if (response.ok) {
+            return await response.json();
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.errors?.[0]?.message || 'Failed to update RFC status');
+        }
+    } catch (error) {
+        console.error('Error updating RFC status:', error);
+        throw error;
+    }
+}
 
         // Modal functions - defined globally for onclick handlers
         function openRfcModal(rfcId) {
@@ -3012,7 +3403,377 @@
                 showToast('error', 'Ошибка', 'Не удалось удалить RFC. Попробуйте позже.');
             }
         }
+// Global variables for status action modal
+let currentStatusRfc = null;
+let selectedAction = null;
 
+/**
+ * Open status action modal for specific RFC
+ * @param {number} rfcId - RFC ID
+ */
+function openStatusActionModal(rfcId) {
+    const rfcData = getRfcData(rfcId);
+    if (!rfcData) {
+        showToast('error', 'Ошибка', 'RFC не найден');
+        return;
+    }
+
+    // Store current RFC
+    currentStatusRfc = rfcData;
+    selectedAction = null;
+
+    const modal = document.getElementById('statusActionModal');
+    const modalTitle = document.getElementById('statusModalTitle');
+    const currentStatusBadge = document.getElementById('currentStatusBadge');
+    const currentStatusDescription = document.getElementById('currentStatusDescription');
+    const actionsList = document.getElementById('actionsList');
+    const actionDetailsSection = document.getElementById('actionDetailsSection');
+    const confirmBtn = document.getElementById('confirmStatusAction');
+
+    // Set modal title with RFC ID
+    modalTitle.textContent = `Изменение статуса RFC-${String(rfcId).padStart(3, '0')}`;
+
+    // Set current status info
+    const statusConfig = STATUS_WORKFLOW[rfcData.status];
+    currentStatusBadge.textContent = statusConfig.label;
+    currentStatusBadge.className = `status-badge status-${rfcData.status.toLowerCase().replace('_', '-')}`;
+    currentStatusDescription.textContent = statusConfig.description;
+
+    // Get available actions for current user
+    const currentUser = {
+        id: 1,
+        username: 'i.ivanov',
+        firstName: 'Иван',
+        lastName: 'Иванов',
+        role: 'ADMIN'
+    };
+
+    const availableActions = getAvailableActions(rfcData, currentUser);
+
+    // Clear previous actions
+    actionsList.innerHTML = '';
+    actionDetailsSection.style.display = 'none';
+    confirmBtn.disabled = true;
+
+    if (availableActions.length === 0) {
+        // No actions available
+        actionsList.innerHTML = `
+            <div class="empty-state" style="padding: 20px; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 10px;">🔒</div>
+                <p style="color: #6c757d; margin-bottom: 8px;">Нет доступных действий</p>
+                <small style="color: #6c757d;">У вас недостаточно прав для изменения статуса этого RFC</small>
+            </div>
+        `;
+    } else {
+        // Populate available actions
+        availableActions.forEach(action => {
+            const actionItem = document.createElement('div');
+            actionItem.className = 'action-item';
+            actionItem.innerHTML = `
+                <div class="action-radio">
+                    <input type="radio" name="rfcAction" value="${action.value}" id="action-${action.value}">
+                </div>
+                <div class="action-content">
+                    <div class="action-title">${action.label}</div>
+                    <div class="action-description">${action.description}</div>
+                </div>
+            `;
+            actionsList.appendChild(actionItem);
+
+            // Add click handler
+            const radioInput = actionItem.querySelector('input[type="radio"]');
+            actionItem.addEventListener('click', () => {
+                // Select this action
+                document.querySelectorAll('.action-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                actionItem.classList.add('selected');
+                radioInput.checked = true;
+
+                // Update action details
+                selectAction(action);
+            });
+        });
+    }
+
+    // Reset comment
+    document.getElementById('statusComment').value = '';
+    document.getElementById('comment-counter').textContent = '0';
+    document.getElementById('commentError').style.display = 'none';
+
+    // Show modal
+    modal.classList.add('active');
+}
+
+/**
+ * Handle action selection
+ * @param {Object} action - Selected action data
+ */
+function selectAction(action) {
+    selectedAction = action;
+
+    const actionDetailsSection = document.getElementById('actionDetailsSection');
+    const selectedActionLabel = document.getElementById('selectedActionLabel');
+    const newStatusBadge = document.getElementById('newStatusBadge');
+    const selectedActionDescription = document.getElementById('selectedActionDescription');
+    const confirmBtn = document.getElementById('confirmStatusAction');
+
+    // Update action details
+    selectedActionLabel.textContent = action.label;
+    selectedActionDescription.textContent = action.description;
+
+    // Update new status badge
+    const newStatusConfig = STATUS_WORKFLOW[action.nextStatus];
+    newStatusBadge.textContent = newStatusConfig.label;
+    newStatusBadge.className = `status-badge status-${action.nextStatus.toLowerCase().replace('_', '-')}`;
+
+    // Show action details section
+    actionDetailsSection.style.display = 'block';
+
+    // Enable confirm button (will be disabled if comment is empty)
+    confirmBtn.disabled = !validateStatusActionForm();
+}
+
+/**
+ * Close status action modal
+ */
+function closeStatusActionModal() {
+    const modal = document.getElementById('statusActionModal');
+    modal.classList.remove('active');
+
+    // Reset state after animation
+    setTimeout(() => {
+        currentStatusRfc = null;
+        selectedAction = null;
+        document.getElementById('statusComment').value = '';
+        document.getElementById('comment-counter').textContent = '0';
+    }, 300);
+}
+
+/**
+ * Validate status action form
+ * @returns {boolean} - True if form is valid
+ */
+function validateStatusActionForm() {
+    const comment = document.getElementById('statusComment').value.trim();
+    const commentError = document.getElementById('commentError');
+
+    let isValid = true;
+
+    // Validate comment
+    if (!comment) {
+        commentError.style.display = 'block';
+        isValid = false;
+    } else {
+        commentError.style.display = 'none';
+    }
+
+    // Validate action is selected
+    if (!selectedAction) {
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+/**
+ * Confirm and execute status action
+ */
+async function confirmStatusAction() {
+    if (!currentStatusRfc || !selectedAction) {
+        showToast('error', 'Ошибка', 'Действие не выбрано');
+        return;
+    }
+
+    // Validate form
+    if (!validateStatusActionForm()) {
+        showToast('error', 'Ошибка валидации', 'Проверьте правильность заполнения формы');
+        return;
+    }
+
+    const comment = document.getElementById('statusComment').value.trim();
+
+    console.log('Updating RFC status:', {
+        rfcId: currentStatusRfc.id,
+        action: selectedAction.value,
+        comment: comment
+    });
+
+    // Show loading
+    showLoading();
+
+    try {
+        // In real app, make API call: PATCH /rfc/{id}/status
+        // const response = await updateRfcStatus(currentStatusRfc.id, selectedAction.value, comment);
+
+        // Mock implementation for demonstration
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Simulate successful response
+        const mockResponse = {
+            id: currentStatusRfc.id,
+            status: selectedAction.nextStatus,
+            updateDatetime: new Date().toISOString()
+        };
+
+        // Update local data
+        const rfcData = getRfcData(currentStatusRfc.id);
+        if (rfcData) {
+            rfcData.status = selectedAction.nextStatus;
+            rfcData.updateDatetime = mockResponse.updateDatetime;
+        }
+
+        hideLoading();
+        closeStatusActionModal();
+
+        // Show success message
+        showToast('success', 'Статус обновлен',
+            `RFC-${String(currentStatusRfc.id).padStart(3, '0')} переведен в статус "${STATUS_WORKFLOW[selectedAction.nextStatus].label}"`);
+
+        // Update UI
+        updateRfcTableRow(currentStatusRfc.id, selectedAction.nextStatus);
+
+        // If RFC details modal is open, refresh it
+        if (document.getElementById('rfcModal').classList.contains('active')) {
+            openRfcModal(currentStatusRfc.id);
+        }
+
+    } catch (error) {
+        hideLoading();
+        console.error('Error updating RFC status:', error);
+        showToast('error', 'Ошибка', 'Не удалось обновить статус RFC. Попробуйте позже.');
+    }
+}
+
+/**
+ * Update RFC table row with new status
+ * @param {number} rfcId - RFC ID
+ * @param {string} newStatus - New status
+ */
+function updateRfcTableRow(rfcId, newStatus) {
+    const row = document.querySelector(`tr[data-rfc-id="${rfcId}"]`);
+    if (!row) return;
+
+    const statusCell = row.cells[2]; // Status column (0-indexed: ID=0, Title=1, Status=2)
+    const statusConfig = STATUS_WORKFLOW[newStatus];
+
+    if (statusCell) {
+        statusCell.innerHTML = `<span class="status-badge status-${newStatus.toLowerCase().replace('_', '-')}">${statusConfig.label}</span>`;
+    }
+
+    // Update action buttons
+    updateActionButtons(row, rfcId, newStatus);
+}
+
+/**
+ * Update action buttons in table row
+ * @param {HTMLTableRowElement} row - Table row element
+ * @param {number} rfcId - RFC ID
+ * @param {string} status - Current status
+ */
+function updateActionButtons(row, rfcId, status) {
+    const actionsCell = row.cells[7]; // Actions column
+    if (!actionsCell) return;
+
+    const currentUser = {
+        id: 1,
+        username: 'i.ivanov',
+        firstName: 'Иван',
+        lastName: 'Иванов',
+        role: 'ADMIN'
+    };
+
+    const rfcData = getRfcData(rfcId);
+    const availableActions = getAvailableActions(rfcData, currentUser);
+
+    // Generate status action button
+    let statusButton = '';
+    if (availableActions.length > 0) {
+        statusButton = `<button class="btn-status-action" onclick="openStatusActionModal(${rfcId})">🔄 Изменить статус</button>`;
+    } else {
+        statusButton = `<button class="btn-status-action" disabled title="Нет доступных действий">🔄 Изменить статус</button>`;
+    }
+
+    // Update edit button based on status
+    let editButton = '';
+    if (['NEW', 'UNDER_REVIEW'].includes(status) &&
+        (currentUser.id === rfcData.requesterId || currentUser.role === 'ADMIN')) {
+        editButton = `<button class="btn-edit" onclick="openEditRfcModal(${rfcId})">✏️ Редактировать</button>`;
+    } else {
+        editButton = `<button class="btn-edit" disabled title="Редактирование недоступно">✏️ Редактировать</button>`;
+    }
+
+    actionsCell.querySelector('.action-buttons').innerHTML = `
+        <button class="btn-view" onclick="openRfcModal(${rfcId})">👁️ Просмотр</button>
+        ${editButton}
+        ${statusButton}
+    `;
+}
+
+// Add event listener for comment input
+document.addEventListener('DOMContentLoaded', function() {
+    // Comment character counter
+    const commentInput = document.getElementById('statusComment');
+    if (commentInput) {
+        commentInput.addEventListener('input', function() {
+            document.getElementById('comment-counter').textContent = this.value.length;
+            document.getElementById('confirmStatusAction').disabled = !validateStatusActionForm();
+        });
+    }
+
+    // Close modal on overlay click
+    document.getElementById('statusActionModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeStatusActionModal();
+        }
+    });
+    // Initialize status action modal event listeners
+    const statusCommentInput = document.getElementById('statusComment');
+    if (statusCommentInput) {
+        statusCommentInput.addEventListener('input', function() {
+            document.getElementById('comment-counter').textContent = this.value.length;
+            const confirmBtn = document.getElementById('confirmStatusAction');
+            if (confirmBtn) {
+                confirmBtn.disabled = !validateStatusActionForm();
+            }
+        });
+
+    }
+
+    // Close status modal on overlay click
+    const statusModal = document.getElementById('statusActionModal');
+    if (statusModal) {
+        statusModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStatusActionModal();
+            }
+        });
+    }
+    function generateActionButtons(rfc, currentUser) {
+        const actions = [];
+
+        // View button - always available
+        actions.push(`<button class="btn-view" onclick="openRfcModal(${rfc.id})">👁️ Просмотр</button>`);
+
+        // Edit button - only for creators and admins, and only in draft states
+        if ((currentUser.id === rfc.requesterId || currentUser.role === 'ADMIN') &&
+            [RFC_STATUS.NEW, RFC_STATUS.UNDER_REVIEW].includes(rfc.status)) {
+            actions.push(`<button class="btn-edit" onclick="openEditRfcModal(${rfc.id})">✏️ Редактировать</button>`);
+        } else {
+            actions.push(`<button class="btn-edit" disabled title="Редактирование недоступно">✏️ Редактировать</button>`);
+        }
+
+        // Status action button - based on available actions
+        const availableActions = getAvailableActions(rfc, currentUser);
+        if (availableActions.length > 0) {
+            actions.push(`<button class="btn-status-action" onclick="openStatusActionModal(${rfc.id})">🔄 Изменить статус</button>`);
+        } else {
+            actions.push(`<button class="btn-status-action" disabled title="Нет доступных действий">🔄 Изменить статус</button>`);
+        }
+
+        return `<div class="action-buttons">${actions.join('')}</div>`;
+    }
+});
         // RFC Data - defined globally for modal access
         function getRfcData(rfcId) {
             // Sample RFC data - in real app, fetch from API
@@ -3021,7 +3782,7 @@
                     id: 1,
                     title: 'Обновление базы данных пользователей',
                     description: 'Необходимо добавить новые поля в таблицу пользователей для поддержки расширенного профиля и двухфакторной аутентификации.',
-                    status: 'NEW',
+                    status: RFC_STATUS.NEW,
                     urgency: 'PLANNED',
                     implementationDate: '2025-11-10T14:00:00',
                     requesterId: 1,
@@ -3074,7 +3835,7 @@
                     id: 2,
                     title: 'Экстренное исправление критической уязвимости',
                     description: 'Обнаружена критическая уязвимость в API Gateway, требуется немедленное исправление.',
-                    status: 'UNDER_REVIEW',
+                    status: RFC_STATUS.UNDER_REVIEW,
                     urgency: 'EMERGENCY',
                     implementationDate: '2025-11-04T09:00:00',
                     requesterId: 2,
@@ -3116,6 +3877,62 @@
                             createDatetime: '2025-11-03T08:20:00'
                         }
                     ]
+                },
+                3: {
+                    id: 3,
+                    title: 'Миграция на новую версию фреймворка',
+                    description: 'Плановое обновление фреймворка для улучшения производительности и безопасности.',
+                    status: RFC_STATUS.APPROVED,
+                    urgency: 'URGENT',
+                    implementationDate: '2025-11-15T16:00:00',
+                    requesterId: 3,
+                    requesterName: 'Сидорова С.',
+                    createDatetime: '2025-11-02T14:20:00',
+                    updateDatetime: '2025-11-03T10:00:00',
+                    affectedSystems: [],
+                    attachments: []
+                },
+                4: {
+                    id: 4,
+                    title: 'Добавление новых полей в профиль пользователя',
+                    description: 'Расширение функционала профиля пользователя для поддержки новых требований.',
+                    status: RFC_STATUS.IMPLEMENTED,
+                    urgency: 'PLANNED',
+                    implementationDate: '2025-11-01T12:00:00',
+                    requesterId: 4,
+                    requesterName: 'Козлов К.',
+                    createDatetime: '2025-10-28T11:45:00',
+                    updateDatetime: '2025-11-01T12:00:00',
+                    affectedSystems: [],
+                    attachments: []
+                },
+                5: {
+                    id: 5,
+                    title: 'Настройка мониторинга производительности',
+                    description: 'Внедрение системы мониторинга для отслеживания производительности приложения.',
+                    status: RFC_STATUS.REJECTED,
+                    urgency: 'PLANNED',
+                    implementationDate: '2025-11-20T10:00:00',
+                    requesterId: 5,
+                    requesterName: 'Морозова М.',
+                    createDatetime: '2025-11-01T09:00:00',
+                    updateDatetime: '2025-11-03T11:00:00',
+                    affectedSystems: [],
+                    attachments: []
+                },
+                6: {
+                    id: 6,
+                    title: 'Оптимизация запросов к базе данных',
+                    description: 'Улучшение производительности базы данных за счет оптимизации запросов и индексов.',
+                    status: RFC_STATUS.UNDER_REVIEW,
+                    urgency: 'URGENT',
+                    implementationDate: '2025-11-08T15:00:00',
+                    requesterId: 6,
+                    requesterName: 'Новиков Н.',
+                    createDatetime: '2025-11-03T13:25:00',
+                    updateDatetime: '2025-11-03T14:30:00',
+                    affectedSystems: [],
+                    attachments: []
                 }
                 // Add more RFC data as needed
             };
