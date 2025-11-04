@@ -16,7 +16,7 @@ import './LoginForm.css';
  *   tokenType: string 
  * }
  */
-function LoginForm() {
+function LoginForm({ onLoginSuccess }) {
   // Form state
   const [formData, setFormData] = useState({
     username: '',
@@ -171,6 +171,13 @@ function LoginForm() {
 
         // Show success notification (без редиректа по требованию)
         showToast('success', 'Успешный вход', 'Вы успешно авторизованы в системе!');
+        
+        // Call onLoginSuccess callback if provided
+        if (onLoginSuccess) {
+          setTimeout(() => {
+            onLoginSuccess();
+          }, 1000); // Delay to show success message
+        }
         
         // Clear form
         setFormData({ username: '', password: '' });
