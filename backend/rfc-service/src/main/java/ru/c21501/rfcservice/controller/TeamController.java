@@ -10,45 +10,51 @@ import ru.c21501.rfcservice.openapi.api.TeamsApi;
 import ru.c21501.rfcservice.openapi.model.TeamPageResponse;
 import ru.c21501.rfcservice.openapi.model.TeamRequest;
 import ru.c21501.rfcservice.openapi.model.TeamResponse;
+import ru.c21501.rfcservice.service.TeamApiService;
 
+/**
+ * Контроллер для работы с командами
+ */
 @Slf4j
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
 public class TeamController implements TeamsApi {
 
+    private final TeamApiService teamApiService;
+
     @Override
     @ResponseStatus(HttpStatus.CREATED)
     public TeamResponse createTeam(TeamRequest teamRequest) {
-        log.info("createTeam called with: {}", teamRequest);
-        throw new UnsupportedOperationException("Not implemented yet");
+        log.info("POST /api/teams - Creating team: {}", teamRequest.getName());
+        return teamApiService.createTeam(teamRequest);
     }
 
     @Override
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTeam(Long id) {
-        log.info("deleteTeam called with id: {}", id);
-        throw new UnsupportedOperationException("Not implemented yet");
+        log.info("DELETE /api/teams/{} - Deleting team", id);
+        teamApiService.deleteTeam(id);
     }
 
     @Override
     @ResponseStatus(HttpStatus.OK)
     public TeamResponse getTeamById(Long id) {
-        log.info("getTeamById called with id: {}", id);
-        throw new UnsupportedOperationException("Not implemented yet");
+        log.info("GET /api/teams/{} - Getting team by ID", id);
+        return teamApiService.getTeamById(id);
     }
 
     @Override
     @ResponseStatus(HttpStatus.OK)
     public TeamPageResponse getTeams(Integer page, Integer size, String name) {
-        log.info("getTeams called with page: {}, size: {}, name: {}", page, size, name);
-        throw new UnsupportedOperationException("Not implemented yet");
+        log.info("GET /api/teams - Getting teams list (page: {}, size: {}, name: {})", page, size, name);
+        return teamApiService.getTeams(page, size, name);
     }
 
     @Override
     @ResponseStatus(HttpStatus.OK)
     public TeamResponse updateTeam(Long id, TeamRequest teamRequest) {
-        log.info("updateTeam called with id: {}, teamRequest: {}", id, teamRequest);
-        throw new UnsupportedOperationException("Not implemented yet");
+        log.info("PUT /api/teams/{} - Updating team: {}", id, teamRequest.getName());
+        return teamApiService.updateTeam(id, teamRequest);
     }
 }

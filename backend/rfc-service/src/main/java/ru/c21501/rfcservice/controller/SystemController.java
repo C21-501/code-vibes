@@ -10,45 +10,51 @@ import ru.c21501.rfcservice.openapi.api.SystemsApi;
 import ru.c21501.rfcservice.openapi.model.SystemPageResponse;
 import ru.c21501.rfcservice.openapi.model.SystemRequest;
 import ru.c21501.rfcservice.openapi.model.SystemResponse;
+import ru.c21501.rfcservice.service.SystemApiService;
 
+/**
+ * Контроллер для работы с системами
+ */
 @Slf4j
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
 public class SystemController implements SystemsApi {
 
+    private final SystemApiService systemApiService;
+
     @Override
     @ResponseStatus(HttpStatus.CREATED)
     public SystemResponse createSystem(SystemRequest systemRequest) {
-        log.info("createSystem called with: {}", systemRequest);
-        throw new UnsupportedOperationException("Not implemented yet");
+        log.info("POST /api/systems - Creating system: {}", systemRequest.getName());
+        return systemApiService.createSystem(systemRequest);
     }
 
     @Override
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteSystem(Long id) {
-        log.info("deleteSystem called with id: {}", id);
-        throw new UnsupportedOperationException("Not implemented yet");
+        log.info("DELETE /api/systems/{} - Deleting system", id);
+        systemApiService.deleteSystem(id);
     }
 
     @Override
     @ResponseStatus(HttpStatus.OK)
     public SystemResponse getSystemById(Long id) {
-        log.info("getSystemById called with id: {}", id);
-        throw new UnsupportedOperationException("Not implemented yet");
+        log.info("GET /api/systems/{} - Getting system by ID", id);
+        return systemApiService.getSystemById(id);
     }
 
     @Override
     @ResponseStatus(HttpStatus.OK)
     public SystemPageResponse getSystems(Integer page, Integer size, String name) {
-        log.info("getSystems called with page: {}, size: {}, name: {}", page, size, name);
-        throw new UnsupportedOperationException("Not implemented yet");
+        log.info("GET /api/systems - Getting systems list (page: {}, size: {}, name: {})", page, size, name);
+        return systemApiService.getSystems(page, size, name);
     }
 
     @Override
     @ResponseStatus(HttpStatus.OK)
     public SystemResponse updateSystem(Long id, SystemRequest systemRequest) {
-        log.info("updateSystem called with id: {}, systemRequest: {}", id, systemRequest);
-        throw new UnsupportedOperationException("Not implemented yet");
+        log.info("PUT /api/systems/{} - Updating system: {}", id, systemRequest.getName());
+        return systemApiService.updateSystem(id, systemRequest);
     }
 }

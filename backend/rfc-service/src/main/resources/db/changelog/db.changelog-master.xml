@@ -38,4 +38,7 @@
     <!-- RFC attachment table -->
     <include file="011-create-rfc-attachment-table.xml" relativeToChangelogFile="true"/>
 
+    <!-- Alter RFC attachment table for DB storage -->
+    <include file="012-alter-rfc-attachment-for-db-storage.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>

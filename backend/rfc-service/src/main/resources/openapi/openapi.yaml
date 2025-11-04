@@ -38,10 +38,12 @@ paths:
     $ref: './api/rfc/RfcSubsystemConfirmation.yaml'
   /rfc/{rfcId}/subsystem/{subsystemId}/execution:
     $ref: './api/rfc/RfcSubsystemExecution.yaml'
-  /rfc/{rfcId}/attachments:
-    $ref: './api/rfc/RfcAttachments.yaml'
-  /rfc/{rfcId}/attachments/{attachmentId}:
-    $ref: './api/rfc/RfcAttachmentById.yaml'
+
+  # Attachments
+  /attachment:
+    $ref: './api/attachment/Attachment.yaml'
+  /attachment/{id}:
+    $ref: './api/attachment/AttachmentById.yaml'
 
 components:
   securitySchemes:

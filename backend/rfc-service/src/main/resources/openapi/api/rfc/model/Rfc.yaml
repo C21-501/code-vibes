@@ -34,9 +34,9 @@ components:
             $ref: '#/components/schemas/AffectedSystemResponse'
         attachments:
           type: array
-          description: Прикрепленные файлы
+          description: Прикрепленные файлы (метаинформация)
           items:
-            $ref: '#/components/schemas/AttachmentResponse'
+            $ref: '../../attachment/model/Attachment.yaml#/components/schemas/AttachmentResponse'
         createDatetime:
           type: string
           format: date-time
@@ -83,6 +83,12 @@ components:
           items:
             $ref: '#/components/schemas/AffectedSystemRequest'
           minItems: 1
+        attachmentIds:
+          type: array
+          description: ID загруженных файлов для привязки к RFC
+          items:
+            type: integer
+            format: int64
       required:
         - title
         - implementationDate
@@ -217,49 +223,6 @@ components:
         - PENDING
         - IN_PROGRESS
         - DONE
-
-    AttachmentResponse:
-      type: object
-      description: Данные прикрепленного файла
-      properties:
-        id:
-          type: integer
-          format: int64
-          description: Уникальный идентификатор вложения
-        rfcId:
-          type: integer
-          format: int64
-          description: ID RFC
-        originalFilename:
-          type: string
-          description: Оригинальное имя файла
-        fileSize:
-          type: integer
-          format: int64
-          description: Размер файла в байтах
-        contentType:
-          type: string
-          description: MIME тип файла
-          nullable: true
-        uploadedById:
-          type: integer
-          format: int64
-          description: ID пользователя, загрузившего файл
-        uploadedByName:
-          type: string
-          description: Имя пользователя, загрузившего файл
-        createDatetime:
-          type: string
-          format: date-time
-          description: Дата и время загрузки
-      required:
-        - id
-        - rfcId
-        - originalFilename
-        - fileSize
-        - uploadedById
-        - uploadedByName
-        - createDatetime
 
     RfcPageResponse:
       allOf:

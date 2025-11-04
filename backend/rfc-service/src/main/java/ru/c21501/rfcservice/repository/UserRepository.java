@@ -8,11 +8,21 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.c21501.rfcservice.model.entity.UserEntity;
 
+import java.util.Optional;
+
 /**
  * Репозиторий для работы с пользователями
  */
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
+
+    /**
+     * Поиск пользователя по id в keycloak (keycloakId)
+     *
+     * @param keycloakId ID пользователя в Keycloak
+     * @return Optional с пользователем или пустой Optional
+     */
+    Optional<UserEntity> findByKeycloakId(String keycloakId);
 
     /**
      * Проверка существования пользователя по имени пользователя
