@@ -10,17 +10,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum UserRole {
     /**
-     * Инициатор изменений - может создавать RFC
+     * Обычный пользователь - может создавать RFC
      */
-    REQUESTER("Инициатор"),
+    USER("Пользователь"),
 
     /**
-     * Исполнитель - может выполнять RFC
+     * Согласующий RFC - может согласовывать изменения
      */
-    EXECUTOR("Исполнитель"),
+    RFC_APPROVER("Согласующий"),
 
     /**
-     * Менеджер CAB - может согласовывать RFC
+     * Менеджер CAB - может согласовывать RFC и управлять процессом
      */
     CAB_MANAGER("Менеджер CAB"),
 

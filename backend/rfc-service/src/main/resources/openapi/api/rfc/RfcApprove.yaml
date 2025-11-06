@@ -1,0 +1,37 @@
+post:
+  operationId: approveRfc
+  tags:
+    - RFC
+  summary: Согласовать RFC
+  description: Согласование RFC пользователем с ролью RFC_APPROVER, CAB_MANAGER или ADMIN
+  parameters:
+    - name: id
+      in: path
+      description: ID RFC
+      required: true
+      schema:
+        type: integer
+        format: int64
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          $ref: './model/Rfc.yaml#/components/schemas/ApproveRfcRequest'
+  responses:
+    '200':
+      description: RFC успешно согласован
+      content:
+        application/json:
+          schema:
+            $ref: './model/Rfc.yaml#/components/schemas/RfcApprovalResponse'
+    '400':
+      $ref: '../common/Common.yaml#/components/responses/BadRequest'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '403':
+      $ref: '../common/Common.yaml#/components/responses/Forbidden'
+    '404':
+      $ref: '../common/Common.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.c21501.rfcservice.model.entity.UserEntity;
+import ru.c21501.rfcservice.model.enums.UserRole;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,6 +33,14 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
      * @return true, если пользователь существует
      */
     boolean existsByUsername(String username);
+
+    /**
+     * Поиск всех пользователей с определенной ролью
+     *
+     * @param role роль пользователя
+     * @return список пользователей с указанной ролью
+     */
+    List<UserEntity> findByRole(UserRole role);
 
     /**
      * Поиск пользователей по строке поиска с пагинацией
