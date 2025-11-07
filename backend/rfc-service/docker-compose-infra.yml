@@ -24,7 +24,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_HTTP_ENABLED: true
       KC_DEV_FILE_ROOT_PATH: /opt/keycloak/data/import
-      KC_IMPORT: /opt/keycloak/data/import/realm-config.json
+      KC_IMPORT: /opt/keycloak/data/import/cab-realm.json
     ports:
       - "8081:8080"
     volumes:

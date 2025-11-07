@@ -83,12 +83,12 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
             return RfcStatus.REJECTED;
         }
 
-        // Правило 2: Если хотя бы одна подсистема ожидает подтверждения → UNDER_REVIEW
+        // Правило 2: Если хотя бы одна подсистема ожидает подтверждения → NEW
         boolean anySubsystemPending = subsystems.stream()
                 .anyMatch(sub -> sub.getConfirmationStatus() == ConfirmationStatus.PENDING);
 
         if (anySubsystemPending) {
-            return RfcStatus.UNDER_REVIEW;
+            return RfcStatus.NEW;
         }
 
         // Получаем всех пользователей с ролью RFC_APPROVER
@@ -122,7 +122,7 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
             }
         }
 
-        // Правило 5: Иначе → NEW
-        return RfcStatus.NEW;
+        // Правило 5: Иначе → UNDER_REVIEW
+        return RfcStatus.UNDER_REVIEW;
     }
 }

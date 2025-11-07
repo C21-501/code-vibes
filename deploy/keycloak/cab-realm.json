@@ -15,16 +15,16 @@
   "roles": {
     "realm": [
       {
-        "name": "REQUESTER",
-        "description": "Роль для пользователей, которые могут заказывать такси"
+        "name": "USER",
+        "description": "Роль для обычных пользователей системы"
       },
       {
-        "name": "EXECUTOR",
-        "description": "Роль для водителей такси"
+        "name": "RFC_APPROVER",
+        "description": "Роль для согласующих RFC"
       },
       {
         "name": "CAB_MANAGER",
-        "description": "Роль для менеджеров такси-службы"
+        "description": "Роль для менеджеров CAB"
       },
       {
         "name": "ADMIN",

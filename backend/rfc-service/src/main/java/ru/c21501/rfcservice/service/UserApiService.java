@@ -51,4 +51,19 @@ public interface UserApiService {
      * @return страница пользователей
      */
     UserPageResponse getUsers(Integer page, Integer size, String searchString);
+
+    /**
+     * Аутентификация пользователя через Keycloak
+     *
+     * @param request данные для входа (username, password)
+     * @return токены доступа
+     */
+    ru.c21501.rfcservice.openapi.model.LoginResponse loginUser(ru.c21501.rfcservice.openapi.model.LoginRequest request);
+
+    /**
+     * Получает информацию о текущем авторизованном пользователе
+     *
+     * @return данные текущего пользователя
+     */
+    UserResponse getCurrentUser();
 }

@@ -6,12 +6,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.c21501.rfcservice.client.KeycloakClient;
+import ru.c21501.rfcservice.client.dto.KeycloakTokenResponse;
 import ru.c21501.rfcservice.mapper.UserMapper;
 import ru.c21501.rfcservice.model.entity.UserEntity;
+import ru.c21501.rfcservice.openapi.model.LoginRequest;
+import ru.c21501.rfcservice.openapi.model.LoginResponse;
 import ru.c21501.rfcservice.openapi.model.UpdateUserRequest;
 import ru.c21501.rfcservice.openapi.model.UserPageResponse;
 import ru.c21501.rfcservice.openapi.model.UserRequest;
 import ru.c21501.rfcservice.openapi.model.UserResponse;
+import ru.c21501.rfcservice.service.SecurityContextService;
 import ru.c21501.rfcservice.service.UserApiService;
 import ru.c21501.rfcservice.service.UserService;
 
@@ -27,6 +32,8 @@ public class UserApiServiceImpl implements UserApiService {
 
     private final UserService userService;
     private final UserMapper userMapper;
+    private final KeycloakClient keycloakClient;
+    private final SecurityContextService securityContextService;
 
     @Override
     public UserResponse createUser(UserRequest request) {
@@ -112,6 +119,46 @@ public class UserApiServiceImpl implements UserApiService {
         response.setLast(usersPage.isLast());
 
         log.info("API: Retrieved {} users out of {} total", usersPage.getNumberOfElements(), usersPage.getTotalElements());
+        return response;
+    }
+
+    @Override
+    public LoginResponse loginUser(LoginRequest request) {
+        log.info("API: Login request for user: {}", request.getUsername());
+
+        // Аутентификация через Keycloak
+        KeycloakTokenResponse keycloakResponse = keycloakClient.login(
+                request.getUsername(),
+                request.getPassword()
+        );
+
+        // Маппинг Keycloak ответа в наш контракт
+        LoginResponse response = new LoginResponse();
+        response.setAccessToken(keycloakResponse.getAccessToken());
+        response.setRefreshToken(keycloakResponse.getRefreshToken());
+        response.setExpiresIn(keycloakResponse.getExpiresIn() != null
+                ? keycloakResponse.getExpiresIn().intValue()
+                : null);
+        response.setRefreshExpiresIn(keycloakResponse.getRefreshExpiresIn() != null
+                ? keycloakResponse.getRefreshExpiresIn().intValue()
+                : null);
+        response.setTokenType(keycloakResponse.getTokenType());
+
+        log.info("API: User {} successfully authenticated", request.getUsername());
+        return response;
+    }
+
+    @Override
+    public UserResponse getCurrentUser() {
+        log.info("API: Getting current user");
+
+        // Получение текущего пользователя из SecurityContext
+        UserEntity currentUser = securityContextService.getCurrentUser();
+
+        // Обратный маппинг: UserEntity -> UserResponse
+        UserResponse response = userMapper.toResponse(currentUser);
+
+        log.info("API: Current user retrieved: {}", response.getId());
         return response;
     }
 }

@@ -10,6 +10,8 @@ paths:
     $ref: './api/user/User.yaml'
   /user/{id}:
     $ref: './api/user/UserById.yaml'
+  /user/me:
+    $ref: './api/user/UserMe.yaml'
   /user/login:
     $ref: './api/user/UserLogin.yaml'
 
