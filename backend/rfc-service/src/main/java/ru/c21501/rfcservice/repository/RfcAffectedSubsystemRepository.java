@@ -14,6 +14,6 @@ import java.util.Optional;
 @Repository
 public interface RfcAffectedSubsystemRepository extends JpaRepository<RfcAffectedSubsystemEntity, Long> {
 
-    @Query("SELECT ras FROM RfcAffectedSubsystemEntity ras WHERE ras.id = :id AND ras.rfc.id = :rfcId")
-    Optional<RfcAffectedSubsystemEntity> findByIdAndRfcId(@Param("id") Long id, @Param("rfcId") Long rfcId);
+    @Query("SELECT ras FROM RfcAffectedSubsystemEntity ras WHERE ras.subsystem.id = :id AND ras.rfc.id = :rfcId")
+    Optional<RfcAffectedSubsystemEntity> findBySubsystemIdAndRfcId(@Param("id") Long id, @Param("rfcId") Long rfcId);
 }

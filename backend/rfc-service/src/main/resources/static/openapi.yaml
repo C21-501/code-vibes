@@ -257,6 +257,32 @@ paths:
       summary: Обновить пользователя
       tags:
       - Users
+  /user/me:
+    get:
+      description: Возвращает информацию о текущем авторизованном пользователе
+      operationId: getCurrentUser
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: Успешное получение информации о пользователе
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal Server Error
+      summary: Получить информацию о текущем пользователе
+      tags:
+      - Users
   /user/login:
     post:
       description: "Аутентификация пользователя по имени и паролю, возвращает JWT\

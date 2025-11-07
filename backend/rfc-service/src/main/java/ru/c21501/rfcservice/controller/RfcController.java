@@ -3,21 +3,11 @@ package ru.c21501.rfcservice.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
-import ru.c21501.rfcservice.mapper.RfcApprovalMapper;
-import ru.c21501.rfcservice.mapper.RfcMapper;
-import ru.c21501.rfcservice.model.entity.RfcAffectedSubsystemEntity;
-import ru.c21501.rfcservice.model.entity.RfcApprovalEntity;
-import ru.c21501.rfcservice.model.entity.UserEntity;
 import ru.c21501.rfcservice.openapi.api.RfcApi;
 import ru.c21501.rfcservice.openapi.model.*;
-import ru.c21501.rfcservice.resolver.RfcActionResolver;
 import ru.c21501.rfcservice.service.RfcApiService;
-import ru.c21501.rfcservice.service.RfcApprovalService;
-import ru.c21501.rfcservice.service.SecurityContextService;
-import ru.c21501.rfcservice.service.SubsystemStatusService;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import ru.c21501.rfcservice.service.RfcApprovalApiService;
+import ru.c21501.rfcservice.service.SubsystemStatusApiService;
 
 /**
  * Контроллер для работы с RFC
@@ -28,12 +18,8 @@ import java.util.stream.Collectors;
 public class RfcController implements RfcApi {
 
     private final RfcApiService rfcApiService;
-    private final SubsystemStatusService subsystemStatusService;
-    private final RfcApprovalService rfcApprovalService;
-    private final SecurityContextService securityContextService;
-    private final RfcMapper rfcMapper;
-    private final RfcApprovalMapper rfcApprovalMapper;
-    private final RfcActionResolver actionResolver;
+    private final SubsystemStatusApiService subsystemStatusApiService;
+    private final RfcApprovalApiService rfcApprovalApiService;
 
     @Override
     public RfcResponse createRfc(RfcRequest rfcRequest) {
@@ -74,18 +60,7 @@ public class RfcController implements RfcApi {
     ) {
         log.info("PATCH /api/rfc/{}/subsystem/{}/confirmation - Updating confirmation status to {}",
                 rfcId, subsystemId, request.getStatus());
-
-        UserEntity currentUser = securityContextService.getCurrentUser();
-
-        RfcAffectedSubsystemEntity updated = subsystemStatusService.updateConfirmationStatus(
-                rfcId,
-                subsystemId,
-                ConfirmationStatus.valueOf(request.getStatus().getValue()),
-                request.getComment(),
-                currentUser
-        );
-
-        return rfcMapper.toAffectedSubsystemResponse(updated);
+        return subsystemStatusApiService.updateConfirmationStatus(rfcId, subsystemId, request);
     }
 
     @Override
@@ -96,58 +71,25 @@ public class RfcController implements RfcApi {
     ) {
         log.info("PATCH /api/rfc/{}/subsystem/{}/execution - Updating execution status to {}",
                 rfcId, subsystemId, request.getStatus());
-
-        UserEntity currentUser = securityContextService.getCurrentUser();
-
-        RfcAffectedSubsystemEntity updated = subsystemStatusService.updateExecutionStatus(
-                rfcId,
-                subsystemId,
-                ExecutionStatus.valueOf(request.getStatus().getValue()),
-                request.getComment(),
-                currentUser
-        );
-
-        return rfcMapper.toAffectedSubsystemResponse(updated);
+        return subsystemStatusApiService.updateExecutionStatus(rfcId, subsystemId, request);
     }
 
     @Override
     public RfcApprovalResponse approveRfc(Long id, ApproveRfcRequest approveRfcRequest) {
         log.info("POST /api/rfc/{}/approve - Approving RFC", id);
-
-        UserEntity currentUser = securityContextService.getCurrentUser();
-        String comment = approveRfcRequest != null ? approveRfcRequest.getComment() : null;
-
-        RfcApprovalEntity approval = rfcApprovalService.approveRfc(id, comment, currentUser);
-
-        return rfcApprovalMapper.toResponse(approval);
+        return rfcApprovalApiService.approveRfc(id, approveRfcRequest);
     }
 
     @Override
     public RfcApprovalResponse unapproveRfc(Long id, UnapproveRfcRequest unapproveRfcRequest) {
         log.info("POST /api/rfc/{}/unapprove - Unapproving RFC", id);
-
-        UserEntity currentUser = securityContextService.getCurrentUser();
-        String comment = unapproveRfcRequest != null ? unapproveRfcRequest.getComment() : null;
-
-        RfcApprovalEntity approval = rfcApprovalService.unapproveRfc(id, comment, currentUser);
-
-        return rfcApprovalMapper.toResponse(approval);
+        return rfcApprovalApiService.unapproveRfc(id, unapproveRfcRequest);
     }
 
     @Override
     public RfcApprovalsResponse getRfcApprovals(Long id) {
         log.info("GET /api/rfc/{}/approvals - Getting RFC approvals", id);
-
-        List<RfcApprovalEntity> approvals = rfcApprovalService.getRfcApprovals(id);
-
-        List<RfcApprovalResponse> approvalResponses = approvals.stream()
-                .map(rfcApprovalMapper::toResponse)
-                .collect(Collectors.toList());
-
-        RfcApprovalsResponse response = new RfcApprovalsResponse();
-        response.setRfcId(id);
-        response.setApprovals(approvalResponses);
-
-        return response;
+        return rfcApprovalApiService.getRfcApprovals(id);
     }
 }
+
