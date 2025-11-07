@@ -257,6 +257,32 @@ paths:
       summary: Обновить пользователя
       tags:
       - Users
+  /user/me:
+    get:
+      description: Возвращает информацию о текущем авторизованном пользователе
+      operationId: getCurrentUser
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: Успешное получение информации о пользователе
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal Server Error
+      summary: Получить информацию о текущем пользователе
+      tags:
+      - Users
   /user/login:
     post:
       description: "Аутентификация пользователя по имени и паролю, возвращает JWT\
@@ -1285,6 +1311,171 @@ paths:
       summary: Обновить RFC
       tags:
       - RFC
+  /rfc/{id}/approve:
+    post:
+      description: "Согласование RFC пользователем с ролью RFC_APPROVER, CAB_MANAGER\
+        \ или ADMIN"
+      operationId: approveRfc
+      parameters:
+      - description: ID RFC
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApproveRfcRequest"
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RfcApprovalResponse"
+          description: RFC успешно согласован
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal Server Error
+      summary: Согласовать RFC
+      tags:
+      - RFC
+  /rfc/{id}/unapprove:
+    post:
+      description: "Отмена согласования RFC пользователем с ролью RFC_APPROVER, CAB_MANAGER\
+        \ или ADMIN"
+      operationId: unapproveRfc
+      parameters:
+      - description: ID RFC
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnapproveRfcRequest"
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RfcApprovalResponse"
+          description: Согласование RFC успешно отменено
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal Server Error
+      summary: Отменить согласование RFC
+      tags:
+      - RFC
+  /rfc/{id}/approvals:
+    get:
+      description: Возвращает список всех согласований для указанного RFC с информацией
+        о согласующих и статусах
+      operationId: getRfcApprovals
+      parameters:
+      - description: ID RFC
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RfcApprovalsResponse"
+          description: Успешный возврат списка согласований
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal Server Error
+      summary: Получить список согласований для RFC
+      tags:
+      - RFC
   /rfc/{rfcId}/subsystem/{subsystemId}/confirmation:
     patch:
       description: Изменение статуса подтверждения исполнителем (PENDING → CONFIRMED/REJECTED)
@@ -1558,6 +1749,12 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
       description: Not Found
+    Forbidden:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      description: Forbidden
   schemas:
     UserPageResponse:
       allOf:
@@ -1579,12 +1776,12 @@ components:
         content:
         - firstName: firstName
           lastName: lastName
-          role: REQUESTER
+          role: USER
           id: 5
           username: username
         - firstName: firstName
           lastName: lastName
-          role: REQUESTER
+          role: USER
           id: 5
           username: username
         totalElements: 0
@@ -1593,7 +1790,7 @@ components:
       example:
         firstName: firstName
         lastName: lastName
-        role: REQUESTER
+        role: USER
         id: 5
         username: username
       properties:
@@ -1654,7 +1851,7 @@ components:
         firstName: firstName
         lastName: lastName
         password: password
-        role: REQUESTER
+        role: USER
         username: username
       properties:
         username:
@@ -1693,7 +1890,7 @@ components:
       example:
         firstName: firstName
         lastName: lastName
-        role: REQUESTER
+        role: USER
         username: username
       properties:
         username:
@@ -1791,12 +1988,12 @@ components:
         - members:
           - firstName: firstName
             lastName: lastName
-            role: REQUESTER
+            role: USER
             id: 5
             username: username
           - firstName: firstName
             lastName: lastName
-            role: REQUESTER
+            role: USER
             id: 5
             username: username
           name: name
@@ -1805,12 +2002,12 @@ components:
         - members:
           - firstName: firstName
             lastName: lastName
-            role: REQUESTER
+            role: USER
             id: 5
             username: username
           - firstName: firstName
             lastName: lastName
-            role: REQUESTER
+            role: USER
             id: 5
             username: username
           name: name
@@ -1823,12 +2020,12 @@ components:
         members:
         - firstName: firstName
           lastName: lastName
-          role: REQUESTER
+          role: USER
           id: 5
           username: username
         - firstName: firstName
           lastName: lastName
-          role: REQUESTER
+          role: USER
           id: 5
           username: username
         name: name
@@ -2141,6 +2338,9 @@ components:
           description: description
           id: 5
           title: title
+          actions:
+          - UPDATE
+          - UPDATE
           status: NEW
         - createDatetime: 2000-01-23T04:56:07.000+00:00
           requesterId: 2
@@ -2204,6 +2404,9 @@ components:
           description: description
           id: 5
           title: title
+          actions:
+          - UPDATE
+          - UPDATE
           status: NEW
         totalElements: 0
     RfcResponse:
@@ -2271,6 +2474,9 @@ components:
         description: description
         id: 5
         title: title
+        actions:
+        - UPDATE
+        - UPDATE
         status: NEW
       properties:
         id:
@@ -2306,6 +2512,11 @@ components:
           items:
             $ref: "#/components/schemas/AttachmentResponse"
           type: array
+        actions:
+          description: Доступные действия для текущего пользователя
+          items:
+            $ref: "#/components/schemas/RfcAction"
+          type: array
         createDatetime:
           description: Дата и время создания
           format: date-time
@@ -2315,6 +2526,7 @@ components:
           format: date-time
           type: string
       required:
+      - actions
       - affectedSystems
       - attachments
       - createDatetime
@@ -2442,6 +2654,13 @@ components:
       - IN_PROGRESS
       - DONE
       type: string
+    RfcAction:
+      description: "Действия, доступные пользователю для RFC"
+      enum:
+      - UPDATE
+      - DELETE
+      - APPROVE
+      type: string
     RfcRequest:
       description: Данные для создания/обновления RFC
       example:
@@ -2542,6 +2761,114 @@ components:
       - executorId
       - subsystemId
       type: object
+    ApproveRfcRequest:
+      description: Запрос на согласование RFC
+      example:
+        comment: comment
+      properties:
+        comment:
+          description: Комментарий согласующего
+          maxLength: 1000
+          nullable: true
+          type: string
+      type: object
+    RfcApprovalResponse:
+      description: Информация о согласовании RFC
+      example:
+        createDatetime: 2000-01-23T04:56:07.000+00:00
+        updateDatetime: 2000-01-23T04:56:07.000+00:00
+        approverId: 1
+        comment: comment
+        id: 0
+        rfcId: 6
+        isApproved: true
+        approverName: approverName
+      properties:
+        id:
+          description: ID записи согласования
+          format: int64
+          type: integer
+        rfcId:
+          description: ID RFC
+          format: int64
+          type: integer
+        approverId:
+          description: ID согласующего
+          format: int64
+          type: integer
+        approverName:
+          description: Имя согласующего
+          type: string
+        isApproved:
+          description: "Флаг согласования (true - согласовано, false - отклонено)"
+          type: boolean
+        comment:
+          description: Комментарий согласующего
+          nullable: true
+          type: string
+        createDatetime:
+          description: Дата и время создания
+          format: date-time
+          type: string
+        updateDatetime:
+          description: Дата и время последнего обновления
+          format: date-time
+          type: string
+      required:
+      - approverId
+      - approverName
+      - createDatetime
+      - id
+      - isApproved
+      - rfcId
+      - updateDatetime
+      type: object
+    UnapproveRfcRequest:
+      description: Запрос на отмену согласования RFC
+      example:
+        comment: comment
+      properties:
+        comment:
+          description: Комментарий согласующего
+          maxLength: 1000
+          nullable: true
+          type: string
+      type: object
+    RfcApprovalsResponse:
+      description: Список согласований для RFC
+      example:
+        approvals:
+        - createDatetime: 2000-01-23T04:56:07.000+00:00
+          updateDatetime: 2000-01-23T04:56:07.000+00:00
+          approverId: 1
+          comment: comment
+          id: 0
+          rfcId: 6
+          isApproved: true
+          approverName: approverName
+        - createDatetime: 2000-01-23T04:56:07.000+00:00
+          updateDatetime: 2000-01-23T04:56:07.000+00:00
+          approverId: 1
+          comment: comment
+          id: 0
+          rfcId: 6
+          isApproved: true
+          approverName: approverName
+        rfcId: 0
+      properties:
+        rfcId:
+          description: ID RFC
+          format: int64
+          type: integer
+        approvals:
+          description: Список согласований
+          items:
+            $ref: "#/components/schemas/RfcApprovalResponse"
+          type: array
+      required:
+      - approvals
+      - rfcId
+      type: object
     AttachmentResponse:
       description: Данные прикрепленного файла
       example:
@@ -2626,8 +2953,8 @@ components:
     UserRole:
       description: Роль пользователя в системе
       enum:
-      - REQUESTER
-      - EXECUTOR
+      - USER
+      - RFC_APPROVER
       - CAB_MANAGER
       - ADMIN
       type: string
