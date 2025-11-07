@@ -5,15 +5,12 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="010-create-rfc-audit-log-table" author="system">
-        <sqlFile path="sql/010-create-rfc-audit-log-table.sql"
-                 relativeToChangelogFile="true"
-                 encoding="UTF-8"
+    <changeSet id="010-create-rfc-history-table" author="system">
+        <comment>Создание таблицы rfc_history для аудита изменений RFC с явными колонками</comment>
+        <sqlFile path="db/changelog/sql/010-create-rfc-history-table.sql"
+                 relativeToChangelogFile="false"
                  splitStatements="true"
                  stripComments="false"/>
-        <rollback>
-            DROP TABLE IF EXISTS rfc_audit_log CASCADE;
-        </rollback>
     </changeSet>
 
 </databaseChangeLog>

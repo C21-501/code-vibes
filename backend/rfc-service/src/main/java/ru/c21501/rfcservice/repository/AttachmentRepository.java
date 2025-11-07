@@ -17,7 +17,7 @@ public interface AttachmentRepository extends JpaRepository<AttachmentEntity, Lo
      *
      * @return список непривязанных файлов
      */
-    List<AttachmentEntity> findByRfcIdIsNull();
+    List<AttachmentEntity> findByRfcIsNull();
 
     /**
      * Получить все файлы RFC
@@ -25,5 +25,5 @@ public interface AttachmentRepository extends JpaRepository<AttachmentEntity, Lo
      * @param rfcId ID RFC
      * @return список файлов
      */
-    List<AttachmentEntity> findByRfcId(Long rfcId);
+    List<AttachmentEntity> findByRfc_Id(Long rfcId);
 }

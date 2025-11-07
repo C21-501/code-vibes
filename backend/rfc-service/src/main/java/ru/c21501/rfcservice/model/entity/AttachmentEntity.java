@@ -47,10 +47,11 @@ public class AttachmentEntity {
     private Long id;
 
     /**
-     * ID RFC, к которому прикреплен файл (null если еще не привязан)
+     * RFC, к которому прикреплен файл
      */
-    @Column(name = "rfc_id")
-    private Long rfcId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rfc_id")
+    private RfcEntity rfc;
 
     /**
      * Оригинальное имя файла

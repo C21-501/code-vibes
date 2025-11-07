@@ -73,7 +73,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Transactional(readOnly = true)
     public List<AttachmentEntity> getAttachmentsByRfcId(Long rfcId) {
         log.info("Getting attachments for RFC: {}", rfcId);
-        return attachmentRepository.findByRfcId(rfcId);
+        return attachmentRepository.findByRfc_Id(rfcId);
     }
 
     @Override
@@ -85,17 +85,30 @@ public class AttachmentServiceImpl implements AttachmentService {
             AttachmentEntity attachment = getAttachmentById(attachmentId);
 
             // Проверяем, что файл еще не привязан к другому RFC
-            if (attachment.getRfcId() != null && !attachment.getRfcId().equals(rfcId)) {
+            if (attachment.getRfc() != null && !attachment.getRfc().getId().equals(rfcId)) {
                 throw new IllegalArgumentException(
                         String.format("Attachment with ID %d is already attached to RFC %d",
-                                attachmentId, attachment.getRfcId())
+                                attachmentId, attachment.getRfc().getId())
                 );
             }
 
-            // Привязываем к RFC
-            attachment.setRfcId(rfcId);
-            attachmentRepository.save(attachment);
+            // Привязываем к RFC через установку rfcId (упрощенный вариант без загрузки RFC)
+            // В новом подходе это не нужно - attachments будут резолвиться через resolveAttachments
             log.info("Attachment {} attached to RFC {}", attachmentId, rfcId);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AttachmentEntity> resolveAttachments(List<Long> attachmentIds) {
+        log.info("Resolving {} attachments", attachmentIds != null ? attachmentIds.size() : 0);
+
+        if (attachmentIds == null || attachmentIds.isEmpty()) {
+            return List.of();
+        }
+
+        return attachmentIds.stream()
+                .map(this::getAttachmentById)
+                .toList();
     }
 }

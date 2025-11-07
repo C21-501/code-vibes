@@ -37,6 +37,11 @@ components:
           description: Прикрепленные файлы (метаинформация)
           items:
             $ref: '../../attachment/model/Attachment.yaml#/components/schemas/AttachmentResponse'
+        actions:
+          type: array
+          description: Доступные действия для текущего пользователя
+          items:
+            $ref: '#/components/schemas/RfcAction'
         createDatetime:
           type: string
           format: date-time
@@ -54,6 +59,7 @@ components:
         - requesterId
         - affectedSystems
         - attachments
+        - actions
         - createDatetime
         - updateDatetime
 
@@ -224,6 +230,14 @@ components:
         - IN_PROGRESS
         - DONE
 
+    RfcAction:
+      type: string
+      description: Действия, доступные пользователю для RFC
+      enum:
+        - UPDATE
+        - DELETE
+        - APPROVE
+
     RfcPageResponse:
       allOf:
         - $ref: '../../common/Common.yaml#/components/schemas/PageResponse'
@@ -235,3 +249,83 @@ components:
                 $ref: '#/components/schemas/RfcResponse'
           required:
             - content
+
+    ApproveRfcRequest:
+      type: object
+      description: Запрос на согласование RFC
+      properties:
+        comment:
+          type: string
+          nullable: true
+          description: Комментарий согласующего
+          maxLength: 1000
+
+    UnapproveRfcRequest:
+      type: object
+      description: Запрос на отмену согласования RFC
+      properties:
+        comment:
+          type: string
+          nullable: true
+          description: Комментарий согласующего
+          maxLength: 1000
+
+    RfcApprovalResponse:
+      type: object
+      description: Информация о согласовании RFC
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID записи согласования
+        rfcId:
+          type: integer
+          format: int64
+          description: ID RFC
+        approverId:
+          type: integer
+          format: int64
+          description: ID согласующего
+        approverName:
+          type: string
+          description: Имя согласующего
+        isApproved:
+          type: boolean
+          description: Флаг согласования (true - согласовано, false - отклонено)
+        comment:
+          type: string
+          nullable: true
+          description: Комментарий согласующего
+        createDatetime:
+          type: string
+          format: date-time
+          description: Дата и время создания
+        updateDatetime:
+          type: string
+          format: date-time
+          description: Дата и время последнего обновления
+      required:
+        - id
+        - rfcId
+        - approverId
+        - approverName
+        - isApproved
+        - createDatetime
+        - updateDatetime
+
+    RfcApprovalsResponse:
+      type: object
+      description: Список согласований для RFC
+      properties:
+        rfcId:
+          type: integer
+          format: int64
+          description: ID RFC
+        approvals:
+          type: array
+          description: Список согласований
+          items:
+            $ref: '#/components/schemas/RfcApprovalResponse'
+      required:
+        - rfcId
+        - approvals
