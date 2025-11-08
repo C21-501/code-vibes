@@ -1,7 +1,7 @@
 /**
  * Sidebar Component
  * Navigation sidebar with menu items and logout button
- */
+
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
@@ -71,4 +71,5 @@ export default function Sidebar({ currentPage = 'users' }) {
     </aside>
   );
 }
+*/
 

@@ -4,7 +4,7 @@
  * Based on reference-team.html and OpenAPI Team spec
  */
 import { useState, useEffect, useRef } from 'react';
-import Sidebar from '../../../shared/components/Sidebar';
+//import Sidebar from '../../../shared/components/Sidebar';
 import TeamTable from './TeamTable';
 import Pagination from '../../../shared/components/Pagination';
 import ViewTeamModal from './ViewTeamModal';
@@ -72,6 +72,7 @@ export default function TeamManagement() {
       // If empty, clear immediately
       if (!searchName || searchName.trim().length === 0) {
         setDebouncedSearchName('');
+        setCurrentPage(0); // Reset to first page when search is cleared
         return;
       }
       // If 1-2 characters, don't search yet
@@ -81,6 +82,7 @@ export default function TeamManagement() {
     // Set timeout for search with 3+ characters
     debounceTimeout.current = setTimeout(() => {
       setDebouncedSearchName(searchName.trim());
+      setCurrentPage(0); // Reset to first page on search
     }, 500);
 
     // Cleanup
@@ -99,11 +101,19 @@ export default function TeamManagement() {
   const fetchTeams = async () => {
     try {
       setLoading(true);
-      const response = await getTeams({
+
+      // Создаем объект параметров без name, если он пустой
+      const params = {
         page: currentPage,
-        size: pageSize,
-        name: debouncedSearchName
-      });
+        size: pageSize
+      };
+
+      // Добавляем name только если он не пустой
+      if (debouncedSearchName && debouncedSearchName.trim().length > 0) {
+        params.name = debouncedSearchName;
+      }
+
+      const response = await getTeams(params);
 
       setTeams(response.content);
       setTotalElements(response.totalElements);
@@ -173,7 +183,7 @@ export default function TeamManagement() {
         await createTeam(teamData);
         showToast('success', 'Успех', 'Команда успешно создана');
       }
-      
+
       setFormModalOpen(false);
       setSelectedTeam(null);
       fetchTeams(); // Refresh list
@@ -211,8 +221,8 @@ export default function TeamManagement() {
 
   return (
     <div className="container">
-      <Sidebar currentPage="teams" />
-      
+
+
       <main className="main-content">
         <div className="header">
           <h1>{userIsAdmin ? 'Управление командами' : 'Команды'}</h1>
@@ -281,7 +291,7 @@ export default function TeamManagement() {
                 onDelete={handleDeleteTeam}
                 isAdmin={userIsAdmin}
               />
-              
+
               {teams.length > 0 && (
                 <Pagination
                   currentPage={currentPage}
@@ -326,4 +336,3 @@ export default function TeamManagement() {
     </div>
   );
 }
-

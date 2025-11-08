@@ -4,7 +4,7 @@
  * Based on reference-user.html and OpenAPI User spec
  */
 import { useState, useEffect } from 'react';
-import Sidebar from '../../../shared/components/Sidebar';
+//import Sidebar from '../../../shared/components/Sidebar';
 import UserHeader from './UserHeader';
 import UserTable from './UserTable';
 import Pagination from '../../../shared/components/Pagination';
@@ -70,9 +70,10 @@ export default function UserManagement() {
       clearTimeout(debounceTimeout);
     }
 
-    // If search input is empty, immediately clear search
+    // If search input is empty, immediately clear search and reset to page 0
     if (!searchInput || searchInput.trim().length === 0) {
       setSearchString('');
+      setCurrentPage(0); // Reset to first page when search is cleared
       return;
     }
 
@@ -100,11 +101,19 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await usersApi.getUsers({
+
+      // Создаем объект параметров без searchString, если он пустой
+      const params = {
         page: currentPage,
-        size: pageSize,
-        searchString: searchString
-      });
+        size: pageSize
+      };
+
+      // Добавляем searchString только если он не пустой
+      if (searchString && searchString.trim().length > 0) {
+        params.searchString = searchString;
+      }
+
+      const response = await usersApi.getUsers(params);
 
       setUsers(response.content);
       setTotalElements(response.totalElements);
@@ -173,7 +182,7 @@ export default function UserManagement() {
         await usersApi.createUser(userData);
         showToast('success', 'Успех', 'Пользователь успешно создан');
       }
-      
+
       setFormModalOpen(false);
       setSelectedUser(null);
       fetchUsers(); // Refresh list
@@ -197,8 +206,8 @@ export default function UserManagement() {
 
   return (
     <div className="container">
-      <Sidebar currentPage="users" />
-      
+
+
       <main className="main-content">
         <div className="header">
           <h1>{userIsAdmin ? 'Управление пользователями' : 'Пользователи'}</h1>
@@ -246,7 +255,7 @@ export default function UserManagement() {
                 onDelete={handleDeleteUser}
                 isAdmin={userIsAdmin}
               />
-              
+
               {users.length > 0 && (
                 <Pagination
                   currentPage={currentPage}
@@ -291,4 +300,3 @@ export default function UserManagement() {
     </div>
   );
 }
-

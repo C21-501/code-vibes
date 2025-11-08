@@ -4,7 +4,7 @@
  * Based on OpenAPI System and Subsystem spec
  */
 import { useState, useEffect, useRef } from 'react';
-import Sidebar from '../../../shared/components/Sidebar';
+
 import SystemTable from './SystemTable';
 import Pagination from '../../../shared/components/Pagination';
 import ViewSystemModal from './ViewSystemModal';
@@ -85,6 +85,7 @@ export default function SystemManagement() {
       // If empty, clear immediately
       if (!searchName || searchName.trim().length === 0) {
         setDebouncedSearchName('');
+        setCurrentPage(0); // Reset to first page when search is cleared
         return;
       }
       // If 1-2 characters, don't search yet
@@ -94,6 +95,7 @@ export default function SystemManagement() {
     // Set timeout for search with 3+ characters
     debounceTimeout.current = setTimeout(() => {
       setDebouncedSearchName(searchName.trim());
+      setCurrentPage(0); // Reset to first page on search
     }, 500);
 
     // Cleanup
@@ -112,11 +114,19 @@ export default function SystemManagement() {
   const fetchSystems = async () => {
     try {
       setLoading(true);
-      const response = await getSystems({
+
+      // Создаем объект параметров без name, если он пустой
+      const params = {
         page: currentPage,
-        size: pageSize,
-        name: debouncedSearchName
-      });
+        size: pageSize
+      };
+
+      // Добавляем name только если он не пустой
+      if (debouncedSearchName && debouncedSearchName.trim().length > 0) {
+        params.name = debouncedSearchName;
+      }
+
+      const response = await getSystems(params);
 
       setSystems(response.content);
       setTotalElements(response.totalElements);
@@ -186,7 +196,7 @@ export default function SystemManagement() {
         await createSystem(systemData);
         showToast('success', 'Успех', 'Система успешно создана');
       }
-      
+
       setFormModalOpen(false);
       setSelectedSystem(null);
       fetchSystems(); // Refresh list
@@ -223,7 +233,7 @@ export default function SystemManagement() {
     try {
       await deleteSubsystem(systemId, subsystem.id);
       showToast('success', 'Успех', 'Подсистема успешно удалена');
-      
+
       // Trigger subsystem refresh in SystemTable
       setSubsystemRefreshTrigger(prev => prev + 1);
     } catch (error) {
@@ -242,11 +252,11 @@ export default function SystemManagement() {
         await createSubsystem(selectedSystemId, subsystemData);
         showToast('success', 'Успех', 'Подсистема успешно создана');
       }
-      
+
       setFormSubsystemModalOpen(false);
       setSelectedSubsystem(null);
       setSelectedSystemId(null);
-      
+
       // Trigger subsystem refresh in SystemTable
       setSubsystemRefreshTrigger(prev => prev + 1);
     } catch (error) {
@@ -283,8 +293,8 @@ export default function SystemManagement() {
 
   return (
     <div className="container">
-      <Sidebar currentPage="systems" />
-      
+
+
       <main className="main-content">
         <div className="header">
           <h1>{userIsAdmin ? 'Управление системами' : 'Системы'}</h1>
@@ -358,7 +368,7 @@ export default function SystemManagement() {
                 subsystemRefreshTrigger={subsystemRefreshTrigger}
                 isAdmin={userIsAdmin}
               />
-              
+
               {systems.length > 0 && (
                 <Pagination
                   currentPage={currentPage}
@@ -428,4 +438,3 @@ export default function SystemManagement() {
     </div>
   );
 }
-
