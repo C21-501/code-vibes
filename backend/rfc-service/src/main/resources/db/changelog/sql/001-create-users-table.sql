@@ -21,7 +21,7 @@ CREATE UNIQUE INDEX idx_users_keycloak_id ON "users"(keycloak_id) WHERE keycloak
 
 -- Add check constraint for role enum
 ALTER TABLE "users" ADD CONSTRAINT chk_users_role
-    CHECK (role IN ('REQUESTER', 'EXECUTOR', 'CAB_MANAGER', 'ADMIN'));
+    CHECK (role IN ('USER', 'RFC_APPROVER', 'CAB_MANAGER', 'ADMIN'));
 
 -- Add comment to table
 COMMENT ON TABLE "users" IS 'Таблица пользователей системы';

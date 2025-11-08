@@ -43,4 +43,12 @@ public interface AttachmentService {
      * @param rfcId         ID RFC
      */
     void attachToRfc(List<Long> attachmentIds, Long rfcId);
+
+    /**
+     * Резолвит список вложений по их ID
+     *
+     * @param attachmentIds список ID вложений
+     * @return список сущностей вложений
+     */
+    List<AttachmentEntity> resolveAttachments(List<Long> attachmentIds);
 }

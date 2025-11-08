@@ -132,8 +132,8 @@ components:
     UserRole:
       type: string
       enum:
-        - REQUESTER
-        - EXECUTOR
+        - USER
+        - RFC_APPROVER
         - CAB_MANAGER
         - ADMIN
       description: Роль пользователя в системе

@@ -23,22 +23,19 @@
     <!-- RFC table -->
     <include file="006-create-rfc-table.xml" relativeToChangelogFile="true"/>
 
-    <!-- RFC affected system table -->
-    <include file="007-create-rfc-affected-system-table.xml" relativeToChangelogFile="true"/>
-
     <!-- RFC affected subsystem table -->
     <include file="008-create-rfc-affected-subsystem-table.xml" relativeToChangelogFile="true"/>
 
     <!-- RFC affected subsystem history table -->
     <include file="009-create-rfc-affected-subsystem-history-table.xml" relativeToChangelogFile="true"/>
 
-    <!-- RFC audit log table -->
-    <include file="010-create-rfc-audit-log-table.xml" relativeToChangelogFile="true"/>
+    <!-- RFC history table -->
+    <include file="010-create-rfc-history-table.xml" relativeToChangelogFile="true"/>
 
     <!-- RFC attachment table -->
     <include file="011-create-rfc-attachment-table.xml" relativeToChangelogFile="true"/>
 
-    <!-- Alter RFC attachment table for DB storage -->
-    <include file="012-alter-rfc-attachment-for-db-storage.xml" relativeToChangelogFile="true"/>
+    <!-- RFC approval table -->
+    <include file="013-create-rfc-approval-table.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

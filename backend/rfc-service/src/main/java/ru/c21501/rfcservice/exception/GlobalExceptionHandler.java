@@ -3,6 +3,7 @@ package ru.c21501.rfcservice.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -36,6 +37,54 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
+        log.error("Not found: {}", ex.getMessage());
+
+        Error error = new Error()
+                .code("NOT_FOUND")
+                .message(ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse()
+                .errors(List.of(error));
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException ex) {
+        log.error("Access denied: {}", ex.getMessage());
+
+        Error error = new Error()
+                .code("FORBIDDEN")
+                .message(ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse()
+                .errors(List.of(error));
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex) {
+        log.error("Validation error: {}", ex.getMessage());
+
+        Error error = new Error()
+                .code("VALIDATION_ERROR")
+                .message(ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse()
+                .errors(List.of(error));
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(errorResponse);
     }
 
@@ -170,6 +219,39 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        log.error("Malformed JSON request: {}", ex.getMessage());
+
+        String message = "Invalid request body format";
+
+        // Пытаемся извлечь более детальную информацию об ошибке
+        if (ex.getCause() != null) {
+            String causeMessage = ex.getCause().getMessage();
+            if (causeMessage != null) {
+                // Упрощаем сообщение для пользователя
+                if (causeMessage.contains("Cannot construct instance")) {
+                    message = "Invalid request format. Please check the structure of your request body.";
+                } else if (causeMessage.contains("Cannot deserialize")) {
+                    message = "Cannot parse request data. Please verify the data types in your request.";
+                } else {
+                    message = "Malformed JSON request: " + causeMessage;
+                }
+            }
+        }
+
+        Error error = new Error()
+                .code("INVALID_REQUEST_BODY")
+                .message(message);
+
+        ErrorResponse errorResponse = new ErrorResponse()
+                .errors(List.of(error));
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(errorResponse);
     }
 

@@ -1,0 +1,17 @@
+get:
+  operationId: getCurrentUser
+  tags:
+    - Users
+  summary: Получить информацию о текущем пользователе
+  description: Возвращает информацию о текущем авторизованном пользователе
+  responses:
+    '200':
+      description: Успешное получение информации о пользователе
+      content:
+        application/json:
+          schema:
+            $ref: './model/User.yaml#/components/schemas/UserResponse'
+    '401':
+      $ref: '../common/Common.yaml#/components/responses/Unauthorized'
+    '500':
+      $ref: '../common/Common.yaml#/components/responses/InternalServerError'

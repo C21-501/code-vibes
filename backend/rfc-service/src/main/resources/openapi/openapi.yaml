@@ -10,6 +10,8 @@ paths:
     $ref: './api/user/User.yaml'
   /user/{id}:
     $ref: './api/user/UserById.yaml'
+  /user/me:
+    $ref: './api/user/UserMe.yaml'
   /user/login:
     $ref: './api/user/UserLogin.yaml'
 
@@ -34,6 +36,12 @@ paths:
     $ref: './api/rfc/Rfc.yaml'
   /rfc/{id}:
     $ref: './api/rfc/RfcById.yaml'
+  /rfc/{id}/approve:
+    $ref: './api/rfc/RfcApprove.yaml'
+  /rfc/{id}/unapprove:
+    $ref: './api/rfc/RfcUnapprove.yaml'
+  /rfc/{id}/approvals:
+    $ref: './api/rfc/RfcApprovals.yaml'
   /rfc/{rfcId}/subsystem/{subsystemId}/confirmation:
     $ref: './api/rfc/RfcSubsystemConfirmation.yaml'
   /rfc/{rfcId}/subsystem/{subsystemId}/execution:
