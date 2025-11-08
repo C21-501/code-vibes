@@ -1,88 +1,109 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './features/auth/context/AuthContext'
 import LoginForm from './features/auth/components/LoginForm'
 import UserManagement from './features/users/components/UserManagement'
 import TeamManagement from './features/teams/components/TeamManagement'
 import SystemManagement from './features/systems/components/SystemManagement'
+import RfcManagement from './features/rfc/components/RfcManagement'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
-import { isCurrentTokenExpired } from './utils/jwtUtils'
-import { clearAuthTokens } from './utils/authContext'
+import Layout from './shared/components/Layout'
+import LoadingSpinner from './shared/components/LoadingSpinner'
 import './App.css'
 
 /**
- * Main App Component
- * 
- * Handles routing between login and user management pages using React Router
+ * Main App Component with AuthProvider
  */
 function App() {
-  // Check if user is authenticated
-  const isAuthenticated = () => {
-    const token = localStorage.getItem('accessToken');
-    
-    // If token exists but is expired/invalid, clean it up
-    if (token && isCurrentTokenExpired()) {
-      clearAuthTokens();
-      return false;
-    }
-    
-    return !!token;
-  };
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  )
+}
+
+/**
+ * App Content with routing logic
+ */
+function AppContent() {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="app-loading">
+        <LoadingSpinner />
+        <p>Загрузка...</p>
+      </div>
+    )
+  }
 
   return (
     <Routes>
       {/* Root route - redirect based on auth status */}
-      <Route 
-        path="/" 
+      <Route
+        path="/"
         element={
-          isAuthenticated() 
-            ? <Navigate to="/users" replace /> 
+          isAuthenticated
+            ? <Navigate to="/rfc" replace />
             : <Navigate to="/login" replace />
-        } 
+        }
       />
-      
-      {/* Login page */}
-      <Route 
-        path="/login" 
+
+      {/* Login page - redirect if already authenticated */}
+      <Route
+        path="/login"
         element={
-          <div className="app">
-            <LoginForm />
-          </div>
-        } 
+          isAuthenticated
+            ? <Navigate to="/rfc" replace />
+            : <LoginForm />
+        }
       />
-      
-      {/* Protected routes */}
-      <Route 
-        path="/users" 
+
+      {/* Protected routes with Layout */}
+      <Route
+        path="/rfc"
         element={
           <ProtectedRoute>
-            <div className="app-full-width">
+            <Layout>
+              <RfcManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <Layout>
               <UserManagement />
-            </div>
+            </Layout>
           </ProtectedRoute>
-        } 
+        }
       />
-      
-      <Route 
-        path="/teams" 
+
+      <Route
+        path="/teams"
         element={
           <ProtectedRoute>
-            <div className="app-full-width">
+            <Layout>
               <TeamManagement />
-            </div>
+            </Layout>
           </ProtectedRoute>
-        } 
+        }
       />
-      
-      <Route 
-        path="/systems" 
+
+      <Route
+        path="/systems"
         element={
           <ProtectedRoute>
-            <div className="app-full-width">
+            <Layout>
               <SystemManagement />
-            </div>
+            </Layout>
           </ProtectedRoute>
-        } 
+        }
       />
-      
+
       {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -90,4 +111,3 @@ function App() {
 }
 
 export default App
-

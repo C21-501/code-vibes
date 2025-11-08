@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -9,13 +8,14 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
-      '/api': {
-        target: 'http://backend:8080',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+      // Бэкенд API
+      '^/(user|team|system|rfc|attachment|api)': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
       },
-      '/user': {
-        target: 'http://backend:8080',
+      // Keycloak - используем порт 8081 для разработки
+      '^/(realms|protocol|admin|resources)': {
+        target: 'http://localhost:8081',  // Порт 8081 на хосте
         changeOrigin: true
       }
     }
@@ -25,4 +25,3 @@ export default defineConfig({
     port: 80
   }
 })
-

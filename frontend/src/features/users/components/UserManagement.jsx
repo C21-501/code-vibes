@@ -11,7 +11,7 @@ import Pagination from '../../../shared/components/Pagination';
 import ViewUserModal from './ViewUserModal';
 import UserFormModal from './UserFormModal';
 import Toast from '../../../shared/components/Toast';
-import { getUsers, createUser, updateUser, deleteUser } from '../api/userApi';
+import { usersApi } from '../api/userApi';
 import { getCurrentUser, isAdmin } from '../../../utils/jwtUtils';
 import './UserManagement.css';
 
@@ -100,7 +100,7 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await getUsers({
+      const response = await usersApi.getUsers({
         page: currentPage,
         size: pageSize,
         searchString: searchString
@@ -154,7 +154,7 @@ export default function UserManagement() {
     }
 
     try {
-      await deleteUser(user.id);
+      await usersApi.deleteUser(user.id);
       showToast('success', 'Успех', 'Пользователь успешно удален');
       fetchUsers(); // Refresh list
     } catch (error) {
@@ -166,11 +166,11 @@ export default function UserManagement() {
     try {
       if (selectedUser) {
         // Update existing user
-        await updateUser(selectedUser.id, userData);
+        await usersApi.updateUser(selectedUser.id, userData);
         showToast('success', 'Успех', 'Пользователь успешно обновлен');
       } else {
         // Create new user
-        await createUser(userData);
+        await usersApi.createUser(userData);
         showToast('success', 'Успех', 'Пользователь успешно создан');
       }
       

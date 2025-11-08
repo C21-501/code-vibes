@@ -1,29 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authApi } from '../../../features/auth/api/authApi'; // Импортируем authApi
 import Toast from '../../../shared/components/Toast';
 import { getAndClearReturnUrl, clearAuthTokens } from '../../../utils/authContext';
 import { isCurrentTokenExpired } from '../../../utils/jwtUtils';
 import apiClient from '../../../utils/apiClient';
 import './LoginForm.css';
 
-/**
- * LoginForm Component
- * 
- * Implements user authentication form based on OpenAPI specification
- * API Endpoint: POST /user/login
- * 
- * Request: LoginRequest { username: string, password: string }
- * Response: LoginResponse { 
- *   accessToken: string, 
- *   refreshToken?: string, 
- *   expiresIn: number, 
- *   refreshExpiresIn?: number, 
- *   tokenType: string 
- * }
- */
 function LoginForm() {
   const navigate = useNavigate();
-  
+
   // Clean up expired/invalid tokens on mount
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -31,7 +17,7 @@ function LoginForm() {
       clearAuthTokens();
     }
   }, []);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     username: '',
@@ -76,8 +62,6 @@ function LoginForm() {
 
   /**
    * Validate form according to LoginRequest schema
-   * username: required, minLength: 1, maxLength: 50
-   * password: required, minLength: 1, maxLength: 100
    */
   const validateForm = () => {
     const newErrors = {
@@ -127,7 +111,7 @@ function LoginForm() {
   };
 
   /**
-   * Handle form submission
+   * Handle form submission using authApi
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -150,99 +134,64 @@ function LoginForm() {
         password: formData.password
       };
 
-      // Make API call to POST /user/login
-      const response = await fetch('/user/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(loginRequest)
-      });
+      // ✅ ИСПОЛЬЗУЕМ authApi ВМЕСТО ПРЯМОГО fetch
+      const response = await authApi.login(loginRequest);
 
-      // Handle different response statuses according to OpenAPI spec
-      if (response.status === 200) {
-        // Success: Parse LoginResponse
-        const loginResponse = await response.json();
-        
-        // Store tokens in localStorage
-        localStorage.setItem('accessToken', loginResponse.accessToken);
-        localStorage.setItem('tokenType', loginResponse.tokenType);
-        localStorage.setItem('expiresIn', loginResponse.expiresIn.toString());
-        
-        // Calculate token expiration timestamp
-        const expirationTime = new Date().getTime() + (loginResponse.expiresIn * 1000);
-        localStorage.setItem('tokenExpiration', expirationTime.toString());
-        
-        // Store refresh token if provided
-        if (loginResponse.refreshToken) {
-          localStorage.setItem('refreshToken', loginResponse.refreshToken);
-        }
-        
-        // Store refresh token expiration if provided
-        if (loginResponse.refreshExpiresIn) {
-          const refreshExpirationTime = new Date().getTime() + (loginResponse.refreshExpiresIn * 1000);
-          localStorage.setItem('refreshTokenExpiration', refreshExpirationTime.toString());
-        }
+      // ✅ Токены уже сохранены в localStorage в authApi.login
+      // Показываем успешное уведомление
+      showToast('success', 'Успешный вход', 'Вы успешно авторизованы в системе!');
 
-        // Show success notification
-        showToast('success', 'Успешный вход', 'Вы успешно авторизованы в системе!');
-        
-        // Clear form
-        setFormData({ username: '', password: '' });
-        
-        // Notify API client that login was successful (for request queue processing)
-        // This will replay any pending requests that were queued before redirect
-        await apiClient.onLoginSuccess();
-        
-        // Get saved return URL or default to /users
-        const returnUrl = getAndClearReturnUrl() || '/users';
-        
-        // Redirect after short delay to show success message
-        setTimeout(() => {
-          navigate(returnUrl);
-        }, 1000); // Delay to show success message
+      // Очищаем форму
+      setFormData({ username: '', password: '' });
 
-      } else if (response.status === 400) {
-        // Bad Request: Validation errors
-        const errorResponse = await response.json();
-        const errorMessage = errorResponse.errors?.map(e => e.message).join(', ') 
-          || 'Ошибка валидации данных';
-        
-        setErrors(prev => ({
-          ...prev,
-          general: errorMessage
-        }));
-        showToast('error', 'Ошибка валидации', errorMessage);
+      // Уведомляем API client об успешном входе
+      await apiClient.onLoginSuccess();
 
-      } else if (response.status === 401) {
-        // Unauthorized: Invalid credentials
-        const errorResponse = await response.json();
-        const errorMessage = errorResponse.errors?.[0]?.message 
-          || 'Неверное имя пользователя или пароль';
-        
-        setErrors({
-          username: 'Проверьте правильность данных',
-          password: 'Проверьте правильность данных',
-          general: errorMessage
-        });
-        showToast('error', 'Ошибка аутентификации', errorMessage);
+      // Получаем сохраненный URL для возврата или используем /rfc по умолчанию
+      const returnUrl = getAndClearReturnUrl() || '/rfc';
 
-      } else if (response.status === 500) {
-        // Internal Server Error
-        showToast('error', 'Ошибка сервера', 'Произошла внутренняя ошибка сервера. Попробуйте позже.');
-        
-      } else {
-        // Other errors
-        const errorResponse = await response.json();
-        const errorMessage = errorResponse.errors?.[0]?.message 
-          || 'Произошла ошибка при входе в систему';
-        showToast('error', 'Ошибка', errorMessage);
-      }
+      // Редирект после короткой задержки для показа сообщения
+      setTimeout(() => {
+        navigate(returnUrl);
+      }, 1000);
 
     } catch (error) {
       console.error('Login error:', error);
-      showToast('error', 'Ошибка подключения', 'Не удалось подключиться к серверу. Проверьте ваше интернет-соединение.');
-      
+
+      // Обрабатываем различные типы ошибок
+      let errorTitle = 'Ошибка входа';
+      let errorMessage = 'Произошла ошибка при входе в систему';
+
+      if (error.response) {
+        // Сервер ответил с ошибкой
+        const status = error.response.status;
+
+        if (status === 400) {
+          errorTitle = 'Ошибка валидации';
+          errorMessage = 'Проверьте правильность введенных данных';
+        } else if (status === 401) {
+          errorTitle = 'Ошибка аутентификации';
+          errorMessage = 'Неверное имя пользователя или пароль';
+          setErrors({
+            username: 'Проверьте правильность данных',
+            password: 'Проверьте правильность данных',
+            general: 'Неверное имя пользователя или пароль'
+          });
+        } else if (status === 500) {
+          errorTitle = 'Ошибка сервера';
+          errorMessage = 'Внутренняя ошибка сервера. Попробуйте позже.';
+        }
+      } else if (error.request) {
+        // Запрос был сделан, но ответ не получен
+        errorTitle = 'Ошибка подключения';
+        errorMessage = 'Не удалось подключиться к серверу. Проверьте ваше интернет-соединение.';
+      } else {
+        // Что-то пошло не так при настройке запроса
+        errorMessage = error.message || 'Произошла непредвиденная ошибка';
+      }
+
+      showToast('error', errorTitle, errorMessage);
+
     } finally {
       setIsLoading(false);
     }
@@ -365,4 +314,3 @@ function LoginForm() {
 }
 
 export default LoginForm;
-
