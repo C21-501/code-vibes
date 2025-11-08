@@ -8,14 +8,15 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
-      // Бэкенд API
-      '^/(user|team|system|rfc|attachment|api)': {
+      // Бэкенд API - убираем префикс /api при проксировании
+      '^/api': {
         target: 'http://localhost:8080',
-        changeOrigin: true
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')  // Убираем /api из пути
       },
       // Keycloak - используем порт 8081 для разработки
       '^/(realms|protocol|admin|resources)': {
-        target: 'http://localhost:8081',  // Порт 8081 на хосте
+        target: 'http://localhost:8081',
         changeOrigin: true
       }
     }
