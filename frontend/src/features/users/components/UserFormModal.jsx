@@ -210,8 +210,8 @@ export default function UserFormModal({ user, isOpen, onClose, onSave }) {
                 className={errors.role ? 'error' : ''}
               >
                 <option value="">Выберите роль</option>
-                <option value="REQUESTER">Инициатор</option>
-                <option value="EXECUTOR">Исполнитель</option>
+                <option value="USER">Пользователь</option>
+                <option value="RFC_APPROVER">Согласующий RFC</option>
                 <option value="CAB_MANAGER">CAB Менеджер</option>
                 <option value="ADMIN">Администратор</option>
               </select>

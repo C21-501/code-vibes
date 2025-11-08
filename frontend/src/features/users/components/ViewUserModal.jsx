@@ -9,8 +9,8 @@ export default function ViewUserModal({ user, isOpen, onClose }) {
 
   const getRoleLabel = (role) => {
     const labels = {
-      'REQUESTER': 'Инициатор',
-      'EXECUTOR': 'Исполнитель',
+      'USER': 'Пользователь',
+      'RFC_APPROVER': 'Согласующий RFC',
       'CAB_MANAGER': 'CAB Менеджер',
       'ADMIN': 'Администратор'
     };
