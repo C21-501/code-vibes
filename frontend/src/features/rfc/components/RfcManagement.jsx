@@ -154,7 +154,6 @@ const RfcManagement = () => {
       } else if (action === 'UNAPPROVE') {
         await rfcApi.unapproveRfc(rfcId, { comment });
       }
-      // Добавьте другие действия по необходимости
 
       showToast('success', 'Успех', 'Статус RFC успешно обновлен');
       refetch(); // Перезагружаем список
@@ -278,18 +277,65 @@ const RfcManagement = () => {
       {/* Модальные окна */}
       {showCreateModal && (
         <CreateRfcModal
+          isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
-          onCreate={handleCreateRfc}
+          onSubmit={handleCreateRfc}
         />
       )}
 
       {showViewModal && selectedRfc && (
-        <RfcModal
-          rfc={selectedRfc}
-          onClose={() => setShowViewModal(false)}
-          onStatusAction={handleStatusAction}
-          currentUser={user}
-        />
+        <RfcModal isOpen={showViewModal} onClose={() => setShowViewModal(false)}>
+          <div className="rfc-detail-modal">
+            <h2>Детали RFC: {selectedRfc.title}</h2>
+            <div className="rfc-detail-content">
+              <div className="detail-section">
+                <h3>Основная информация</h3>
+                <div className="detail-row">
+                  <span className="detail-label">ID:</span>
+                  <span className="detail-value">RFC-{selectedRfc.id}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Статус:</span>
+                  <span className={`status-badge ${getStatusClass(selectedRfc.status)}`}>
+                    {getStatusLabel(selectedRfc.status)}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Срочность:</span>
+                  <span className={`urgency-badge ${getUrgencyClass(selectedRfc.urgency)}`}>
+                    {getUrgencyLabel(selectedRfc.urgency)}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Дата реализации:</span>
+                  <span className="detail-value">{formatDate(selectedRfc.implementationDate)}</span>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>Описание</h3>
+                <p>{selectedRfc.description || 'Нет описания'}</p>
+              </div>
+
+              <div className="action-buttons">
+                <button
+                  className="btn-primary"
+                  onClick={() => handleStatusAction(selectedRfc.id, 'APPROVE', 'Одобрено через интерфейс')}
+                  disabled={!selectedRfc.actions?.includes('APPROVE')}
+                >
+                  Одобрить
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={() => handleStatusAction(selectedRfc.id, 'UNAPPROVE', 'Отклонено через интерфейс')}
+                  disabled={!selectedRfc.actions?.includes('APPROVE')}
+                >
+                  Отклонить
+                </button>
+              </div>
+            </div>
+          </div>
+        </RfcModal>
       )}
 
       {/* Уведомления */}
