@@ -4,7 +4,6 @@
  * Based on OpenAPI System and Subsystem spec
  */
 import { useState, useEffect, useRef } from 'react';
-
 import SystemTable from './SystemTable';
 import Pagination from '../../../shared/components/Pagination';
 import ViewSystemModal from './ViewSystemModal';
@@ -43,7 +42,7 @@ export default function SystemManagement() {
   const [selectedSubsystem, setSelectedSubsystem] = useState(null);
   const [selectedSystemId, setSelectedSystemId] = useState(null);
   const [selectedSystemForView, setSelectedSystemForView] = useState(null);
-  
+
   // Ref for refreshing subsystems in SystemTable
   const [subsystemRefreshTrigger, setSubsystemRefreshTrigger] = useState(0);
 
@@ -292,98 +291,94 @@ export default function SystemManagement() {
   };
 
   return (
-    <div className="container">
-
-
-      <main className="main-content">
-        <div className="header">
-          <h1>{userIsAdmin ? 'Управление системами' : 'Системы'}</h1>
-          <div className="header-right">
-            {currentUser && (
-              <div className="user-info">
-                <div className="user-avatar">
-                  {getInitials(currentUser.firstName, currentUser.lastName)}
+    <div className="system-management">
+      <div className="header">
+        <h1>{userIsAdmin ? 'Управление системами' : 'Системы'}</h1>
+        <div className="header-right">
+          {currentUser && (
+            <div className="user-info">
+              <div className="user-avatar">
+                {getInitials(currentUser.firstName, currentUser.lastName)}
+              </div>
+              <div className="user-details">
+                <div className="user-name">
+                  {currentUser.firstName} {currentUser.lastName}
                 </div>
-                <div className="user-details">
-                  <div className="user-name">
-                    {currentUser.firstName} {currentUser.lastName}
-                  </div>
-                  <div className="user-role">
-                    <span className={`role-badge role-${currentUser.role.toLowerCase().replace('_', '-')}`}>
-                      {getRoleLabel(currentUser.role)}
-                    </span>
-                  </div>
+                <div className="user-role">
+                  <span className={`role-badge role-${currentUser.role.toLowerCase().replace('_', '-')}`}>
+                    {getRoleLabel(currentUser.role)}
+                  </span>
                 </div>
               </div>
-            )}
-            {userIsAdmin && (
-              <button className="btn btn-primary" onClick={handleCreateSystem}>
-                ➕ Создать систему
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="filters">
-          <div className="filters-grid">
-            <div className="filter-group">
-              <label htmlFor="searchName">Поиск по названию</label>
-              <input
-                type="text"
-                id="searchName"
-                value={searchName}
-                onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Введите минимум 3 символа для поиска..."
-              />
-              {searchName && searchName.trim().length > 0 && searchName.trim().length < 3 && (
-                <small style={{ color: '#f39c12', marginTop: '5px', display: 'block' }}>
-                  Введите ещё {3 - searchName.trim().length} символ(а) для поиска
-                </small>
-              )}
             </div>
-            <div className="filter-group">
-              <button className="btn btn-primary" onClick={handleResetFilters}>
-                🔄 Сбросить фильтры
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Systems Table */}
-        <div className="system-table-container">
-          {loading ? (
-            <div className="loading-state">Загрузка...</div>
-          ) : (
-            <>
-              <SystemTable
-                systems={systems}
-                onView={handleViewSystem}
-                onEdit={handleEditSystem}
-                onDelete={handleDeleteSystem}
-                onViewSubsystem={handleViewSubsystem}
-                onEditSubsystem={handleEditSubsystem}
-                onDeleteSubsystem={handleDeleteSubsystem}
-                onAddSubsystem={handleAddSubsystem}
-                subsystemRefreshTrigger={subsystemRefreshTrigger}
-                isAdmin={userIsAdmin}
-              />
-
-              {systems.length > 0 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalElements={totalElements}
-                  pageSize={pageSize}
-                  first={first}
-                  last={last}
-                  onPageChange={handlePageChange}
-                />
-              )}
-            </>
+          )}
+          {userIsAdmin && (
+            <button className="btn btn-primary" onClick={handleCreateSystem}>
+              ➕ Создать систему
+            </button>
           )}
         </div>
-      </main>
+      </div>
+
+      {/* Filters */}
+      <div className="filters">
+        <div className="filters-grid">
+          <div className="filter-group">
+            <label htmlFor="searchName">Поиск по названию</label>
+            <input
+              type="text"
+              id="searchName"
+              value={searchName}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder="Введите минимум 3 символа для поиска..."
+            />
+            {searchName && searchName.trim().length > 0 && searchName.trim().length < 3 && (
+              <small style={{ color: '#f39c12', marginTop: '5px', display: 'block' }}>
+                Введите ещё {3 - searchName.trim().length} символ(а) для поиска
+              </small>
+            )}
+          </div>
+          <div className="filter-group">
+            <button className="btn btn-primary" onClick={handleResetFilters}>
+              🔄 Сбросить фильтры
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Systems Table */}
+      <div className="system-table-container">
+        {loading ? (
+          <div className="loading-state">Загрузка...</div>
+        ) : (
+          <>
+            <SystemTable
+              systems={systems}
+              onView={handleViewSystem}
+              onEdit={handleEditSystem}
+              onDelete={handleDeleteSystem}
+              onViewSubsystem={handleViewSubsystem}
+              onEditSubsystem={handleEditSubsystem}
+              onDeleteSubsystem={handleDeleteSubsystem}
+              onAddSubsystem={handleAddSubsystem}
+              subsystemRefreshTrigger={subsystemRefreshTrigger}
+              isAdmin={userIsAdmin}
+            />
+
+            {systems.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalElements={totalElements}
+                pageSize={pageSize}
+                first={first}
+                last={last}
+                onPageChange={handlePageChange}
+              />
+            )}
+          </>
+        )}
+      </div>
 
       {/* Modals */}
       <ViewSystemModal

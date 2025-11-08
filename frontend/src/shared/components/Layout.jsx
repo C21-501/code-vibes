@@ -63,27 +63,7 @@ const Layout = ({ children }) => {
 
       {/* Main Content */}
       <main className="main-content">
-        {/* Header */}
-        <header className="header">
-          <h1>RFC Management System</h1>
-          <div className="user-info">
-            <div className="user-avatar">
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
-            </div>
-            <div className="user-details">
-              <div className="user-name">
-                {user?.firstName} {user?.lastName}
-              </div>
-              <div className="user-role">
-                <span className={`role-badge role-${user?.role?.toLowerCase()}`}>
-                  {user?.role}
-                </span>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Page Content */}
+        {/* Page Content - сразу контент страницы без header */}
         <div className="page-content">
           {children}
         </div>

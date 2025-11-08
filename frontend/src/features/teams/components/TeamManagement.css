@@ -1,14 +1,7 @@
 /* TeamManagement Styles */
-.container {
-  display: flex;
-  height: 100vh;
-}
-
-.main-content {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
-  background: #f5f7fa;
+.team-management {
+  width: 100%;
+  padding: 30px; /* Добавляем отступы внутрь компонента */
 }
 
 .header {
@@ -180,6 +173,10 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .team-management {
+    padding: 20px; /* Меньшие отступы на мобильных */
+  }
+
   .filters-grid {
     grid-template-columns: 1fr;
   }
@@ -195,4 +192,3 @@
     flex-direction: column;
   }
 }
-

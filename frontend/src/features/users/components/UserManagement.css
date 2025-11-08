@@ -1,47 +1,7 @@
 /* UserManagement Page Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html {
-  margin: 0;
-  padding: 0;
+.user-management {
   width: 100%;
-  height: 100%;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: #f5f7fa;
-  color: #333;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow-x: hidden;
-}
-
-#root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-}
-
-.container {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-/* Main Content */
-.main-content {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
+  padding: 30px; /* Добавляем отступы внутрь компонента */
 }
 
 .header {
@@ -161,6 +121,10 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .user-management {
+    padding: 20px; /* Меньшие отступы на мобильных */
+  }
+
   .header {
     flex-direction: column;
     align-items: flex-start;
@@ -174,10 +138,3 @@ body {
     overflow-x: auto;
   }
 }
-
-@media (max-width: 1024px) {
-  .container {
-    flex-direction: column;
-  }
-}
-

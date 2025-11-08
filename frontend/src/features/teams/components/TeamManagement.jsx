@@ -4,7 +4,6 @@
  * Based on reference-team.html and OpenAPI Team spec
  */
 import { useState, useEffect, useRef } from 'react';
-//import Sidebar from '../../../shared/components/Sidebar';
 import TeamTable from './TeamTable';
 import Pagination from '../../../shared/components/Pagination';
 import ViewTeamModal from './ViewTeamModal';
@@ -220,93 +219,89 @@ export default function TeamManagement() {
   };
 
   return (
-    <div className="container">
-
-
-      <main className="main-content">
-        <div className="header">
-          <h1>{userIsAdmin ? 'Управление командами' : 'Команды'}</h1>
-          <div className="header-right">
-            {currentUser && (
-              <div className="user-info">
-                <div className="user-avatar">
-                  {getInitials(currentUser.firstName, currentUser.lastName)}
+    <div className="team-management">
+      <div className="header">
+        <h1>{userIsAdmin ? 'Управление командами' : 'Команды'}</h1>
+        <div className="header-right">
+          {currentUser && (
+            <div className="user-info">
+              <div className="user-avatar">
+                {getInitials(currentUser.firstName, currentUser.lastName)}
+              </div>
+              <div className="user-details">
+                <div className="user-name">
+                  {currentUser.firstName} {currentUser.lastName}
                 </div>
-                <div className="user-details">
-                  <div className="user-name">
-                    {currentUser.firstName} {currentUser.lastName}
-                  </div>
-                  <div className="user-role">
-                    <span className={`role-badge role-${currentUser.role.toLowerCase().replace('_', '-')}`}>
-                      {getRoleLabel(currentUser.role)}
-                    </span>
-                  </div>
+                <div className="user-role">
+                  <span className={`role-badge role-${currentUser.role.toLowerCase().replace('_', '-')}`}>
+                    {getRoleLabel(currentUser.role)}
+                  </span>
                 </div>
               </div>
-            )}
-            {userIsAdmin && (
-              <button className="btn btn-primary" onClick={handleCreateTeam}>
-                ➕ Создать команду
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="filters">
-          <div className="filters-grid">
-            <div className="filter-group">
-              <label htmlFor="searchName">Поиск по названию</label>
-              <input
-                type="text"
-                id="searchName"
-                value={searchName}
-                onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Введите минимум 3 символа для поиска..."
-              />
-              {searchName && searchName.trim().length > 0 && searchName.trim().length < 3 && (
-                <small style={{ color: '#f39c12', marginTop: '5px', display: 'block' }}>
-                  Введите ещё {3 - searchName.trim().length} символ(а) для поиска
-                </small>
-              )}
             </div>
-            <div className="filter-group">
-              <button className="btn btn-primary" onClick={handleResetFilters}>
-                🔄 Сбросить фильтры
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Teams Table */}
-        <div className="team-table-container">
-          {loading ? (
-            <div className="loading-state">Загрузка...</div>
-          ) : (
-            <>
-              <TeamTable
-                teams={teams}
-                onView={handleViewTeam}
-                onEdit={handleEditTeam}
-                onDelete={handleDeleteTeam}
-                isAdmin={userIsAdmin}
-              />
-
-              {teams.length > 0 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalElements={totalElements}
-                  pageSize={pageSize}
-                  first={first}
-                  last={last}
-                  onPageChange={handlePageChange}
-                />
-              )}
-            </>
+          )}
+          {userIsAdmin && (
+            <button className="btn btn-primary" onClick={handleCreateTeam}>
+              ➕ Создать команду
+            </button>
           )}
         </div>
-      </main>
+      </div>
+
+      {/* Filters */}
+      <div className="filters">
+        <div className="filters-grid">
+          <div className="filter-group">
+            <label htmlFor="searchName">Поиск по названию</label>
+            <input
+              type="text"
+              id="searchName"
+              value={searchName}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder="Введите минимум 3 символа для поиска..."
+            />
+            {searchName && searchName.trim().length > 0 && searchName.trim().length < 3 && (
+              <small style={{ color: '#f39c12', marginTop: '5px', display: 'block' }}>
+                Введите ещё {3 - searchName.trim().length} символ(а) для поиска
+              </small>
+            )}
+          </div>
+          <div className="filter-group">
+            <button className="btn btn-primary" onClick={handleResetFilters}>
+              🔄 Сбросить фильтры
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Teams Table */}
+      <div className="team-table-container">
+        {loading ? (
+          <div className="loading-state">Загрузка...</div>
+        ) : (
+          <>
+            <TeamTable
+              teams={teams}
+              onView={handleViewTeam}
+              onEdit={handleEditTeam}
+              onDelete={handleDeleteTeam}
+              isAdmin={userIsAdmin}
+            />
+
+            {teams.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalElements={totalElements}
+                pageSize={pageSize}
+                first={first}
+                last={last}
+                onPageChange={handlePageChange}
+              />
+            )}
+          </>
+        )}
+      </div>
 
       {/* Modals */}
       <ViewTeamModal

@@ -4,7 +4,6 @@
  * Based on reference-user.html and OpenAPI User spec
  */
 import { useState, useEffect } from 'react';
-//import Sidebar from '../../../shared/components/Sidebar';
 import UserHeader from './UserHeader';
 import UserTable from './UserTable';
 import Pagination from '../../../shared/components/Pagination';
@@ -205,72 +204,68 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="container">
-
-
-      <main className="main-content">
-        <div className="header">
-          <h1>{userIsAdmin ? 'Управление пользователями' : 'Пользователи'}</h1>
-          <div className="header-right">
-            {currentUser && <UserHeader user={currentUser} />}
-            {userIsAdmin && (
-              <button className="btn btn-primary" onClick={handleCreateUser}>
-                ➕ Создать пользователя
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="filters">
-          <div className="filters-grid">
-            <div className="filter-group">
-              <label htmlFor="searchString">Поиск</label>
-              <input
-                type="text"
-                id="searchString"
-                value={searchInput}
-                onChange={(e) => handleSearchInputChange(e.target.value)}
-                placeholder="Поиск по ID, username, имени или фамилии..."
-              />
-            </div>
-            <div className="filter-group">
-              <button className="btn btn-primary" onClick={handleResetFilters}>
-                🔄 Сбросить фильтры
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Users Table */}
-        <div className="user-table-container">
-          {loading ? (
-            <div className="loading-state">Загрузка...</div>
-          ) : (
-            <>
-              <UserTable
-                users={users}
-                onView={handleViewUser}
-                onEdit={handleEditUser}
-                onDelete={handleDeleteUser}
-                isAdmin={userIsAdmin}
-              />
-
-              {users.length > 0 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalElements={totalElements}
-                  pageSize={pageSize}
-                  first={first}
-                  last={last}
-                  onPageChange={handlePageChange}
-                />
-              )}
-            </>
+    <div className="user-management">
+      <div className="header">
+        <h1>{userIsAdmin ? 'Управление пользователями' : 'Пользователи'}</h1>
+        <div className="header-right">
+          {currentUser && <UserHeader user={currentUser} />}
+          {userIsAdmin && (
+            <button className="btn btn-primary" onClick={handleCreateUser}>
+              ➕ Создать пользователя
+            </button>
           )}
         </div>
-      </main>
+      </div>
+
+      {/* Filters */}
+      <div className="filters">
+        <div className="filters-grid">
+          <div className="filter-group">
+            <label htmlFor="searchString">Поиск</label>
+            <input
+              type="text"
+              id="searchString"
+              value={searchInput}
+              onChange={(e) => handleSearchInputChange(e.target.value)}
+              placeholder="Поиск по ID, username, имени или фамилии..."
+            />
+          </div>
+          <div className="filter-group">
+            <button className="btn btn-primary" onClick={handleResetFilters}>
+              🔄 Сбросить фильтры
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Users Table */}
+      <div className="user-table-container">
+        {loading ? (
+          <div className="loading-state">Загрузка...</div>
+        ) : (
+          <>
+            <UserTable
+              users={users}
+              onView={handleViewUser}
+              onEdit={handleEditUser}
+              onDelete={handleDeleteUser}
+              isAdmin={userIsAdmin}
+            />
+
+            {users.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalElements={totalElements}
+                pageSize={pageSize}
+                first={first}
+                last={last}
+                onPageChange={handlePageChange}
+              />
+            )}
+          </>
+        )}
+      </div>
 
       {/* Modals */}
       <ViewUserModal
