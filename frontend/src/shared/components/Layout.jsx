@@ -1,3 +1,4 @@
+// src/shared/components/Layout.jsx
 import React from 'react';
 import { useAuth } from '../../features/auth/context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
