@@ -64,13 +64,14 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
 
     /**
      * Вычисляет новый статус RFC на основе состояния подсистем и аппрувов
-     *
+     * <p>
      * Логика:
      * 1. Если хотя бы одна подсистема отклонена (ConfirmationStatus.REJECTED) → REJECTED
-     * 2. Если хотя бы одна подсистема ожидает подтверждения (ConfirmationStatus.PENDING) → UNDER_REVIEW
-     * 3. Если все RFC_APPROVER согласовали И не все подсистемы выполнены → APPROVED
+     * 2. Если хотя бы одна подсистема ожидает подтверждения (ConfirmationStatus.PENDING) → NEW
+     * 3. Если все RFC_APPROVER согласовали И все подсистемы ожидают выполнения → APPROVED
      * 4. Если все RFC_APPROVER согласовали И все подсистемы выполнены → IMPLEMENTED
-     * 5. Иначе → NEW
+     * 5. Если все RFC_APPROVER согласовали И не все подсистемы выполнены/ожидают выполнения → IN_PROGRESS
+     * 6. Иначе → UNDER_REVIEW
      */
     private RfcStatus calculateRfcStatus(RfcEntity rfc) {
         List<RfcAffectedSubsystemEntity> subsystems = rfc.getAffectedSubsystems();
@@ -108,21 +109,29 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
                     );
 
             if (allApproversApproved) {
+                // Правило 3: Все аппруверы согласовали И все подсистемы ожидают выполнения → APPROVED
+                boolean allSubsystemInPending = subsystems.stream()
+                        .allMatch(sub -> sub.getExecutionStatus() == ExecutionStatus.PENDING);
+
+                if (allSubsystemInPending) {
+                    return RfcStatus.APPROVED;
+                }
+
                 // Проверяем статус выполнения всех подсистем
                 boolean allSubsystemsDone = subsystems.stream()
                         .allMatch(sub -> sub.getExecutionStatus() == ExecutionStatus.DONE);
 
-                // Правило 4: Все аппруверы согласовали И все подсистемы выполнены → IMPLEMENTED
+                // Правило 5: Все аппруверы согласовали И все подсистемы выполнены → IMPLEMENTED
                 if (allSubsystemsDone) {
                     return RfcStatus.IMPLEMENTED;
                 }
 
-                // Правило 3: Все аппруверы согласовали И не все подсистемы выполнены → APPROVED
-                return RfcStatus.APPROVED;
+                // Правило 4: Все аппруверы согласовали И не все подсистемы выполнены/ожидают выполнения → IN_PROGRESS
+                return RfcStatus.IN_PROGRESS;
             }
         }
 
-        // Правило 5: Иначе → UNDER_REVIEW
+        // Правило 6: Иначе → UNDER_REVIEW
         return RfcStatus.UNDER_REVIEW;
     }
 }
