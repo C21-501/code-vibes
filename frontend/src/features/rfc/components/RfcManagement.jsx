@@ -15,6 +15,7 @@ import RfcTable from './RfcTable';
 import RfcFilters from './RfcFilters';
 import RfcModal from './RfcModal';
 import CreateRfcModal from './CreateRfcModal';
+import StatusActionModal from './StatusActionModal';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import Toast from '../../../shared/components/Toast';
 import './RfcManagement.css';
@@ -24,6 +25,8 @@ const RfcManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedRfc, setSelectedRfc] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedRfcForStatus, setSelectedRfcForStatus] = useState(null);
   const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
 
   // Используем хук для управления RFC
@@ -146,18 +149,20 @@ const RfcManagement = () => {
     }
   };
 
-  const handleStatusAction = async (rfcId, action, comment = '') => {
+  const handleStatusAction = (rfc) => {
+    setSelectedRfcForStatus(rfc);
+    setShowStatusModal(true);
+  };
+
+  const handleStatusUpdate = async (rfcId, action, comment = '') => {
     try {
-      // В зависимости от действия вызываем соответствующий метод API
-      if (action === 'APPROVE') {
-        await rfcApi.approveRfc(rfcId, { comment });
-      } else if (action === 'UNAPPROVE') {
-        await rfcApi.unapproveRfc(rfcId, { comment });
-      }
+      await rfcApi.updateRfcStatus(rfcId, {
+        action: action,
+        comment: comment
+      });
 
       showToast('success', 'Успех', 'Статус RFC успешно обновлен');
       refetch(); // Перезагружаем список
-      setShowViewModal(false); // Закрываем модалку просмотра
     } catch (error) {
       const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось обновить статус RFC';
       showToast('error', 'Ошибка', errorMessage);
@@ -316,26 +321,23 @@ const RfcManagement = () => {
                 <h3>Описание</h3>
                 <p>{selectedRfc.description || 'Нет описания'}</p>
               </div>
-
-              <div className="action-buttons">
-                <button
-                  className="btn-primary"
-                  onClick={() => handleStatusAction(selectedRfc.id, 'APPROVE', 'Одобрено через интерфейс')}
-                  disabled={!selectedRfc.actions?.includes('APPROVE')}
-                >
-                  Одобрить
-                </button>
-                <button
-                  className="btn-secondary"
-                  onClick={() => handleStatusAction(selectedRfc.id, 'UNAPPROVE', 'Отклонено через интерфейс')}
-                  disabled={!selectedRfc.actions?.includes('APPROVE')}
-                >
-                  Отклонить
-                </button>
-              </div>
             </div>
           </div>
         </RfcModal>
+      )}
+
+      {/* Модальное окно изменения статуса */}
+      {showStatusModal && selectedRfcForStatus && (
+        <StatusActionModal
+          isOpen={showStatusModal}
+          onClose={() => {
+            setShowStatusModal(false);
+            setSelectedRfcForStatus(null);
+          }}
+          rfc={selectedRfcForStatus}
+          currentUser={user}
+          onStatusUpdate={handleStatusUpdate}
+        />
       )}
 
       {/* Уведомления */}

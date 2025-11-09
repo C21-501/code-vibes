@@ -1,0 +1,182 @@
+.status-action-modal {
+  max-width: 700px;
+}
+
+.modal-section {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-section:last-child {
+  border-bottom: none;
+}
+
+.modal-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.current-status-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e9ecef;
+}
+
+.status-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-description {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.action-item:hover {
+  border-color: #3498db;
+  background: #f8f9fa;
+}
+
+.action-item.selected {
+  border-color: #3498db;
+  background: #e3f2fd;
+}
+
+.action-radio {
+  margin-top: 2px;
+}
+
+.radio-circle {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.3s ease;
+}
+
+.action-item.selected .radio-circle {
+  border-color: #3498db;
+}
+
+.radio-dot {
+  width: 10px;
+  height: 10px;
+  background: #3498db;
+  border-radius: 50%;
+}
+
+.action-content {
+  flex: 1;
+}
+
+.action-label {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.action-description {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.action-next-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #495057;
+}
+
+.no-actions {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px dashed #dee2e6;
+}
+
+.selected-action-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.action-detail-row {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.action-detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.action-detail-label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 140px;
+  font-size: 14px;
+}
+
+.action-detail-value {
+  color: #2c3e50;
+  flex: 1;
+  font-size: 14px;
+}
+
+.field-counter {
+  text-align: right;
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 4px;
+}
+
+.required {
+  color: #e74c3c;
+  margin-left: 4px;
+}
+
+/* Status badges styles */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-new { background: #e3f2fd; color: #1976d2; }
+.status-under-review { background: #fff3e0; color: #f57c00; }
+.status-approved { background: #e8f5e9; color: #388e3c; }
+.status-implemented { background: #f3e5f5; color: #7b1fa2; }
+.status-rejected { background: #ffebee; color: #c62828; }

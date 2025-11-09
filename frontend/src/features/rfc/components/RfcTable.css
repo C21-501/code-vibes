@@ -25,12 +25,12 @@
   background-color: #f1f1f1;
 }
 
-.table-actions {
+.action-buttons {
   display: flex;
   gap: 0.5rem;
 }
 
-.table-actions button {
+.action-buttons button {
   padding: 0.25rem 0.5rem;
   border: none;
   border-radius: 4px;
@@ -50,4 +50,43 @@
 .btn-view {
   background-color: #007bff;
   color: white;
+}
+
+.btn-status-action {
+  padding: 6px 12px;
+  background: white;
+  color: #9b59b6;
+  border: 1px solid #9b59b6;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-status-action:hover:not(:disabled) {
+  background: #9b59b6;
+  color: white;
+  box-shadow: 0 2px 8px rgba(155, 89, 182, 0.3);
+}
+
+.btn-status-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f8f9fa;
+  color: #6c757d;
+  border-color: #dee2e6;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  white-space: nowrap;
 }

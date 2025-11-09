@@ -5,7 +5,8 @@ import {
   getStatusClass,
   getUrgencyClass,
   formatDate,
-  canPerformAction
+  canPerformAction,
+  getAvailableActions
 } from '../utils/rfcUtils';
 import './RfcTable.css';
 
@@ -110,9 +111,9 @@ const RfcTable = ({
 
                     <button
                       className="btn-status-action"
-                      onClick={() => onStatusAction(rfc.id)}
-                      disabled={!canPerformAction(rfc, 'APPROVE', currentUser)}
-                      title={!canPerformAction(rfc, 'APPROVE', currentUser) ? 'Изменение статуса недоступно' : ''}
+                      onClick={() => onStatusAction(rfc)}
+                      disabled={!getAvailableActions(rfc, currentUser).length}
+                      title={!getAvailableActions(rfc, currentUser).length ? 'Изменение статуса недоступно' : ''}
                     >
                       🔄 Статус
                     </button>
