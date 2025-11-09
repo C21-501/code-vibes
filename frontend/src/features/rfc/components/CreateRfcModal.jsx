@@ -153,124 +153,128 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
   };
 
   return (
-    <div className="modal-overlay">
+    <div className={`modal ${isOpen ? 'active' : ''}`}>
       <div className="modal-content create-rfc-modal">
-        <button className="modal-close" onClick={onClose}>
-          ×
-        </button>
-        <h2>Создать новый RFC</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Название RFC *</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Введите название RFC"
-              className={errors.title ? 'error' : ''}
-              required
-            />
-            {errors.title && <div className="error-message">{errors.title}</div>}
-          </div>
-
-          <div className="form-group">
-            <label>Описание</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Опишите предлагаемые изменения"
-              rows="4"
-            />
-          </div>
-
-          <div className="form-row">
+        <div className="modal-header">
+          <h2>Создать новый RFC</h2>
+          <button className="close" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Дата реализации *</label>
+              <label>Название RFC *</label>
               <input
-                type="datetime-local"
-                name="implementationDate"
-                value={formData.implementationDate}
+                type="text"
+                name="title"
+                value={formData.title}
                 onChange={handleChange}
-                className={errors.implementationDate ? 'error' : ''}
+                placeholder="Введите название RFC"
+                className={errors.title ? 'error' : ''}
                 required
               />
-              {errors.implementationDate && <div className="error-message">{errors.implementationDate}</div>}
+              {errors.title && <div className="error-message">{errors.title}</div>}
             </div>
 
             <div className="form-group">
-              <label>Срочность *</label>
-              <select
-                name="urgency"
-                value={formData.urgency}
+              <label>Описание</label>
+              <textarea
+                name="description"
+                value={formData.description}
                 onChange={handleChange}
-                className={errors.urgency ? 'error' : ''}
-                required
-              >
-                <option value="PLANNED">Плановое</option>
-                <option value="URGENT">Срочное</option>
-                <option value="EMERGENCY">Безотлагательное</option>
-              </select>
-              {errors.urgency && <div className="error-message">{errors.urgency}</div>}
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h3>Затронутые системы</h3>
-
-            <div className="form-group">
-              <label>ID системы *</label>
-              <input
-                type="number"
-                value={formData.affectedSystems[0]?.systemId || ''}
-                onChange={handleSystemChange}
-                placeholder="Введите ID системы"
-                className={errors.systemId ? 'error' : ''}
-                required
+                placeholder="Опишите предлагаемые изменения"
+                rows="4"
               />
-              {errors.systemId && <div className="error-message">{errors.systemId}</div>}
-              <small>Пример: 1, 2, 3</small>
             </div>
 
-            <div className="form-group">
-              <label>ID подсистемы *</label>
-              <input
-                type="number"
-                value={formData.affectedSystems[0]?.affectedSubsystems[0]?.subsystemId || ''}
-                onChange={handleSubsystemChange}
-                placeholder="Введите ID подсистемы"
-                className={errors.subsystemId ? 'error' : ''}
-                required
-              />
-              {errors.subsystemId && <div className="error-message">{errors.subsystemId}</div>}
-              <small>Пример: 1, 2, 3</small>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Дата реализации *</label>
+                <input
+                  type="datetime-local"
+                  name="implementationDate"
+                  value={formData.implementationDate}
+                  onChange={handleChange}
+                  className={errors.implementationDate ? 'error' : ''}
+                  required
+                />
+                {errors.implementationDate && <div className="error-message">{errors.implementationDate}</div>}
+              </div>
+
+              <div className="form-group">
+                <label>Срочность *</label>
+                <select
+                  name="urgency"
+                  value={formData.urgency}
+                  onChange={handleChange}
+                  className={errors.urgency ? 'error' : ''}
+                  required
+                >
+                  <option value="PLANNED">Плановое</option>
+                  <option value="URGENT">Срочное</option>
+                  <option value="EMERGENCY">Безотлагательное</option>
+                </select>
+                {errors.urgency && <div className="error-message">{errors.urgency}</div>}
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>ID исполнителя *</label>
-              <input
-                type="number"
-                value={formData.affectedSystems[0]?.affectedSubsystems[0]?.executorId || ''}
-                onChange={handleExecutorChange}
-                placeholder="Введите ID исполнителя"
-                className={errors.executorId ? 'error' : ''}
-                required
-              />
-              {errors.executorId && <div className="error-message">{errors.executorId}</div>}
-              <small>Пример: 1, 2, 3</small>
-            </div>
-          </div>
+            <div className="form-section">
+              <h3>Затронутые системы</h3>
 
-          <div className="form-actions">
-            <button type="submit" className="btn-primary">
-              Создать RFC
-            </button>
-            <button type="button" onClick={onClose} className="btn-secondary">
-              Отмена
-            </button>
-          </div>
-        </form>
+              <div className="form-group">
+                <label>ID системы *</label>
+                <input
+                  type="number"
+                  value={formData.affectedSystems[0]?.systemId || ''}
+                  onChange={handleSystemChange}
+                  placeholder="Введите ID системы"
+                  className={errors.systemId ? 'error' : ''}
+                  required
+                />
+                {errors.systemId && <div className="error-message">{errors.systemId}</div>}
+                <small>Пример: 1, 2, 3</small>
+              </div>
+
+              <div className="form-group">
+                <label>ID подсистемы *</label>
+                <input
+                  type="number"
+                  value={formData.affectedSystems[0]?.affectedSubsystems[0]?.subsystemId || ''}
+                  onChange={handleSubsystemChange}
+                  placeholder="Введите ID подсистемы"
+                  className={errors.subsystemId ? 'error' : ''}
+                  required
+                />
+                {errors.subsystemId && <div className="error-message">{errors.subsystemId}</div>}
+                <small>Пример: 1, 2, 3</small>
+              </div>
+
+              <div className="form-group">
+                <label>ID исполнителя *</label>
+                <input
+                  type="number"
+                  value={formData.affectedSystems[0]?.affectedSubsystems[0]?.executorId || ''}
+                  onChange={handleExecutorChange}
+                  placeholder="Введите ID исполнителя"
+                  className={errors.executorId ? 'error' : ''}
+                  required
+                />
+                {errors.executorId && <div className="error-message">{errors.executorId}</div>}
+                <small>Пример: 1, 2, 3</small>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button type="submit" className="btn btn-primary">
+                Создать RFC
+              </button>
+              <button type="button" onClick={onClose} className="btn btn-secondary">
+                Отмена
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
