@@ -1,3 +1,8 @@
+/**
+ * RFC Utility Functions
+ * Helper functions for RFC status, permissions, and actions
+ */
+
 // Константы статусов RFC
 export const RFC_STATUS = {
   NEW: 'NEW',
@@ -14,188 +19,392 @@ export const URGENCY = {
   PLANNED: 'PLANNED'
 };
 
-// Действия по изменению статуса RFC
-export const RFC_ACTIONS = {
-  SUBMIT: 'SUBMIT',           // NEW → UNDER_REVIEW
-  APPROVE: 'APPROVE',         // UNDER_REVIEW → APPROVED
-  REJECT: 'REJECT',           // UNDER_REVIEW → REJECTED
-  IMPLEMENT: 'IMPLEMENT',     // APPROVED → IMPLEMENTED
-  REOPEN: 'REOPEN'            // REJECTED → UNDER_REVIEW
+// Константы статусов подтверждения
+export const CONFIRMATION_STATUS = {
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  REJECTED: 'REJECTED'
 };
 
-// Workflow configuration
-export const STATUS_WORKFLOW = {
-  [RFC_STATUS.NEW]: {
-    next: [RFC_STATUS.UNDER_REVIEW],
-    actions: [RFC_ACTIONS.SUBMIT],
-    allowedRoles: ['REQUESTER', 'ADMIN'],
-    label: 'Новый',
-    description: 'RFC создан, но еще не отправлен на рассмотрение'
-  },
-  [RFC_STATUS.UNDER_REVIEW]: {
-    next: [RFC_STATUS.APPROVED, RFC_STATUS.REJECTED],
-    actions: [RFC_ACTIONS.APPROVE, RFC_ACTIONS.REJECT],
-    allowedRoles: ['CAB_MANAGER', 'ADMIN'],
-    label: 'На рассмотрении',
-    description: 'RFC находится на рассмотрении CAB менеджера'
-  },
-  [RFC_STATUS.APPROVED]: {
-    next: [RFC_STATUS.IMPLEMENTED],
-    actions: [RFC_ACTIONS.IMPLEMENT],
-    allowedRoles: ['EXECUTOR', 'ADMIN'],
-    label: 'Одобрен',
-    description: 'RFC одобрен и готов к внедрению'
-  },
-  [RFC_STATUS.IMPLEMENTED]: {
-    next: [],
-    actions: [],
-    allowedRoles: [],
-    label: 'Внедрен',
-    description: 'RFC успешно внедрен'
-  },
-  [RFC_STATUS.REJECTED]: {
-    next: [RFC_STATUS.UNDER_REVIEW],
-    actions: [RFC_ACTIONS.REOPEN],
-    allowedRoles: ['REQUESTER', 'ADMIN'],
-    label: 'Отклонен',
-    description: 'RFC отклонен CAB менеджером'
-  }
+// Константы статусов выполнения
+export const EXECUTION_STATUS = {
+  PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  DONE: 'DONE'
 };
 
-// Labels for actions
-export const ACTION_LABELS = {
-  [RFC_ACTIONS.SUBMIT]: 'Отправить на рассмотрение',
-  [RFC_ACTIONS.APPROVE]: 'Одобрить RFC',
-  [RFC_ACTIONS.REJECT]: 'Отклонить RFC',
-  [RFC_ACTIONS.IMPLEMENT]: 'Отметить как внедренный',
-  [RFC_ACTIONS.REOPEN]: 'Переоткрыть RFC'
+// Роли пользователей
+export const USER_ROLE = {
+  USER: 'USER',
+  RFC_APPROVER: 'RFC_APPROVER',
+  CAB_MANAGER: 'CAB_MANAGER',
+  ADMIN: 'ADMIN'
 };
 
-// Descriptions for actions
-export const ACTION_DESCRIPTIONS = {
-  [RFC_ACTIONS.SUBMIT]: 'Переводит RFC в статус "На рассмотрении" для оценки CAB менеджера',
-  [RFC_ACTIONS.APPROVE]: 'Одобряет RFC для дальнейшего внедрения исполнителями',
-  [RFC_ACTIONS.REJECT]: 'Отклоняет RFC с указанием причины',
-  [RFC_ACTIONS.IMPLEMENT]: 'Отмечает RFC как успешно внедренный',
-  [RFC_ACTIONS.REOPEN]: 'Возвращает отклоненный RFC на повторное рассмотрение'
+// Константы действий
+export const RFC_ACTION = {
+  UPDATE: 'UPDATE',
+  DELETE: 'DELETE',
+  APPROVE: 'APPROVE',
+  CONFIRM: 'CONFIRM',
+  UPDATE_EXECUTION: 'UPDATE_EXECUTION'
 };
 
-// Функция для получения текстового представления статуса
-export const getStatusLabel = (status) => {
-  switch (status) {
-    case RFC_STATUS.NEW:
-      return 'Новый';
-    case RFC_STATUS.UNDER_REVIEW:
-      return 'На рассмотрении';
-    case RFC_STATUS.APPROVED:
-      return 'Одобрен';
-    case RFC_STATUS.IMPLEMENTED:
-      return 'Внедрен';
-    case RFC_STATUS.REJECTED:
-      return 'Отклонен';
-    default:
-      return 'Неизвестно';
-  }
-};
-
-// Функция для получения текстового представления срочности
-export const getUrgencyLabel = (urgency) => {
-  switch (urgency) {
-    case URGENCY.EMERGENCY:
-      return 'Безотлагательное';
-    case URGENCY.URGENT:
-      return 'Срочное';
-    case URGENCY.PLANNED:
-      return 'Плановое';
-    default:
-      return 'Неизвестно';
-  }
-};
-
-// Функция для получения CSS класса статуса
-export const getStatusClass = (status) => {
-  switch (status) {
-    case RFC_STATUS.NEW:
-      return 'status-new';
-    case RFC_STATUS.UNDER_REVIEW:
-      return 'status-under-review';
-    case RFC_STATUS.APPROVED:
-      return 'status-approved';
-    case RFC_STATUS.IMPLEMENTED:
-      return 'status-implemented';
-    case RFC_STATUS.REJECTED:
-      return 'status-rejected';
-    default:
-      return 'status-unknown';
-  }
-};
-
-// Функция для получения CSS класса срочности
-export const getUrgencyClass = (urgency) => {
-  switch (urgency) {
-    case URGENCY.EMERGENCY:
-      return 'urgency-emergency';
-    case URGENCY.URGENT:
-      return 'urgency-urgent';
-    case URGENCY.PLANNED:
-      return 'urgency-planned';
-    default:
-      return 'urgency-unknown';
-  }
-};
-
-// Функция для форматирования даты
+/**
+ * Форматирует дату в читаемый формат
+ */
 export const formatDate = (dateString) => {
   if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('ru-RU');
+
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
 };
 
-// Get next status based on action
-export const getNextStatus = (currentStatus, action) => {
-  const statusMap = {
-    [RFC_ACTIONS.SUBMIT]: RFC_STATUS.UNDER_REVIEW,
-    [RFC_ACTIONS.APPROVE]: RFC_STATUS.APPROVED,
-    [RFC_ACTIONS.REJECT]: RFC_STATUS.REJECTED,
-    [RFC_ACTIONS.IMPLEMENT]: RFC_STATUS.IMPLEMENTED,
-    [RFC_ACTIONS.REOPEN]: RFC_STATUS.UNDER_REVIEW
-  };
-  return statusMap[action] || currentStatus;
+/**
+ * Форматирует дату только в формате даты (без времени)
+ */
+export const formatDateOnly = (dateString) => {
+  if (!dateString) return '';
+
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
 };
 
-// Get available actions for RFC and user
-export const getAvailableActions = (rfc, user) => {
-  const currentStatus = rfc.status;
-  const workflowConfig = STATUS_WORKFLOW[currentStatus];
+/**
+ * Форматирует дату относительно текущего времени
+ */
+export const formatRelativeTime = (dateString) => {
+  if (!dateString) return '';
 
-  if (!workflowConfig) return [];
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+    const diffInDays = diffInHours / 24;
 
-  return workflowConfig.actions.filter(action => {
-    // Check user role
-    if (!workflowConfig.allowedRoles.includes(user?.role)) return false;
-
-    // Additional business logic
-    switch (action) {
-      case RFC_ACTIONS.SUBMIT:
-      case RFC_ACTIONS.REOPEN:
-        return user?.id === rfc.requesterId || user?.role === 'ADMIN';
-      default:
-        return true;
+    if (diffInHours < 1) {
+      return 'только что';
+    } else if (diffInHours < 24) {
+      const hours = Math.floor(diffInHours);
+      return `${hours} ${getRussianNoun(hours, 'час', 'часа', 'часов')} назад`;
+    } else if (diffInDays < 7) {
+      const days = Math.floor(diffInDays);
+      return `${days} ${getRussianNoun(days, 'день', 'дня', 'дней')} назад`;
+    } else {
+      return formatDate(dateString);
     }
-  }).map(action => ({
-    value: action,
-    label: ACTION_LABELS[action],
-    description: ACTION_DESCRIPTIONS[action],
-    nextStatus: getNextStatus(currentStatus, action)
-  }));
+  } catch (error) {
+    console.error('Error formatting relative time:', error);
+    return formatDate(dateString);
+  }
 };
 
-// Функция проверки доступных действий
-export const canPerformAction = (rfc, action, user) => {
-  if (!rfc.actions || !Array.isArray(rfc.actions)) {
+/**
+ * Вспомогательная функция для склонения русских существительных
+ */
+const getRussianNoun = (number, one, two, five) => {
+  let n = Math.abs(number);
+  n %= 100;
+  if (n >= 5 && n <= 20) {
+    return five;
+  }
+  n %= 10;
+  if (n === 1) {
+    return one;
+  }
+  if (n >= 2 && n <= 4) {
+    return two;
+  }
+  return five;
+};
+
+/**
+ * Проверяет, может ли пользователь согласовывать RFC
+ */
+export const canApproveRfc = (user, rfc) => {
+  if (!user || !rfc) return false;
+
+  console.log('canApproveRfc check:', {
+    userRole: user.role,
+    rfcStatus: rfc.status,
+    requesterId: rfc.requesterId,
+    userId: user.id
+  });
+
+  // Проверка по ролям
+  const hasApprovalRole = [USER_ROLE.ADMIN, USER_ROLE.CAB_MANAGER, USER_ROLE.RFC_APPROVER].includes(user.role);
+
+  // Проверяем, что RFC в статусе, когда можно согласовывать
+  const canBeApproved = [RFC_STATUS.NEW, RFC_STATUS.UNDER_REVIEW].includes(rfc.status);
+
+  // Проверяем, что пользователь не является создателем RFC
+  const isNotRequester = user.id !== rfc.requesterId;
+
+  const result = hasApprovalRole && canBeApproved && isNotRequester;
+  console.log('canApproveRfc result:', result);
+  return result;
+};
+
+/**
+ * Проверяет, может ли пользователь подтверждать подсистемы
+ */
+export const canConfirmSubsystems = (user, rfc) => {
+  if (!user || !rfc) return false;
+
+  console.log('canConfirmSubsystems check:', {
+    userId: user.id,
+    hasAffectedSystems: !!rfc.affectedSystems
+  });
+
+  // Проверка по данным подсистем
+  if (!rfc.affectedSystems || !Array.isArray(rfc.affectedSystems)) {
     return false;
   }
 
-  // Проверяем, есть ли действие в массиве доступных действий
-  return rfc.actions.includes(action);
+  const isExecutor = rfc.affectedSystems.some(system => {
+    if (!system || !system.affectedSubsystems || !Array.isArray(system.affectedSubsystems)) {
+      return false;
+    }
+
+    return system.affectedSubsystems.some(subsystem =>
+      subsystem &&
+      subsystem.executorId === user.id &&
+      subsystem.confirmationStatus === CONFIRMATION_STATUS.PENDING
+    );
+  });
+
+  console.log('canConfirmSubsystems result:', isExecutor);
+  return isExecutor;
+};
+
+/**
+ * Проверяет, может ли пользователь обновлять статус выполнения
+ */
+export const canUpdateExecution = (user, rfc) => {
+  if (!user || !rfc) return false;
+
+  console.log('canUpdateExecution check:', {
+    userId: user.id,
+    hasAffectedSystems: !!rfc.affectedSystems
+  });
+
+  // Проверка по данным подсистем
+  if (!rfc.affectedSystems || !Array.isArray(rfc.affectedSystems)) {
+    return false;
+  }
+
+  const isExecutor = rfc.affectedSystems.some(system => {
+    if (!system || !system.affectedSubsystems || !Array.isArray(system.affectedSubsystems)) {
+      return false;
+    }
+
+    return system.affectedSubsystems.some(subsystem =>
+      subsystem &&
+      subsystem.executorId === user.id &&
+      subsystem.confirmationStatus === CONFIRMATION_STATUS.CONFIRMED &&
+      subsystem.executionStatus !== EXECUTION_STATUS.DONE
+    );
+  });
+
+  console.log('canUpdateExecution result:', isExecutor);
+  return isExecutor;
+};
+
+/**
+ * Получает подсистемы, которые пользователь может подтвердить
+ */
+export const getConfirmableSubsystems = (user, rfc) => {
+  if (!user || !rfc) return [];
+
+  if (!rfc.affectedSystems || !Array.isArray(rfc.affectedSystems)) {
+    return [];
+  }
+
+  const confirmableSubsystems = [];
+
+  rfc.affectedSystems.forEach(system => {
+    if (!system || !system.affectedSubsystems || !Array.isArray(system.affectedSubsystems)) {
+      return;
+    }
+
+    system.affectedSubsystems.forEach(subsystem => {
+      if (subsystem &&
+          subsystem.executorId === user.id &&
+          subsystem.confirmationStatus === CONFIRMATION_STATUS.PENDING) {
+        confirmableSubsystems.push({
+          ...subsystem,
+          systemName: system.systemName || 'Неизвестная система',
+          systemId: system.systemId,
+          // Используем affectedSubsystemId для API вызовов
+          affectedSubsystemId: subsystem.id // В данном случае subsystem.id - это ID связи в affected_subsystems
+        });
+      }
+    });
+  });
+
+  console.log('getConfirmableSubsystems result:', confirmableSubsystems);
+  return confirmableSubsystems;
+};
+
+/**
+ * Получает подсистемы, для которых пользователь может обновлять статус выполнения
+ */
+export const getExecutableSubsystems = (user, rfc) => {
+  if (!user || !rfc) return [];
+
+  if (!rfc.affectedSystems || !Array.isArray(rfc.affectedSystems)) {
+    return [];
+  }
+
+  const executableSubsystems = [];
+
+  rfc.affectedSystems.forEach(system => {
+    if (!system || !system.affectedSubsystems || !Array.isArray(system.affectedSubsystems)) {
+      return;
+    }
+
+    system.affectedSubsystems.forEach(subsystem => {
+      if (subsystem &&
+          subsystem.executorId === user.id &&
+          subsystem.confirmationStatus === CONFIRMATION_STATUS.CONFIRMED &&
+          subsystem.executionStatus !== EXECUTION_STATUS.DONE) {
+        executableSubsystems.push({
+          ...subsystem,
+          systemName: system.systemName || 'Неизвестная система',
+          systemId: system.systemId,
+          // Используем affectedSubsystemId для API вызовов
+          affectedSubsystemId: subsystem.id // В данном случае subsystem.id - это ID связи в affected_subsystems
+        });
+      }
+    });
+  });
+
+  console.log('getExecutableSubsystems result:', executableSubsystems);
+  return executableSubsystems;
+};
+
+/**
+ * Получает русскоязычное название статуса
+ */
+export const getStatusLabel = (status) => {
+  const statusLabels = {
+    [RFC_STATUS.NEW]: 'Новый',
+    [RFC_STATUS.UNDER_REVIEW]: 'На рассмотрении',
+    [RFC_STATUS.APPROVED]: 'Согласован',
+    [RFC_STATUS.IMPLEMENTED]: 'Внедрен',
+    [RFC_STATUS.REJECTED]: 'Отклонен',
+    [CONFIRMATION_STATUS.PENDING]: 'Ожидает подтверждения',
+    [CONFIRMATION_STATUS.CONFIRMED]: 'Подтверждено',
+    [CONFIRMATION_STATUS.REJECTED]: 'Отклонено',
+    [EXECUTION_STATUS.PENDING]: 'Ожидает выполнения',
+    [EXECUTION_STATUS.IN_PROGRESS]: 'В процессе',
+    [EXECUTION_STATUS.DONE]: 'Выполнено'
+  };
+  return statusLabels[status] || status;
+};
+
+/**
+ * Получает CSS класс для статуса
+ */
+export const getStatusClass = (status) => {
+  const statusClasses = {
+    [RFC_STATUS.NEW]: 'status-new',
+    [RFC_STATUS.UNDER_REVIEW]: 'status-under-review',
+    [RFC_STATUS.APPROVED]: 'status-approved',
+    [RFC_STATUS.IMPLEMENTED]: 'status-implemented',
+    [RFC_STATUS.REJECTED]: 'status-rejected',
+    [CONFIRMATION_STATUS.PENDING]: 'status-pending',
+    [CONFIRMATION_STATUS.CONFIRMED]: 'status-confirmed',
+    [CONFIRMATION_STATUS.REJECTED]: 'status-rejected',
+    [EXECUTION_STATUS.PENDING]: 'status-pending',
+    [EXECUTION_STATUS.IN_PROGRESS]: 'status-in-progress',
+    [EXECUTION_STATUS.DONE]: 'status-done'
+  };
+  return statusClasses[status] || 'status-unknown';
+};
+
+/**
+ * Получает русскоязычное название срочности
+ */
+export const getUrgencyLabel = (urgency) => {
+  const urgencyLabels = {
+    [URGENCY.EMERGENCY]: 'Критическая',
+    [URGENCY.URGENT]: 'Срочная',
+    [URGENCY.PLANNED]: 'Плановая'
+  };
+  return urgencyLabels[urgency] || urgency;
+};
+
+/**
+ * Получает CSS класс для срочности
+ */
+export const getUrgencyClass = (urgency) => {
+  const urgencyClasses = {
+    [URGENCY.EMERGENCY]: 'urgency-emergency',
+    [URGENCY.URGENT]: 'urgency-urgent',
+    [URGENCY.PLANNED]: 'urgency-planned'
+  };
+  return urgencyClasses[urgency] || 'urgency-unknown';
+};
+
+/**
+ * Проверяет, может ли пользователь выполнить действие над RFC
+ */
+export const canPerformAction = (user, rfc, action) => {
+  if (!user || !rfc) return false;
+
+  switch (action) {
+    case RFC_ACTION.APPROVE:
+      return canApproveRfc(user, rfc);
+    case RFC_ACTION.CONFIRM:
+      return canConfirmSubsystems(user, rfc);
+    case RFC_ACTION.UPDATE_EXECUTION:
+      return canUpdateExecution(user, rfc);
+    default:
+      return false;
+  }
+};
+
+/**
+ * Получает доступные действия для пользователя и RFC
+ */
+export const getAvailableActions = (user, rfc) => {
+  if (!user || !rfc) return [];
+
+  const actions = [];
+
+  if (canApproveRfc(user, rfc)) {
+    actions.push(RFC_ACTION.APPROVE);
+  }
+
+  if (canConfirmSubsystems(user, rfc)) {
+    actions.push(RFC_ACTION.CONFIRM);
+  }
+
+  if (canUpdateExecution(user, rfc)) {
+    actions.push(RFC_ACTION.UPDATE_EXECUTION);
+  }
+
+  return actions;
 };

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   RFC_STATUS,
-  STATUS_WORKFLOW,
-  getAvailableActions,
   getStatusLabel,
   getStatusClass
 } from '../utils/rfcUtils';
@@ -21,16 +19,15 @@ const StatusActionModal = ({
 
   useEffect(() => {
     if (rfc && currentUser) {
-      const actions = getAvailableActions(rfc, currentUser);
-      setAvailableActions(actions);
+      // Здесь должна быть логика определения доступных действий
+      // Временно оставляем пустой массив
+      setAvailableActions([]);
       setSelectedAction(null);
       setComment('');
     }
   }, [rfc, currentUser]);
 
   if (!isOpen || !rfc) return null;
-
-  const currentStatusConfig = STATUS_WORKFLOW[rfc.status];
 
   const handleActionSelect = (action) => {
     setSelectedAction(action);
@@ -65,9 +62,6 @@ const StatusActionModal = ({
               <div className="status-display">
                 <span className={`status-badge ${getStatusClass(rfc.status)}`}>
                   {getStatusLabel(rfc.status)}
-                </span>
-                <span className="status-description">
-                  {currentStatusConfig?.description || 'Описание статуса недоступно'}
                 </span>
               </div>
             </div>

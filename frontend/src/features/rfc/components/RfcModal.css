@@ -1,49 +1,342 @@
-.rfc-detail-modal {
-  max-width: 800px;
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  overflow: auto;
+}
+
+.modal.active {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
 }
 
-.rfc-detail-content {
-  padding: 20px 0;
+.rfc-detail-modal {
+  max-width: 900px;
 }
 
-.detail-section {
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5em;
+}
+
+.close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close:hover {
+  color: #333;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+/* Стили для панели действий */
+.rfc-actions-panel {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.rfc-actions-panel h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.3em;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 8px;
+}
+
+.action-group {
   margin-bottom: 25px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.detail-section h3 {
+.action-group:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.action-group h4 {
   margin-bottom: 15px;
+  color: #555;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.action-comment {
+  margin-bottom: 20px;
+}
+
+.action-comment label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
   color: #333;
 }
 
-.detail-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-  padding: 8px 0;
+.action-comment textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
 }
 
-.detail-label {
-  font-weight: bold;
-  min-width: 150px;
+.action-comment textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.field-counter {
+  text-align: right;
+  font-size: 12px;
   color: #666;
+  margin-top: 4px;
 }
 
-.detail-value {
-  flex: 1;
+.subsystem-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.subsystem-action:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.subsystem-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  margin-right: 15px;
+}
+
+.system-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.subsystem-name {
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.action-buttons-group {
+  display: flex;
+  gap: 10px;
 }
 
 .action-buttons {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.action-buttons button {
-  flex: 1;
-  padding: 10px;
+/* Стили для кнопок */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #545b62;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.btn-info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.btn-info:hover:not(:disabled) {
+  background-color: #138496;
+}
+
+/* Стили для статусов */
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-new {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-under-review {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.status-approved {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-implemented {
+  background-color: #e8eaf6;
+  color: #3949ab;
+}
+
+.status-rejected {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-pending {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.status-confirmed {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-in-progress {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-done {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-unknown {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    margin: 10px;
+  }
+
+  .subsystem-action {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .subsystem-info {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .action-buttons {
+    justify-content: stretch;
+  }
+
+  .action-buttons .btn {
+    flex: 1;
+  }
+
+  .action-buttons-group {
+    flex-direction: column;
+  }
 }

@@ -33,10 +33,6 @@ export const rfcApi = {
   deleteRfc: (id) =>
     api.delete(`/rfc/${id}`).then(response => response.data),
 
-  // PATCH /rfc/{id}/status - Update RFC status
-  updateRfcStatus: (id, statusData) =>
-    api.patch(`/rfc/${id}/status`, statusData).then(response => response.data),
-
   // POST /rfc/{id}/approve - Approve RFC
   approveRfc: (id, approveData = {}) =>
     api.post(`/rfc/${id}/approve`, approveData).then(response => response.data),

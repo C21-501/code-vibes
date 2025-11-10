@@ -29,7 +29,7 @@ const RfcManagement = () => {
   const [selectedRfcForStatus, setSelectedRfcForStatus] = useState(null);
   const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
 
-  // Используем хук для управления RFC
+  // Используем хук для управления RFC с методами для действий
   const {
     rfcs,
     loading,
@@ -38,7 +38,12 @@ const RfcManagement = () => {
     filters,
     updateFilters,
     goToPage,
-    refetch
+    refetch,
+    approveRfc,
+    unapproveRfc,
+    confirmSubsystem,
+    updateExecutionStatus,
+    refreshRfc
   } = useRfcs({
     status: '',
     urgency: '',
@@ -154,15 +159,69 @@ const RfcManagement = () => {
     setShowStatusModal(true);
   };
 
+  // Функция для обновления выбранного RFC
+  const updateSelectedRfc = async (rfcId) => {
+    try {
+      const updatedRfc = await rfcApi.getRfcById(rfcId);
+      setSelectedRfc(updatedRfc);
+      return updatedRfc;
+    } catch (error) {
+      console.error('Error updating selected RFC:', error);
+      return null;
+    }
+  };
+
+  // Новые обработчики для действий в RfcModal
+  const handleApprove = async (rfcId, comment = '') => {
+    try {
+      await approveRfc(rfcId, comment);
+      // Обновляем выбранный RFC
+      await updateSelectedRfc(rfcId);
+      showToast('success', 'Успех', 'RFC успешно согласован');
+    } catch (error) {
+      showToast('error', 'Ошибка', error.message || 'Не удалось согласовать RFC');
+    }
+  };
+
+  const handleUnapprove = async (rfcId, comment = '') => {
+    try {
+      await unapproveRfc(rfcId, comment);
+      // Обновляем выбранный RFC
+      await updateSelectedRfc(rfcId);
+      showToast('success', 'Успех', 'Согласование RFC отменено');
+    } catch (error) {
+      showToast('error', 'Ошибка', error.message || 'Не удалось отменить согласование RFC');
+    }
+  };
+
+  const handleConfirm = async (rfcId, subsystemId, status, comment = '') => {
+    try {
+      await confirmSubsystem(rfcId, subsystemId, status, comment);
+      // Обновляем выбранный RFC
+      await updateSelectedRfc(rfcId);
+      const action = status === 'CONFIRMED' ? 'подтверждена' : 'отклонена';
+      showToast('success', 'Успех', `Подсистема ${action}`);
+    } catch (error) {
+      showToast('error', 'Ошибка', error.message || 'Не удалось выполнить действие с подсистемой');
+    }
+  };
+
+  const handleUpdateExecution = async (rfcId, subsystemId, status, comment = '') => {
+    try {
+      await updateExecutionStatus(rfcId, subsystemId, status, comment);
+      // Обновляем выбранный RFC
+      await updateSelectedRfc(rfcId);
+      const action = status === 'IN_PROGRESS' ? 'начато' : 'завершено';
+      showToast('success', 'Успех', `Выполнение подсистемы ${action}`);
+    } catch (error) {
+      showToast('error', 'Ошибка', error.message || 'Не удалось обновить статус выполнения');
+    }
+  };
+
   const handleStatusUpdate = async (rfcId, action, comment = '') => {
     try {
-      await rfcApi.updateRfcStatus(rfcId, {
-        action: action,
-        comment: comment
-      });
-
-      showToast('success', 'Успех', 'Статус RFC успешно обновлен');
-      refetch(); // Перезагружаем список
+      // Используем существующий API если нужно
+      showToast('info', 'Информация', 'Функция изменения статуса в разработке');
     } catch (error) {
       const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось обновить статус RFC';
       showToast('error', 'Ошибка', errorMessage);
@@ -289,39 +348,84 @@ const RfcManagement = () => {
       )}
 
       {showViewModal && selectedRfc && (
-        <RfcModal isOpen={showViewModal} onClose={() => setShowViewModal(false)}>
-          <div className="rfc-detail-modal">
-            <h2>Детали RFC: {selectedRfc.title}</h2>
-            <div className="rfc-detail-content">
-              <div className="detail-section">
-                <h3>Основная информация</h3>
-                <div className="detail-row">
-                  <span className="detail-label">ID:</span>
-                  <span className="detail-value">RFC-{selectedRfc.id}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Статус:</span>
-                  <span className={`status-badge ${getStatusClass(selectedRfc.status)}`}>
-                    {getStatusLabel(selectedRfc.status)}
-                  </span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Срочность:</span>
-                  <span className={`urgency-badge ${getUrgencyClass(selectedRfc.urgency)}`}>
-                    {getUrgencyLabel(selectedRfc.urgency)}
-                  </span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Дата реализации:</span>
-                  <span className="detail-value">{formatDate(selectedRfc.implementationDate)}</span>
-                </div>
+        <RfcModal
+          isOpen={showViewModal}
+          onClose={() => setShowViewModal(false)}
+          rfc={selectedRfc}
+          onApprove={handleApprove}
+          onUnapprove={handleUnapprove}
+          onConfirm={handleConfirm}
+          onUpdateExecution={handleUpdateExecution}
+        >
+          <div className="rfc-detail-content">
+            <div className="detail-section">
+              <h3>Основная информация</h3>
+              <div className="detail-row">
+                <span className="detail-label">ID:</span>
+                <span className="detail-value">RFC-{selectedRfc.id}</span>
               </div>
-
-              <div className="detail-section">
-                <h3>Описание</h3>
-                <p>{selectedRfc.description || 'Нет описания'}</p>
+              <div className="detail-row">
+                <span className="detail-label">Название:</span>
+                <span className="detail-value">{selectedRfc.title}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Статус:</span>
+                <span className={`status-badge ${getStatusClass(selectedRfc.status)}`}>
+                  {getStatusLabel(selectedRfc.status)}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Срочность:</span>
+                <span className={`urgency-badge ${getUrgencyClass(selectedRfc.urgency)}`}>
+                  {getUrgencyLabel(selectedRfc.urgency)}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Дата реализации:</span>
+                <span className="detail-value">{formatDate(selectedRfc.implementationDate)}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Создатель:</span>
+                <span className="detail-value">
+                  {selectedRfc.requester ? `${selectedRfc.requester.firstName} ${selectedRfc.requester.lastName}` : 'Неизвестно'}
+                </span>
               </div>
             </div>
+
+            <div className="detail-section">
+              <h3>Описание</h3>
+              <p className="description-text">{selectedRfc.description || 'Нет описания'}</p>
+            </div>
+
+            {/* Информация о затронутых системах */}
+            {selectedRfc.affectedSystems && selectedRfc.affectedSystems.length > 0 && (
+              <div className="detail-section">
+                <h3>Затронутые системы и подсистемы</h3>
+                {selectedRfc.affectedSystems.map((system, index) => (
+                  <div key={system.systemId || index} className="system-group">
+                    <h4 className="system-name">{system.systemName || `Система ${index + 1}`}</h4>
+                    {system.affectedSubsystems && system.affectedSubsystems.map((subsystem, subIndex) => (
+                      <div key={subsystem.id || subIndex} className="subsystem-item">
+                        <div className="subsystem-info">
+                          <span className="subsystem-name">{subsystem.subsystemName}</span>
+                          <span className={`status-badge ${getStatusClass(subsystem.confirmationStatus)}`}>
+                            Подтверждение: {getStatusLabel(subsystem.confirmationStatus)}
+                          </span>
+                          <span className={`status-badge ${getStatusClass(subsystem.executionStatus)}`}>
+                            Выполнение: {getStatusLabel(subsystem.executionStatus)}
+                          </span>
+                          {subsystem.executor && (
+                            <span className="executor-info">
+                              Исполнитель: {subsystem.executor.firstName} {subsystem.executor.lastName}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </RfcModal>
       )}

@@ -6,7 +6,8 @@ import {
   getUrgencyClass,
   formatDate,
   canPerformAction,
-  getAvailableActions
+  getAvailableActions,
+  RFC_ACTION
 } from '../utils/rfcUtils';
 import './RfcTable.css';
 
@@ -103,20 +104,13 @@ const RfcTable = ({
                     <button
                       className="btn-edit"
                       onClick={() => onEditRfc(rfc.id)}
-                      disabled={!canPerformAction(rfc, 'UPDATE', currentUser)}
-                      title={!canPerformAction(rfc, 'UPDATE', currentUser) ? 'Редактирование недоступно' : ''}
+                      disabled={!canPerformAction(currentUser, rfc, RFC_ACTION.UPDATE)}
+                      title={!canPerformAction(currentUser, rfc, RFC_ACTION.UPDATE) ? 'Редактирование недоступно' : ''}
                     >
                       ✏️ Редактировать
                     </button>
 
-                    <button
-                      className="btn-status-action"
-                      onClick={() => onStatusAction(rfc)}
-                      disabled={!getAvailableActions(rfc, currentUser).length}
-                      title={!getAvailableActions(rfc, currentUser).length ? 'Изменение статуса недоступно' : ''}
-                    >
-                      🔄 Статус
-                    </button>
+
                   </div>
                 </td>
               </tr>
