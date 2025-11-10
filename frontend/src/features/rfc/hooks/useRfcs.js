@@ -56,12 +56,16 @@ export const useRfcs = (initialFilters = {}) => {
   // Новые методы для approve/confirm
   const approveRfc = async (rfcId, comment = '') => {
     try {
-      await rfcApi.approveRfc(rfcId, { comment });
+      console.log('Approving RFC:', { rfcId, comment });
+      const response = await rfcApi.approveRfc(rfcId, { comment });
+      console.log('Approve RFC response:', response);
+
       // Принудительно обновляем данные RFC после согласования
       await loadRfcs(pagination.page, filters);
-      return true;
+      return response;
     } catch (err) {
       const errorMessage = err.response?.data?.errors?.[0]?.message || 'Ошибка согласования RFC';
+      console.error('Error approving RFC:', err);
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -69,43 +73,51 @@ export const useRfcs = (initialFilters = {}) => {
 
   const unapproveRfc = async (rfcId, comment = '') => {
     try {
-      await rfcApi.unapproveRfc(rfcId, { comment });
+      console.log('Unapproving RFC:', { rfcId, comment });
+      const response = await rfcApi.unapproveRfc(rfcId, { comment });
+      console.log('Unapprove RFC response:', response);
+
       // Принудительно обновляем данные RFC после отмены согласования
       await loadRfcs(pagination.page, filters);
-      return true;
+      return response;
     } catch (err) {
       const errorMessage = err.response?.data?.errors?.[0]?.message || 'Ошибка отмены согласования RFC';
+      console.error('Error unapproving RFC:', err);
       setError(errorMessage);
       throw new Error(errorMessage);
     }
   };
 
-  const confirmSubsystem = async (rfcId, affectedSubsystemId, status, comment = '') => {
+  const confirmSubsystem = async (rfcId, subsystemId, status, comment = '') => {
     try {
-      console.log('Confirming subsystem:', { rfcId, affectedSubsystemId, status, comment });
-      await rfcApi.updateSubsystemConfirmation(rfcId, affectedSubsystemId, { status, comment });
+      console.log('Confirming subsystem:', { rfcId, subsystemId, status, comment });
+      const response = await rfcApi.updateSubsystemConfirmation(rfcId, subsystemId, { status, comment });
+      console.log('Confirm subsystem response:', response);
+
       // Принудительно обновляем данные RFC после подтверждения подсистемы
       await loadRfcs(pagination.page, filters);
-      return true;
+      return response;
     } catch (err) {
       const errorMessage = err.response?.data?.errors?.[0]?.message || 'Ошибка подтверждения подсистемы';
-      setError(errorMessage);
       console.error('Error confirming subsystem:', err);
+      setError(errorMessage);
       throw new Error(errorMessage);
     }
   };
 
-  const updateExecutionStatus = async (rfcId, affectedSubsystemId, status, comment = '') => {
+  const updateExecutionStatus = async (rfcId, subsystemId, status, comment = '') => {
     try {
-      console.log('Updating execution status:', { rfcId, affectedSubsystemId, status, comment });
-      await rfcApi.updateSubsystemExecution(rfcId, affectedSubsystemId, { status, comment });
+      console.log('Updating execution status:', { rfcId, subsystemId, status, comment });
+      const response = await rfcApi.updateSubsystemExecution(rfcId, subsystemId, { status, comment });
+      console.log('Update execution status response:', response);
+
       // Принудительно обновляем данные RFC после обновления статуса выполнения
       await loadRfcs(pagination.page, filters);
-      return true;
+      return response;
     } catch (err) {
       const errorMessage = err.response?.data?.errors?.[0]?.message || 'Ошибка обновления статуса выполнения';
-      setError(errorMessage);
       console.error('Error updating execution status:', err);
+      setError(errorMessage);
       throw new Error(errorMessage);
     }
   };
@@ -113,7 +125,10 @@ export const useRfcs = (initialFilters = {}) => {
   // Функция для принудительного обновления конкретного RFC
   const refreshRfc = async (rfcId) => {
     try {
+      console.log('Refreshing RFC:', rfcId);
       const updatedRfc = await rfcApi.getRfcById(rfcId);
+      console.log('Refreshed RFC data:', updatedRfc);
+
       // Обновляем RFC в списке
       setRfcs(prevRfcs =>
         prevRfcs.map(rfc => rfc.id === rfcId ? updatedRfc : rfc)

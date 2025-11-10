@@ -162,7 +162,9 @@ const RfcManagement = () => {
   // Функция для обновления выбранного RFC
   const updateSelectedRfc = async (rfcId) => {
     try {
+      console.log('Fetching updated RFC data for:', rfcId);
       const updatedRfc = await rfcApi.getRfcById(rfcId);
+      console.log('Fetched updated RFC:', updatedRfc);
       setSelectedRfc(updatedRfc);
       return updatedRfc;
     } catch (error) {
@@ -174,46 +176,68 @@ const RfcManagement = () => {
   // Новые обработчики для действий в RfcModal
   const handleApprove = async (rfcId, comment = '') => {
     try {
-      await approveRfc(rfcId, comment);
-      // Обновляем выбранный RFC
-      await updateSelectedRfc(rfcId);
+      console.log('Starting approve process for RFC:', rfcId);
+      const response = await approveRfc(rfcId, comment);
+      console.log('Approve API response:', response);
+
+      // Принудительно обновляем выбранный RFC
+      const updatedRfc = await updateSelectedRfc(rfcId);
+      console.log('Updated RFC after approval:', updatedRfc);
+
+      // Также обновляем список RFC
+      await refetch();
+
       showToast('success', 'Успех', 'RFC успешно согласован');
     } catch (error) {
+      console.error('Error in handleApprove:', error);
       showToast('error', 'Ошибка', error.message || 'Не удалось согласовать RFC');
     }
   };
 
   const handleUnapprove = async (rfcId, comment = '') => {
     try {
-      await unapproveRfc(rfcId, comment);
-      // Обновляем выбранный RFC
-      await updateSelectedRfc(rfcId);
+      console.log('Starting unapprove process for RFC:', rfcId);
+      const response = await unapproveRfc(rfcId, comment);
+      console.log('Unapprove API response:', response);
+
+      // Принудительно обновляем выбранный RFC
+      const updatedRfc = await updateSelectedRfc(rfcId);
+      console.log('Updated RFC after unapproval:', updatedRfc);
+
+      // Также обновляем список RFC
+      await refetch();
+
       showToast('success', 'Успех', 'Согласование RFC отменено');
     } catch (error) {
+      console.error('Error in handleUnapprove:', error);
       showToast('error', 'Ошибка', error.message || 'Не удалось отменить согласование RFC');
     }
   };
 
   const handleConfirm = async (rfcId, subsystemId, status, comment = '') => {
     try {
+      console.log('Confirming subsystem:', { rfcId, subsystemId, status, comment });
       await confirmSubsystem(rfcId, subsystemId, status, comment);
       // Обновляем выбранный RFC
       await updateSelectedRfc(rfcId);
       const action = status === 'CONFIRMED' ? 'подтверждена' : 'отклонена';
       showToast('success', 'Успех', `Подсистема ${action}`);
     } catch (error) {
+      console.error('Error in handleConfirm:', error);
       showToast('error', 'Ошибка', error.message || 'Не удалось выполнить действие с подсистемой');
     }
   };
 
   const handleUpdateExecution = async (rfcId, subsystemId, status, comment = '') => {
     try {
+      console.log('Updating execution:', { rfcId, subsystemId, status, comment });
       await updateExecutionStatus(rfcId, subsystemId, status, comment);
       // Обновляем выбранный RFC
       await updateSelectedRfc(rfcId);
       const action = status === 'IN_PROGRESS' ? 'начато' : 'завершено';
       showToast('success', 'Успех', `Выполнение подсистемы ${action}`);
     } catch (error) {
+      console.error('Error in handleUpdateExecution:', error);
       showToast('error', 'Ошибка', error.message || 'Не удалось обновить статус выполнения');
     }
   };

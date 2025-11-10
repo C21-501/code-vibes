@@ -34,12 +34,32 @@ export const rfcApi = {
     api.delete(`/rfc/${id}`).then(response => response.data),
 
   // POST /rfc/{id}/approve - Approve RFC
-  approveRfc: (id, approveData = {}) =>
-    api.post(`/rfc/${id}/approve`, approveData).then(response => response.data),
+    approveRfc: (id, approveData = {}) => {
+      console.log('API: Approving RFC', { id, approveData });
+      return api.post(`/rfc/${id}/approve`, approveData)
+        .then(response => {
+          console.log('API: Approve RFC success', response.data);
+          return response.data;
+        })
+        .catch(error => {
+          console.error('API: Approve RFC error', error);
+          throw error;
+        });
+    },
 
-  // POST /rfc/{id}/unapprove - Unapprove RFC
-  unapproveRfc: (id, unapproveData = {}) =>
-    api.post(`/rfc/${id}/unapprove`, unapproveData).then(response => response.data),
+    // POST /rfc/{id}/unapprove - Unapprove RFC
+    unapproveRfc: (id, unapproveData = {}) => {
+      console.log('API: Unapproving RFC', { id, unapproveData });
+      return api.post(`/rfc/${id}/unapprove`, unapproveData)
+        .then(response => {
+          console.log('API: Unapprove RFC success', response.data);
+          return response.data;
+        })
+        .catch(error => {
+          console.error('API: Unapprove RFC error', error);
+          throw error;
+        });
+    },
 
   // GET /rfc/{id}/approvals - Get RFC approvals
   getRfcApprovals: (id) =>
