@@ -1,0 +1,199 @@
+components:
+  schemas:
+    RfcHistoryResponse:
+      allOf:
+        - $ref: '../../common/Common.yaml#/components/schemas/PageResponse'
+        - type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/RfcHistoryEvent'
+          required:
+            - content
+
+    RfcHistoryEvent:
+      type: object
+      description: Базовое событие истории
+      discriminator:
+        propertyName: eventType
+      properties:
+        eventType:
+          type: string
+          description: Тип события
+        timestamp:
+          type: string
+          format: date-time
+          description: Время события
+        changedBy:
+          $ref: '#/components/schemas/HistoryUser'
+      required:
+        - eventType
+        - timestamp
+        - changedBy
+
+    RfcFieldsChangedEvent:
+      allOf:
+        - $ref: '#/components/schemas/RfcHistoryEvent'
+        - type: object
+          properties:
+            eventType:
+              type: string
+              enum: [RFC_FIELDS_CHANGED]
+            operation:
+              type: string
+              enum: [CREATE, UPDATE]
+              description: Тип операции
+            changes:
+              type: object
+              description: Измененные поля (ключ - имя поля, значение - старое и новое значение)
+              additionalProperties:
+                $ref: '#/components/schemas/FieldChange'
+          required:
+            - operation
+            - changes
+
+    RfcAttachmentsChangedEvent:
+      allOf:
+        - $ref: '#/components/schemas/RfcHistoryEvent'
+        - type: object
+          properties:
+            eventType:
+              type: string
+              enum: [RFC_ATTACHMENTS_CHANGED]
+            attachmentsAdded:
+              type: array
+              description: Добавленные файлы
+              items:
+                $ref: '#/components/schemas/AttachmentInfo'
+            attachmentsRemoved:
+              type: array
+              description: Удаленные файлы
+              items:
+                $ref: '#/components/schemas/AttachmentInfo'
+          required:
+            - attachmentsAdded
+            - attachmentsRemoved
+
+    RfcSubsystemsChangedEvent:
+      allOf:
+        - $ref: '#/components/schemas/RfcHistoryEvent'
+        - type: object
+          properties:
+            eventType:
+              type: string
+              enum: [RFC_SUBSYSTEMS_CHANGED]
+            subsystemsAdded:
+              type: array
+              description: Добавленные подсистемы
+              items:
+                $ref: '#/components/schemas/SubsystemInfo'
+            subsystemsRemoved:
+              type: array
+              description: Удаленные подсистемы
+              items:
+                $ref: '#/components/schemas/SubsystemInfo'
+          required:
+            - subsystemsAdded
+            - subsystemsRemoved
+
+    SubsystemStatusChangedEvent:
+      allOf:
+        - $ref: '#/components/schemas/RfcHistoryEvent'
+        - type: object
+          properties:
+            eventType:
+              type: string
+              enum: [SUBSYSTEM_STATUS_CHANGED]
+            subsystem:
+              $ref: '#/components/schemas/SubsystemInfo'
+            statusType:
+              type: string
+              enum: [CONFIRMATION, EXECUTION]
+              description: Тип статуса который изменился
+            oldStatus:
+              type: string
+              nullable: true
+              description: Старое значение статуса (null при создании)
+            newStatus:
+              type: string
+              description: Новое значение статуса
+          required:
+            - subsystem
+            - statusType
+            - newStatus
+
+    FieldChange:
+      type: object
+      description: Изменение поля
+      properties:
+        oldValue:
+          nullable: true
+          description: Старое значение
+        newValue:
+          description: Новое значение
+      required:
+        - newValue
+
+    AttachmentInfo:
+      type: object
+      description: Краткая информация о файле
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID файла
+        originalFilename:
+          type: string
+          description: Имя файла
+      required:
+        - id
+        - originalFilename
+
+    SubsystemInfo:
+      type: object
+      description: Информация о подсистеме в истории
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID связи RFC-подсистема
+        subsystemId:
+          type: integer
+          format: int64
+          description: ID подсистемы
+        subsystemName:
+          type: string
+          description: Название подсистемы
+        systemName:
+          type: string
+          description: Название системы
+        executorId:
+          type: integer
+          format: int64
+          description: ID исполнителя
+        executorName:
+          type: string
+          description: Имя исполнителя
+      required:
+        - id
+        - subsystemId
+        - subsystemName
+        - systemName
+        - executorId
+        - executorName
+
+    HistoryUser:
+      type: object
+      description: Пользователь, совершивший изменение
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID пользователя
+        name:
+          type: string
+          description: Имя пользователя
+      required:
+        - id
+        - name
