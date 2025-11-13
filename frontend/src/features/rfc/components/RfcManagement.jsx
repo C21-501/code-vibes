@@ -15,6 +15,7 @@ import RfcTable from './RfcTable';
 import RfcFilters from './RfcFilters';
 import RfcModal from './RfcModal';
 import CreateRfcModal from './CreateRfcModal';
+import EditRfcModal from './EditRfcModal';
 import StatusActionModal from './StatusActionModal';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import Toast from '../../../shared/components/Toast';
@@ -23,7 +24,9 @@ import './RfcManagement.css';
 const RfcManagement = () => {
   const { user } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedRfc, setSelectedRfc] = useState(null);
+  const [selectedRfcForEdit, setSelectedRfcForEdit] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedRfcForStatus, setSelectedRfcForStatus] = useState(null);
@@ -44,7 +47,8 @@ const RfcManagement = () => {
     confirmSubsystem,
     updateExecutionStatus,
     refreshRfc,
-    deleteRfc // Добавляем метод удаления из хука
+    deleteRfc,
+    updateRfc
   } = useRfcs({
     status: '',
     urgency: '',
@@ -130,13 +134,23 @@ const RfcManagement = () => {
   const handleEditRfc = async (rfcId) => {
     try {
       const rfc = await rfcApi.getRfcById(rfcId);
-      // Здесь логика для открытия модалки редактирования
-      // setSelectedRfc(rfc);
-      // setShowEditModal(true);
-      showToast('info', 'Информация', 'Функция редактирования в разработке');
+      setSelectedRfcForEdit(rfc);
+      setShowEditModal(true);
     } catch (error) {
       const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось загрузить данные RFC';
       showToast('error', 'Ошибка', errorMessage);
+    }
+  };
+
+  const handleUpdateRfc = async (rfcId, rfcData) => {
+    try {
+      await updateRfc(rfcId, rfcData);
+      setShowEditModal(false);
+      setSelectedRfcForEdit(null);
+      showToast('success', 'Успех', 'RFC успешно обновлен');
+      refetch(); // Перезагружаем список
+    } catch (error) {
+      showToast('error', 'Ошибка', error.message || 'Не удалось обновить RFC');
     }
   };
 
@@ -146,9 +160,8 @@ const RfcManagement = () => {
     }
 
     try {
-      await deleteRfc(rfcId); // Используем метод из хука
+      await deleteRfc(rfcId);
       showToast('success', 'Успех', 'RFC успешно удален');
-      // Не нужно вызывать refetch(), так как хук уже обновил состояние
     } catch (error) {
       showToast('error', 'Ошибка', error.message || 'Не удалось удалить RFC');
     }
@@ -368,6 +381,18 @@ const RfcManagement = () => {
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateRfc}
+        />
+      )}
+
+      {showEditModal && selectedRfcForEdit && (
+        <EditRfcModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedRfcForEdit(null);
+          }}
+          onSubmit={handleUpdateRfc}
+          rfc={selectedRfcForEdit}
         />
       )}
 

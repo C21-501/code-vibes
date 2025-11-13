@@ -6,7 +6,6 @@ import {
   getUrgencyClass,
   formatDate,
   canPerformAction,
-  getAvailableActions,
   RFC_ACTION
 } from '../utils/rfcUtils';
 import './RfcTable.css';
@@ -101,14 +100,15 @@ const RfcTable = ({
                       👁️ Просмотр
                     </button>
 
-                    <button
-                      className="btn-edit"
-                      onClick={() => onEditRfc(rfc.id)}
-                      disabled={!canPerformAction(currentUser, rfc, RFC_ACTION.UPDATE)}
-                      title={!canPerformAction(currentUser, rfc, RFC_ACTION.UPDATE) ? 'Редактирование недоступно' : ''}
-                    >
-                      ✏️ Редактировать
-                    </button>
+                    {/* Кнопка редактирования отображается только если есть права */}
+                    {canPerformAction(currentUser, rfc, RFC_ACTION.UPDATE) && (
+                      <button
+                        className="btn-edit"
+                        onClick={() => onEditRfc(rfc.id)}
+                      >
+                        ✏️ Редактировать
+                      </button>
+                    )}
 
                     {/* Кнопка удаления отображается только если есть права */}
                     {rfc.actions?.includes('DELETE') && (

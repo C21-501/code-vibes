@@ -283,6 +283,29 @@ export const canDeleteRfc = (user, rfc) => {
 };
 
 /**
+ * Проверяет, может ли пользователь редактировать RFC
+ */
+export const canUpdateRfc = (user, rfc) => {
+  if (!user || !rfc) return false;
+
+  console.log('canUpdateRfc check:', {
+    userId: user.id,
+    requesterId: rfc.requesterId,
+    rfcStatus: rfc.status,
+    hasUpdateAction: rfc.actions?.includes('UPDATE')
+  });
+
+  // Проверяем, что бекенд разрешает действие UPDATE
+  const hasUpdateAction = rfc.actions?.includes('UPDATE');
+
+  // Дополнительно проверяем статус RFC - запрещаем редактирование для IMPLEMENTED
+  const cannotEditStatuses = [RFC_STATUS.IMPLEMENTED];
+  const isEditableStatus = !cannotEditStatuses.includes(rfc.status);
+
+  return hasUpdateAction && isEditableStatus;
+};
+
+/**
  * Получает подсистемы, которые пользователь может подтвердить
  */
 export const getConfirmableSubsystems = (user, rfc) => {
@@ -426,6 +449,8 @@ export const canPerformAction = (user, rfc, action) => {
   if (!user || !rfc) return false;
 
   switch (action) {
+    case RFC_ACTION.UPDATE:
+      return canUpdateRfc(user, rfc);
     case RFC_ACTION.APPROVE:
       return canApproveRfc(user, rfc);
     case RFC_ACTION.UNAPPROVE:
@@ -448,6 +473,10 @@ export const getAvailableActions = (user, rfc) => {
   if (!user || !rfc) return [];
 
   const actions = [];
+
+  if (canUpdateRfc(user, rfc)) {
+    actions.push(RFC_ACTION.UPDATE);
+  }
 
   if (canApproveRfc(user, rfc)) {
     actions.push(RFC_ACTION.APPROVE);

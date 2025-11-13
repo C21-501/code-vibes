@@ -148,6 +148,28 @@ export const useRfcs = (initialFilters = {}) => {
     }
   };
 
+  // Функция для обновления RFC
+  const updateRfc = async (id, rfcData) => {
+    try {
+      setLoading(true);
+      const response = await rfcApi.updateRfc(id, rfcData);
+
+      // Обновляем RFC в локальном состоянии
+      setRfcs(prevRfcs =>
+        prevRfcs.map(rfc => rfc.id === id ? response : rfc)
+      );
+
+      return response;
+    } catch (err) {
+      const errorMessage = err.response?.data?.errors?.[0]?.message || 'Не удалось обновить RFC';
+      setError(errorMessage);
+      console.error('Error updating RFC:', err);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Функция для принудительного обновления конкретного RFC
   const refreshRfc = async (rfcId) => {
     try {
@@ -186,6 +208,7 @@ export const useRfcs = (initialFilters = {}) => {
     confirmSubsystem,
     updateExecutionStatus,
     refreshRfc,
-    deleteRfc // Добавляем метод удаления
+    deleteRfc,
+    updateRfc // Добавляем метод обновления
   };
 };
