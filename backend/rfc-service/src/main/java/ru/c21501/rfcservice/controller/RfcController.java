@@ -2,11 +2,14 @@ package ru.c21501.rfcservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.RestController;
 import ru.c21501.rfcservice.openapi.api.RfcApi;
 import ru.c21501.rfcservice.openapi.model.*;
 import ru.c21501.rfcservice.service.RfcApiService;
 import ru.c21501.rfcservice.service.RfcApprovalApiService;
+import ru.c21501.rfcservice.service.RfcHistoryService;
 import ru.c21501.rfcservice.service.SubsystemStatusApiService;
 
 /**
@@ -20,6 +23,7 @@ public class RfcController implements RfcApi {
     private final RfcApiService rfcApiService;
     private final SubsystemStatusApiService subsystemStatusApiService;
     private final RfcApprovalApiService rfcApprovalApiService;
+    private final RfcHistoryService rfcHistoryService;
 
     @Override
     public RfcResponse createRfc(RfcRequest rfcRequest) {
@@ -90,6 +94,13 @@ public class RfcController implements RfcApi {
     public RfcApprovalsResponse getRfcApprovals(Long id) {
         log.info("GET /api/rfc/{}/approvals - Getting RFC approvals", id);
         return rfcApprovalApiService.getRfcApprovals(id);
+    }
+
+    @Override
+    public RfcHistoryResponse getRfcHistory(Long id, Integer page, Integer size) {
+        log.info("GET /api/rfc/{}/history - Getting RFC history: page={}, size={}", id, page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        return rfcHistoryService.getRfcHistory(id, pageable);
     }
 }
 
