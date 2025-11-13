@@ -44,8 +44,9 @@ export const USER_ROLE = {
 // Константы действий
 export const RFC_ACTION = {
   UPDATE: 'UPDATE',
-  DELETE: 'DELETE', // Добавляем DELETE
+  DELETE: 'DELETE',
   APPROVE: 'APPROVE',
+  UNAPPROVE: 'UNAPPROVE', // Добавляем UNAPPROVE
   CONFIRM: 'CONFIRM',
   UPDATE_EXECUTION: 'UPDATE_EXECUTION'
 };
@@ -163,6 +164,37 @@ export const canApproveRfc = (user, rfc) => {
 
   const result = hasApprovalRole && canBeApproved && isNotRequester;
   console.log('canApproveRfc result:', result);
+  return result;
+};
+
+/**
+ * Проверяет, может ли пользователь отменить согласование RFC
+ */
+export const canUnapproveRfc = (user, rfc) => {
+  if (!user || !rfc) return false;
+
+  console.log('canUnapproveRfc check:', {
+    userRole: user.role,
+    rfcStatus: rfc.status,
+    requesterId: rfc.requesterId,
+    userId: user.id
+  });
+
+  // Проверка по ролям (те же роли, что и для согласования)
+  const hasApprovalRole = [USER_ROLE.ADMIN, USER_ROLE.CAB_MANAGER, USER_ROLE.RFC_APPROVER].includes(user.role);
+
+  // Проверяем, что RFC в статусе, когда можно отменить согласование
+  const canBeUnapproved = [RFC_STATUS.APPROVED, RFC_STATUS.UNDER_REVIEW].includes(rfc.status);
+
+  // Проверяем, что пользователь не является создателем RFC
+  const isNotRequester = user.id !== rfc.requesterId;
+
+  // Дополнительно проверяем, что пользователь ранее согласовывал этот RFC
+  // (это можно реализовать, если бекенд предоставляет информацию о согласованиях)
+  const hasApproved = true; // Временно всегда true, можно доработать когда будут данные о согласованиях
+
+  const result = hasApprovalRole && canBeUnapproved && isNotRequester && hasApproved;
+  console.log('canUnapproveRfc result:', result);
   return result;
 };
 
@@ -396,11 +428,13 @@ export const canPerformAction = (user, rfc, action) => {
   switch (action) {
     case RFC_ACTION.APPROVE:
       return canApproveRfc(user, rfc);
+    case RFC_ACTION.UNAPPROVE:
+      return canUnapproveRfc(user, rfc);
     case RFC_ACTION.CONFIRM:
       return canConfirmSubsystems(user, rfc);
     case RFC_ACTION.UPDATE_EXECUTION:
       return canUpdateExecution(user, rfc);
-    case RFC_ACTION.DELETE: // Добавляем проверку для DELETE
+    case RFC_ACTION.DELETE:
       return canDeleteRfc(user, rfc);
     default:
       return false;
@@ -417,6 +451,10 @@ export const getAvailableActions = (user, rfc) => {
 
   if (canApproveRfc(user, rfc)) {
     actions.push(RFC_ACTION.APPROVE);
+  }
+
+  if (canUnapproveRfc(user, rfc)) {
+    actions.push(RFC_ACTION.UNAPPROVE);
   }
 
   if (canConfirmSubsystems(user, rfc)) {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
 import {
   canApproveRfc,
+  canUnapproveRfc,
   canConfirmSubsystems,
   canUpdateExecution,
   getConfirmableSubsystems,
@@ -36,12 +37,14 @@ const RfcModal = ({
   console.log('RFC actions:', rfc?.actions);
 
   const canApprove = canApproveRfc(user, rfc);
+  const canUnapprove = canUnapproveRfc(user, rfc);
   const canConfirm = canConfirmSubsystems(user, rfc);
   const canUpdateExec = canUpdateExecution(user, rfc);
   const confirmableSubsystems = getConfirmableSubsystems(user, rfc);
   const executableSubsystems = getExecutableSubsystems(user, rfc);
 
   console.log('canApprove:', canApprove);
+  console.log('canUnapprove:', canUnapprove);
   console.log('canConfirm:', canConfirm);
   console.log('canUpdateExec:', canUpdateExec);
   console.log('confirmableSubsystems:', confirmableSubsystems);
@@ -91,13 +94,14 @@ const RfcModal = ({
           {children}
 
           {/* Блок действий */}
-          {(canApprove || canConfirm || canUpdateExec) && (
+          {(canApprove || canUnapprove || canConfirm || canUpdateExec) && (
             <div className="rfc-actions-panel">
               <h3>Доступные действия</h3>
 
               {/* Отладочная информация в UI */}
               <div className="debug-info" style={{fontSize: '12px', color: '#666', marginBottom: '15px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '4px'}}>
                 <strong>Отладка:</strong> canApprove: {canApprove ? 'true' : 'false'},
+                canUnapprove: {canUnapprove ? 'true' : 'false'},
                 canConfirm: {canConfirm ? 'true' : 'false'},
                 canUpdateExec: {canUpdateExec ? 'true' : 'false'},
                 confirmableSubsystems: {confirmableSubsystems.length},
@@ -120,25 +124,29 @@ const RfcModal = ({
                 </div>
               </div>
 
-              {/* Кнопки согласования */}
-              {canApprove && (
+              {/* Кнопки согласования - разделяем логику для approve и unapprove */}
+              {(canApprove || canUnapprove) && (
                 <div className="action-group">
                   <h4>Согласование RFC</h4>
                   <div className="action-buttons-group">
-                    <button
-                      className="btn btn-primary"
-                      onClick={handleApprove}
-                      disabled={!comment.trim()}
-                    >
-                      Согласовать RFC
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={handleUnapprove}
-                      disabled={!comment.trim()}
-                    >
-                      Отменить согласование
-                    </button>
+                    {canApprove && (
+                      <button
+                        className="btn btn-primary"
+                        onClick={handleApprove}
+                        disabled={!comment.trim()}
+                      >
+                        Согласовать RFC
+                      </button>
+                    )}
+                    {canUnapprove && (
+                      <button
+                        className="btn btn-warning"
+                        onClick={handleUnapprove}
+                        disabled={!comment.trim()}
+                      >
+                        Отменить согласование
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
