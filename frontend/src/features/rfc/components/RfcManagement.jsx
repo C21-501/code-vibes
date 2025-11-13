@@ -43,7 +43,8 @@ const RfcManagement = () => {
     unapproveRfc,
     confirmSubsystem,
     updateExecutionStatus,
-    refreshRfc
+    refreshRfc,
+    deleteRfc // Добавляем метод удаления из хука
   } = useRfcs({
     status: '',
     urgency: '',
@@ -145,12 +146,11 @@ const RfcManagement = () => {
     }
 
     try {
-      await rfcApi.deleteRfc(rfcId);
+      await deleteRfc(rfcId); // Используем метод из хука
       showToast('success', 'Успех', 'RFC успешно удален');
-      refetch(); // Перезагружаем список
+      // Не нужно вызывать refetch(), так как хук уже обновил состояние
     } catch (error) {
-      const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось удалить RFC';
-      showToast('error', 'Ошибка', errorMessage);
+      showToast('error', 'Ошибка', error.message || 'Не удалось удалить RFC');
     }
   };
 

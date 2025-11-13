@@ -44,7 +44,7 @@ export const USER_ROLE = {
 // Константы действий
 export const RFC_ACTION = {
   UPDATE: 'UPDATE',
-  DELETE: 'DELETE',
+  DELETE: 'DELETE', // Добавляем DELETE
   APPROVE: 'APPROVE',
   CONFIRM: 'CONFIRM',
   UPDATE_EXECUTION: 'UPDATE_EXECUTION'
@@ -232,6 +232,25 @@ export const canUpdateExecution = (user, rfc) => {
 };
 
 /**
+ * Проверяет, может ли пользователь удалить RFC
+ */
+export const canDeleteRfc = (user, rfc) => {
+  if (!user || !rfc) return false;
+
+  // Проверяем, что бекенд разрешает действие DELETE
+  const hasDeleteAction = rfc.actions?.includes('DELETE');
+
+  console.log('canDeleteRfc check:', {
+    userId: user.id,
+    requesterId: rfc.requesterId,
+    hasDeleteAction,
+    actions: rfc.actions
+  });
+
+  return hasDeleteAction;
+};
+
+/**
  * Получает подсистемы, которые пользователь может подтвердить
  */
 export const getConfirmableSubsystems = (user, rfc) => {
@@ -381,6 +400,8 @@ export const canPerformAction = (user, rfc, action) => {
       return canConfirmSubsystems(user, rfc);
     case RFC_ACTION.UPDATE_EXECUTION:
       return canUpdateExecution(user, rfc);
+    case RFC_ACTION.DELETE: // Добавляем проверку для DELETE
+      return canDeleteRfc(user, rfc);
     default:
       return false;
   }
@@ -404,6 +425,11 @@ export const getAvailableActions = (user, rfc) => {
 
   if (canUpdateExecution(user, rfc)) {
     actions.push(RFC_ACTION.UPDATE_EXECUTION);
+  }
+
+  // Для удаления используем проверку через canDeleteRfc, которая основана на actions от бекенда
+  if (canDeleteRfc(user, rfc)) {
+    actions.push(RFC_ACTION.DELETE);
   }
 
   return actions;

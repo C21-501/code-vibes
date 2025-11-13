@@ -110,7 +110,16 @@ const RfcTable = ({
                       ✏️ Редактировать
                     </button>
 
-
+                    {/* Кнопка удаления отображается только если есть права */}
+                    {rfc.actions?.includes('DELETE') && (
+                      <button
+                        className="btn-delete"
+                        onClick={() => onDeleteRfc(rfc.id)}
+                        title="Удалить RFC"
+                      >
+                        🗑️ Удалить
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

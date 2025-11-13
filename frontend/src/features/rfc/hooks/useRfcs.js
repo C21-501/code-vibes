@@ -122,6 +122,32 @@ export const useRfcs = (initialFilters = {}) => {
     }
   };
 
+  // Функция для удаления RFC
+  const deleteRfc = async (id) => {
+    try {
+      setLoading(true);
+      await rfcApi.deleteRfc(id);
+
+      // Удаляем RFC из локального состояния
+      setRfcs(prevRfcs => prevRfcs.filter(rfc => rfc.id !== id));
+
+      // Обновляем пагинацию
+      setPagination(prev => ({
+        ...prev,
+        totalElements: prev.totalElements - 1
+      }));
+
+      return true;
+    } catch (err) {
+      const errorMessage = err.response?.data?.errors?.[0]?.message || 'Не удалось удалить RFC';
+      setError(errorMessage);
+      console.error('Error deleting RFC:', err);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Функция для принудительного обновления конкретного RFC
   const refreshRfc = async (rfcId) => {
     try {
@@ -159,6 +185,7 @@ export const useRfcs = (initialFilters = {}) => {
     unapproveRfc,
     confirmSubsystem,
     updateExecutionStatus,
-    refreshRfc
+    refreshRfc,
+    deleteRfc // Добавляем метод удаления
   };
 };
