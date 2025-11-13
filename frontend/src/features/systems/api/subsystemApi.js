@@ -29,9 +29,29 @@ export async function getSystemSubsystems(systemId) {
 }
 
 /**
+ * Get all subsystems for a specific system without pagination
+ * GET /system/{id}/subsystem
+ *
+ * @param {number} systemId - System ID
+ * @returns {Promise<Array>} Array of SubsystemResponse objects
+ */
+export async function getAllSystemSubsystems(systemId) {
+  const response = await apiClient.request(`${API_BASE_URL}/system/${systemId}/subsystem`, {
+    method: 'GET'
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.errors?.[0]?.message || 'Failed to fetch subsystems');
+  }
+
+  return response.json(); // Returns array directly according to OpenAPI spec
+}
+
+/**
  * Get subsystem by ID
  * GET /system/{id}/subsystem/{subsystemId}
- * 
+ *
  * @param {number} systemId - System ID
  * @param {number} subsystemId - Subsystem ID
  * @returns {Promise<Object>} SubsystemResponse
@@ -40,19 +60,19 @@ export async function getSubsystemById(systemId, subsystemId) {
   const response = await apiClient.request(`${API_BASE_URL}/system/${systemId}/subsystem/${subsystemId}`, {
     method: 'GET'
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.errors?.[0]?.message || 'Failed to fetch subsystem');
   }
-  
+
   return response.json();
 }
 
 /**
  * Create new subsystem
  * POST /system/{id}/subsystem
- * 
+ *
  * @param {number} systemId - System ID
  * @param {Object} subsystemData - SubsystemRequest object
  * @param {string} subsystemData.name - Subsystem name (minLength: 1, maxLength: 255)
@@ -66,19 +86,19 @@ export async function createSubsystem(systemId, subsystemData) {
     method: 'POST',
     body: JSON.stringify(subsystemData)
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.errors?.[0]?.message || 'Failed to create subsystem');
   }
-  
+
   return response.json();
 }
 
 /**
  * Update existing subsystem
  * PUT /system/{id}/subsystem/{subsystemId}
- * 
+ *
  * @param {number} systemId - System ID
  * @param {number} subsystemId - Subsystem ID
  * @param {Object} subsystemData - SubsystemRequest object
@@ -93,19 +113,19 @@ export async function updateSubsystem(systemId, subsystemId, subsystemData) {
     method: 'PUT',
     body: JSON.stringify(subsystemData)
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.errors?.[0]?.message || 'Failed to update subsystem');
   }
-  
+
   return response.json();
 }
 
 /**
  * Delete subsystem by ID
  * DELETE /system/{id}/subsystem/{subsystemId}
- * 
+ *
  * @param {number} systemId - System ID
  * @param {number} subsystemId - Subsystem ID
  * @returns {Promise<void>} No content (204 No Content)
@@ -114,13 +134,12 @@ export async function deleteSubsystem(systemId, subsystemId) {
   const response = await apiClient.request(`${API_BASE_URL}/system/${systemId}/subsystem/${subsystemId}`, {
     method: 'DELETE'
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.errors?.[0]?.message || 'Failed to delete subsystem');
   }
-  
+
   // 204 No Content - no response body
   return;
 }
-

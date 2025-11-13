@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './CreateRfcModal.css';
+import { getAllSystems } from '../../systems/api/systemApi';
+import { getAllSystemSubsystems } from '../../systems/api/subsystemApi';
 
 const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -7,16 +9,15 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
     description: '',
     implementationDate: '',
     urgency: 'PLANNED',
-    affectedSystems: [{
-      systemId: '',
-      affectedSubsystems: [{
-        subsystemId: '',
-        executorId: ''
-      }]
-    }]
+    affectedSystems: []
   });
 
   const [errors, setErrors] = useState({});
+  const [systems, setSystems] = useState([]);
+  const [subsystems, setSubsystems] = useState({}); // { systemId: [subsystems] }
+  const [loading, setLoading] = useState(false);
+  const [systemsLoading, setSystemsLoading] = useState(false);
+  const [systemsError, setSystemsError] = useState(null);
 
   // Сброс формы при открытии/закрытии
   useEffect(() => {
@@ -26,17 +27,43 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
         description: '',
         implementationDate: '',
         urgency: 'PLANNED',
-        affectedSystems: [{
-          systemId: '',
-          affectedSubsystems: [{
-            subsystemId: '',
-            executorId: ''
-          }]
-        }]
+        affectedSystems: []
       });
       setErrors({});
+      setSystemsError(null);
+      loadSystems();
     }
   }, [isOpen]);
+
+  // Загрузка всех систем
+  const loadSystems = async () => {
+    setSystemsLoading(true);
+    setSystemsError(null);
+    try {
+      const systemsData = await getAllSystems();
+      setSystems(systemsData);
+    } catch (error) {
+      console.error('Failed to load systems:', error);
+      setSystemsError('Не удалось загрузить список систем. Пожалуйста, попробуйте позже.');
+    } finally {
+      setSystemsLoading(false);
+    }
+  };
+
+  // Загрузка подсистем для системы
+  const loadSubsystems = async (systemId) => {
+    if (subsystems[systemId]) return; // Уже загружены
+
+    try {
+      const subsystemsData = await getAllSystemSubsystems(systemId);
+      setSubsystems(prev => ({
+        ...prev,
+        [systemId]: subsystemsData
+      }));
+    } catch (error) {
+      console.error(`Failed to load subsystems for system ${systemId}:`, error);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -48,9 +75,29 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
     if (!formData.title.trim()) newErrors.title = 'Название обязательно';
     if (!formData.implementationDate) newErrors.implementationDate = 'Дата реализации обязательна';
     if (!formData.urgency) newErrors.urgency = 'Срочность обязательна';
-    if (!formData.affectedSystems[0]?.systemId) newErrors.systemId = 'Система обязательна';
-    if (!formData.affectedSystems[0]?.affectedSubsystems[0]?.subsystemId) newErrors.subsystemId = 'Подсистема обязательна';
-    if (!formData.affectedSystems[0]?.affectedSubsystems[0]?.executorId) newErrors.executorId = 'Исполнитель обязателен';
+
+    // Проверка выбранных систем и подсистем
+    if (formData.affectedSystems.length === 0) {
+      newErrors.affectedSystems = 'Необходимо выбрать хотя бы одну систему';
+    } else {
+      formData.affectedSystems.forEach((system, index) => {
+        if (!system.systemId) {
+          newErrors[`system_${index}`] = 'Система обязательна';
+        }
+        if (!system.affectedSubsystems || system.affectedSubsystems.length === 0) {
+          newErrors[`subsystems_${index}`] = 'Необходимо выбрать хотя бы одну подсистему';
+        } else {
+          system.affectedSubsystems.forEach((subsystem, subIndex) => {
+            if (!subsystem.subsystemId) {
+              newErrors[`subsystem_${index}_${subIndex}`] = 'Подсистема обязательна';
+            }
+            if (!subsystem.executorId) {
+              newErrors[`executor_${index}_${subIndex}`] = 'Исполнитель обязателен';
+            }
+          });
+        }
+      });
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -61,7 +108,7 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
     const apiData = {
       title: formData.title,
       description: formData.description || null,
-      implementationDate: formData.implementationDate + ':00.000Z', // Формат для бэкенда
+      implementationDate: formData.implementationDate + ':00.000Z',
       urgency: formData.urgency,
       affectedSystems: formData.affectedSystems.map(system => ({
         systemId: parseInt(system.systemId),
@@ -70,7 +117,7 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
           executorId: parseInt(subsystem.executorId)
         }))
       })),
-      attachmentIds: [] // Пока пустой массив, можно добавить загрузку файлов позже
+      attachmentIds: []
     };
 
     onSubmit(apiData);
@@ -92,63 +139,112 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
     }
   };
 
-  const handleSystemChange = (e) => {
-    const value = e.target.value;
+  // Добавление новой системы
+  const addSystem = () => {
     setFormData(prev => ({
       ...prev,
-      affectedSystems: [{
-        ...prev.affectedSystems[0],
-        systemId: value
-      }]
+      affectedSystems: [
+        ...prev.affectedSystems,
+        {
+          systemId: '',
+          affectedSubsystems: []
+        }
+      ]
     }));
+  };
 
-    if (errors.systemId) {
-      setErrors(prev => ({
-        ...prev,
-        systemId: ''
-      }));
+  // Удаление системы
+  const removeSystem = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      affectedSystems: prev.affectedSystems.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Изменение выбранной системы
+  const handleSystemChange = (index, systemId) => {
+    setFormData(prev => {
+      const newAffectedSystems = [...prev.affectedSystems];
+      newAffectedSystems[index] = {
+        ...newAffectedSystems[index],
+        systemId,
+        affectedSubsystems: [] // Сбрасываем подсистемы при смене системы
+      };
+      return { ...prev, affectedSystems: newAffectedSystems };
+    });
+
+    // Загружаем подсистемы для выбранной системы
+    if (systemId) {
+      loadSubsystems(systemId);
+    }
+
+    // Очистка ошибок
+    if (errors[`system_${index}`]) {
+      setErrors(prev => ({ ...prev, [`system_${index}`]: '' }));
+    }
+    if (errors[`subsystems_${index}`]) {
+      setErrors(prev => ({ ...prev, [`subsystems_${index}`]: '' }));
     }
   };
 
-  const handleSubsystemChange = (e) => {
-    const value = e.target.value;
-    setFormData(prev => ({
-      ...prev,
-      affectedSystems: [{
-        ...prev.affectedSystems[0],
-        affectedSubsystems: [{
-          ...prev.affectedSystems[0].affectedSubsystems[0],
-          subsystemId: value
-        }]
-      }]
-    }));
+  // Добавление подсистемы к системе
+  const addSubsystem = (systemIndex) => {
+    setFormData(prev => {
+      const newAffectedSystems = [...prev.affectedSystems];
+      newAffectedSystems[systemIndex] = {
+        ...newAffectedSystems[systemIndex],
+        affectedSubsystems: [
+          ...(newAffectedSystems[systemIndex].affectedSubsystems || []),
+          { subsystemId: '', executorId: '' }
+        ]
+      };
+      return { ...prev, affectedSystems: newAffectedSystems };
+    });
+  };
 
-    if (errors.subsystemId) {
-      setErrors(prev => ({
-        ...prev,
-        subsystemId: ''
-      }));
+  // Удаление подсистемы
+  const removeSubsystem = (systemIndex, subsystemIndex) => {
+    setFormData(prev => {
+      const newAffectedSystems = [...prev.affectedSystems];
+      newAffectedSystems[systemIndex] = {
+        ...newAffectedSystems[systemIndex],
+        affectedSubsystems: newAffectedSystems[systemIndex].affectedSubsystems.filter((_, i) => i !== subsystemIndex)
+      };
+      return { ...prev, affectedSystems: newAffectedSystems };
+    });
+  };
+
+  // Изменение подсистемы
+  const handleSubsystemChange = (systemIndex, subsystemIndex, subsystemId) => {
+    setFormData(prev => {
+      const newAffectedSystems = [...prev.affectedSystems];
+      newAffectedSystems[systemIndex].affectedSubsystems[subsystemIndex] = {
+        ...newAffectedSystems[systemIndex].affectedSubsystems[subsystemIndex],
+        subsystemId
+      };
+      return { ...prev, affectedSystems: newAffectedSystems };
+    });
+
+    // Очистка ошибок
+    if (errors[`subsystem_${systemIndex}_${subsystemIndex}`]) {
+      setErrors(prev => ({ ...prev, [`subsystem_${systemIndex}_${subsystemIndex}`]: '' }));
     }
   };
 
-  const handleExecutorChange = (e) => {
-    const value = e.target.value;
-    setFormData(prev => ({
-      ...prev,
-      affectedSystems: [{
-        ...prev.affectedSystems[0],
-        affectedSubsystems: [{
-          ...prev.affectedSystems[0].affectedSubsystems[0],
-          executorId: value
-        }]
-      }]
-    }));
+  // Изменение исполнителя
+  const handleExecutorChange = (systemIndex, subsystemIndex, executorId) => {
+    setFormData(prev => {
+      const newAffectedSystems = [...prev.affectedSystems];
+      newAffectedSystems[systemIndex].affectedSubsystems[subsystemIndex] = {
+        ...newAffectedSystems[systemIndex].affectedSubsystems[subsystemIndex],
+        executorId
+      };
+      return { ...prev, affectedSystems: newAffectedSystems };
+    });
 
-    if (errors.executorId) {
-      setErrors(prev => ({
-        ...prev,
-        executorId: ''
-      }));
+    // Очистка ошибок
+    if (errors[`executor_${systemIndex}_${subsystemIndex}`]) {
+      setErrors(prev => ({ ...prev, [`executor_${systemIndex}_${subsystemIndex}`]: '' }));
     }
   };
 
@@ -220,54 +316,151 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div className="form-section">
-              <h3>Затронутые системы</h3>
-
-              <div className="form-group">
-                <label>ID системы *</label>
-                <input
-                  type="number"
-                  value={formData.affectedSystems[0]?.systemId || ''}
-                  onChange={handleSystemChange}
-                  placeholder="Введите ID системы"
-                  className={errors.systemId ? 'error' : ''}
-                  required
-                />
-                {errors.systemId && <div className="error-message">{errors.systemId}</div>}
-                <small>Пример: 1, 2, 3</small>
+              <div className="form-section-header">
+                <h3>Затронутые системы</h3>
+                <button type="button" onClick={addSystem} className="btn btn-secondary btn-sm">
+                  + Добавить систему
+                </button>
               </div>
 
-              <div className="form-group">
-                <label>ID подсистемы *</label>
-                <input
-                  type="number"
-                  value={formData.affectedSystems[0]?.affectedSubsystems[0]?.subsystemId || ''}
-                  onChange={handleSubsystemChange}
-                  placeholder="Введите ID подсистемы"
-                  className={errors.subsystemId ? 'error' : ''}
-                  required
-                />
-                {errors.subsystemId && <div className="error-message">{errors.subsystemId}</div>}
-                <small>Пример: 1, 2, 3</small>
-              </div>
+              {systemsError && (
+                <div className="error-message" style={{ marginBottom: '15px' }}>
+                  {systemsError}
+                  <button
+                    type="button"
+                    onClick={loadSystems}
+                    className="btn btn-secondary btn-sm"
+                    style={{ marginLeft: '10px' }}
+                  >
+                    Повторить
+                  </button>
+                </div>
+              )}
 
-              <div className="form-group">
-                <label>ID исполнителя *</label>
-                <input
-                  type="number"
-                  value={formData.affectedSystems[0]?.affectedSubsystems[0]?.executorId || ''}
-                  onChange={handleExecutorChange}
-                  placeholder="Введите ID исполнителя"
-                  className={errors.executorId ? 'error' : ''}
-                  required
-                />
-                {errors.executorId && <div className="error-message">{errors.executorId}</div>}
-                <small>Пример: 1, 2, 3</small>
-              </div>
+              {errors.affectedSystems && (
+                <div className="error-message" style={{ marginBottom: '15px' }}>
+                  {errors.affectedSystems}
+                </div>
+              )}
+
+              {formData.affectedSystems.map((system, systemIndex) => (
+                <div key={systemIndex} className="system-block">
+                  <div className="system-header">
+                    <h4>Система #{systemIndex + 1}</h4>
+                    {formData.affectedSystems.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeSystem(systemIndex)}
+                        className="btn btn-danger btn-sm"
+                      >
+                        Удалить
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>Система *</label>
+                    <select
+                      value={system.systemId || ''}
+                      onChange={(e) => handleSystemChange(systemIndex, e.target.value)}
+                      className={errors[`system_${systemIndex}`] ? 'error' : ''}
+                      required
+                      disabled={systemsLoading}
+                    >
+                      <option value="">{systemsLoading ? 'Загрузка систем...' : 'Выберите систему'}</option>
+                      {systems.map(sys => (
+                        <option key={sys.id} value={sys.id}>
+                          {sys.name} (ID: {sys.id})
+                        </option>
+                      ))}
+                    </select>
+                    {errors[`system_${systemIndex}`] && (
+                      <div className="error-message">{errors[`system_${systemIndex}`]}</div>
+                    )}
+                  </div>
+
+                  {system.systemId && (
+                    <div className="subsystems-block">
+                      <div className="subsystems-header">
+                        <label>Подсистемы *</label>
+                        <button
+                          type="button"
+                          onClick={() => addSubsystem(systemIndex)}
+                          className="btn btn-secondary btn-sm"
+                        >
+                          + Добавить подсистему
+                        </button>
+                      </div>
+
+                      {errors[`subsystems_${systemIndex}`] && (
+                        <div className="error-message">{errors[`subsystems_${systemIndex}`]}</div>
+                      )}
+
+                      {system.affectedSubsystems.map((subsystem, subsystemIndex) => (
+                        <div key={subsystemIndex} className="subsystem-row">
+                          <div className="form-row">
+                            <div className="form-group">
+                              <label>Подсистема *</label>
+                              <select
+                                value={subsystem.subsystemId || ''}
+                                onChange={(e) => handleSubsystemChange(systemIndex, subsystemIndex, e.target.value)}
+                                className={errors[`subsystem_${systemIndex}_${subsystemIndex}`] ? 'error' : ''}
+                                required
+                              >
+                                <option value="">Выберите подсистему</option>
+                                {subsystems[system.systemId]?.map(sub => (
+                                  <option key={sub.id} value={sub.id}>
+                                    {sub.name} (ID: {sub.id})
+                                  </option>
+                                ))}
+                              </select>
+                              {errors[`subsystem_${systemIndex}_${subsystemIndex}`] && (
+                                <div className="error-message">
+                                  {errors[`subsystem_${systemIndex}_${subsystemIndex}`]}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="form-group">
+                              <label>ID исполнителя *</label>
+                              <input
+                                type="number"
+                                value={subsystem.executorId || ''}
+                                onChange={(e) => handleExecutorChange(systemIndex, subsystemIndex, e.target.value)}
+                                placeholder="Введите ID исполнителя"
+                                className={errors[`executor_${systemIndex}_${subsystemIndex}`] ? 'error' : ''}
+                                required
+                              />
+                              {errors[`executor_${systemIndex}_${subsystemIndex}`] && (
+                                <div className="error-message">
+                                  {errors[`executor_${systemIndex}_${subsystemIndex}`]}
+                                </div>
+                              )}
+                              <small>Пример: 1, 2, 3</small>
+                            </div>
+
+                            <div className="form-group" style={{ flex: '0 0 auto', alignSelf: 'flex-end' }}>
+                              <button
+                                type="button"
+                                onClick={() => removeSubsystem(systemIndex, subsystemIndex)}
+                                className="btn btn-danger btn-sm"
+                                disabled={system.affectedSubsystems.length === 1}
+                              >
+                                Удалить
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
             <div className="modal-footer">
-              <button type="submit" className="btn btn-primary">
-                Создать RFC
+              <button type="submit" className="btn btn-primary" disabled={loading || systemsLoading}>
+                {loading ? 'Загрузка...' : 'Создать RFC'}
               </button>
               <button type="button" onClick={onClose} className="btn btn-secondary">
                 Отмена

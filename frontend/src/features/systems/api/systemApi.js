@@ -42,9 +42,50 @@ export async function getSystems({ page = 0, size = 20, name = '' } = {}) {
 }
 
 /**
+ * Get all systems without pagination (for dropdowns)
+ * Uses multiple requests if needed to get all systems
+ *
+ * @returns {Promise<Array>} Array of SystemResponse objects
+ */
+export async function getAllSystems() {
+  let allSystems = [];
+  let page = 0;
+  const size = 100; // Maximum allowed by backend
+  let hasMore = true;
+
+  try {
+    while (hasMore) {
+      const response = await apiClient.request(`${API_BASE_URL}/system?page=${page}&size=${size}`, {
+        method: 'GET'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.errors?.[0]?.message || 'Failed to fetch systems');
+      }
+
+      const data = await response.json();
+
+      if (data.content && data.content.length > 0) {
+        allSystems = [...allSystems, ...data.content];
+      }
+
+      // Check if there are more pages
+      hasMore = !data.last && data.content && data.content.length === size;
+      page++;
+    }
+
+    return allSystems;
+  } catch (error) {
+    console.error('Error fetching all systems:', error);
+    throw error;
+  }
+}
+
+/**
  * Get system by ID
  * GET /system/{id}
- * 
+ *
  * @param {number} id - System ID
  * @returns {Promise<Object>} SystemResponse
  */
@@ -52,19 +93,19 @@ export async function getSystemById(id) {
   const response = await apiClient.request(`${API_BASE_URL}/system/${id}`, {
     method: 'GET'
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.errors?.[0]?.message || 'Failed to fetch system');
   }
-  
+
   return response.json();
 }
 
 /**
  * Create new system
  * POST /system
- * 
+ *
  * @param {Object} systemData - SystemRequest object
  * @param {string} systemData.name - System name (minLength: 1, maxLength: 255)
  * @param {string} systemData.description - System description (maxLength: 1000, nullable)
@@ -75,19 +116,19 @@ export async function createSystem(systemData) {
     method: 'POST',
     body: JSON.stringify(systemData)
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.errors?.[0]?.message || 'Failed to create system');
   }
-  
+
   return response.json();
 }
 
 /**
  * Update existing system
  * PUT /system/{id}
- * 
+ *
  * @param {number} id - System ID
  * @param {Object} systemData - SystemRequest object
  * @param {string} systemData.name - System name (minLength: 1, maxLength: 255)
@@ -99,19 +140,19 @@ export async function updateSystem(id, systemData) {
     method: 'PUT',
     body: JSON.stringify(systemData)
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.errors?.[0]?.message || 'Failed to update system');
   }
-  
+
   return response.json();
 }
 
 /**
  * Delete system by ID
  * DELETE /system/{id}
- * 
+ *
  * @param {number} id - System ID
  * @returns {Promise<void>} No content (204 No Content)
  */
@@ -119,13 +160,12 @@ export async function deleteSystem(id) {
   const response = await apiClient.request(`${API_BASE_URL}/system/${id}`, {
     method: 'DELETE'
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.errors?.[0]?.message || 'Failed to delete system');
   }
-  
+
   // 204 No Content - no response body
   return;
 }
-
