@@ -6,7 +6,8 @@ import {
   getUrgencyClass,
   formatDate,
   canPerformAction,
-  RFC_ACTION
+  RFC_ACTION,
+  canEditAnyRfc
 } from '../utils/rfcUtils';
 import './RfcTable.css';
 
@@ -34,6 +35,19 @@ const RfcTable = ({
 
   const getAttachmentsCount = (rfc) => {
     return rfc.attachments?.length || 0;
+  };
+
+  // Проверяем, может ли пользователь редактировать конкретный RFC
+  const canUserEditRfc = (rfc) => {
+    if (!currentUser || !rfc) return false;
+
+    // CAB_MANAGER и ADMIN могут редактировать ЛЮБЫЕ RFC
+    if (canEditAnyRfc(currentUser)) {
+      return true;
+    }
+
+    // Для остальных пользователей проверяем стандартные права
+    return canPerformAction(currentUser, rfc, RFC_ACTION.UPDATE);
   };
 
   return (
@@ -101,7 +115,8 @@ const RfcTable = ({
                     </button>
 
                     {/* Кнопка редактирования отображается только если есть права */}
-                    {canPerformAction(currentUser, rfc, RFC_ACTION.UPDATE) && (
+                    {/* Используем улучшенную проверку для CAB_MANAGER */}
+                    {canUserEditRfc(rfc) && (
                       <button
                         className="btn-edit"
                         onClick={() => onEditRfc(rfc.id)}

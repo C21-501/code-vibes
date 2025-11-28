@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
 import { getSystems } from '../../systems/api/systemApi';
+import { getSystemSubsystems } from '../../systems/api/subsystemApi'; // Исправленный импорт
 import { getTeams } from '../../teams/api/teamApi';
 import { attachmentApi } from '../../../shared/api/attachmentApi';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
@@ -18,6 +19,7 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
     attachmentIds: []
   });
   const [systems, setSystems] = useState([]);
+  const [subsystems, setSubsystems] = useState({}); // { systemId: [subsystems] }
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -36,6 +38,15 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
         affectedSystems: rfc.affectedSystems || [],
         attachmentIds: rfc.attachments ? rfc.attachments.map(a => a.id) : []
       });
+
+      // Загружаем подсистемы для уже выбранных систем
+      if (rfc.affectedSystems) {
+        rfc.affectedSystems.forEach(system => {
+          if (system.systemId) {
+            loadSubsystemsForSystem(system.systemId);
+          }
+        });
+      }
     }
   }, [rfc, isOpen]);
 
@@ -64,6 +75,26 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
     }
   };
 
+  const loadSubsystemsForSystem = async (systemId) => {
+    if (!systemId) return;
+
+    try {
+      // Используем существующую функцию getSystemSubsystems
+      const subsystemsResponse = await getSystemSubsystems(systemId);
+      setSubsystems(prev => ({
+        ...prev,
+        [systemId]: subsystemsResponse || []
+      }));
+    } catch (error) {
+      console.error('Error loading subsystems for system:', systemId, error);
+      // Если API не реализовано, используем пустой массив
+      setSubsystems(prev => ({
+        ...prev,
+        [systemId]: []
+      }));
+    }
+  };
+
   const showToast = (type, title, message) => {
     setToast({ show: true, type, title, message });
     setTimeout(() => setToast({ ...toast, show: false }), 5000);
@@ -77,7 +108,12 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
     }));
   };
 
-  const handleSystemChange = (systemIndex, field, value) => {
+  const handleSystemChange = async (systemIndex, field, value) => {
+    if (field === 'systemId') {
+      // Загружаем подсистемы при выборе системы
+      await loadSubsystemsForSystem(value);
+    }
+
     setFormData(prev => ({
       ...prev,
       affectedSystems: prev.affectedSystems.map((system, index) =>
@@ -242,6 +278,20 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
     }
   };
 
+  // Получаем подсистемы для конкретной системы
+  const getSubsystemsForSystem = (systemId) => {
+    return subsystems[systemId] || [];
+  };
+
+  // Получаем доступных исполнителей для подсистемы
+  const getAvailableExecutors = (subsystemId) => {
+    if (!subsystemId) return teams.flatMap(team => team.members || []);
+
+    // Здесь можно добавить логику фильтрации исполнителей по команде подсистемы
+    // Пока возвращаем всех пользователей из команд
+    return teams.flatMap(team => team.members || []);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -398,8 +448,11 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
                           className={!subsystem.subsystemId ? 'error' : ''}
                         >
                           <option value="">Выберите подсистему</option>
-                          <option value="1">Подсистема 1</option>
-                          <option value="2">Подсистема 2</option>
+                          {getSubsystemsForSystem(system.systemId).map(subsys => (
+                            <option key={subsys.id} value={subsys.id}>
+                              {subsys.name}
+                            </option>
+                          ))}
                         </select>
                         {!subsystem.subsystemId && <div className="error-message">Выберите подсистему</div>}
                       </div>
@@ -411,7 +464,7 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
                           className={!subsystem.executorId ? 'error' : ''}
                         >
                           <option value="">Выберите исполнителя</option>
-                          {teams.flatMap(team => team.members || []).map(member => (
+                          {getAvailableExecutors(subsystem.subsystemId).map(member => (
                             <option key={member.id} value={member.id}>
                               {member.firstName} {member.lastName}
                             </option>

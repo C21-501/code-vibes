@@ -141,6 +141,15 @@ const getRussianNoun = (number, one, two, five) => {
 };
 
 /**
+ * Проверяет, может ли пользователь редактировать ЛЮБОЙ RFC (CAB_MANAGER и ADMIN)
+ */
+export const canEditAnyRfc = (user) => {
+  if (!user) return false;
+
+  return [USER_ROLE.ADMIN, USER_ROLE.CAB_MANAGER].includes(user.role);
+};
+
+/**
  * Проверяет, может ли пользователь согласовывать RFC
  */
 export const canApproveRfc = (user, rfc) => {
@@ -159,10 +168,8 @@ export const canApproveRfc = (user, rfc) => {
   // Проверяем, что RFC в статусе, когда можно согласовывать
   const canBeApproved = [RFC_STATUS.NEW, RFC_STATUS.UNDER_REVIEW].includes(rfc.status);
 
-  // Проверяем, что пользователь не является создателем RFC
-  const isNotRequester = user.id !== rfc.requesterId;
-
-  const result = hasApprovalRole && canBeApproved && isNotRequester;
+  // УБРАНА проверка isNotRequester - создатель МОЖЕТ согласовывать по логике бекенда
+  const result = hasApprovalRole && canBeApproved;
   console.log('canApproveRfc result:', result);
   return result;
 };
@@ -186,14 +193,12 @@ export const canUnapproveRfc = (user, rfc) => {
   // Проверяем, что RFC в статусе, когда можно отменить согласование
   const canBeUnapproved = [RFC_STATUS.APPROVED, RFC_STATUS.UNDER_REVIEW].includes(rfc.status);
 
-  // Проверяем, что пользователь не является создателем RFC
-  const isNotRequester = user.id !== rfc.requesterId;
-
+  // УБРАНА проверка isNotRequester - создатель МОЖЕТ отменять согласование по логике бекенда
   // Дополнительно проверяем, что пользователь ранее согласовывал этот RFC
   // (это можно реализовать, если бекенд предоставляет информацию о согласованиях)
   const hasApproved = true; // Временно всегда true, можно доработать когда будут данные о согласованиях
 
-  const result = hasApprovalRole && canBeUnapproved && isNotRequester && hasApproved;
+  const result = hasApprovalRole && canBeUnapproved && hasApproved;
   console.log('canUnapproveRfc result:', result);
   return result;
 };
@@ -292,8 +297,14 @@ export const canUpdateRfc = (user, rfc) => {
     userId: user.id,
     requesterId: rfc.requesterId,
     rfcStatus: rfc.status,
-    hasUpdateAction: rfc.actions?.includes('UPDATE')
+    hasUpdateAction: rfc.actions?.includes('UPDATE'),
+    canEditAnyRfc: canEditAnyRfc(user)
   });
+
+  // CAB_MANAGER и ADMIN могут редактировать ЛЮБЫЕ RFC
+  if (canEditAnyRfc(user)) {
+    return true;
+  }
 
   // Проверяем, что бекенд разрешает действие UPDATE
   const hasUpdateAction = rfc.actions?.includes('UPDATE');

@@ -185,3 +185,18 @@ export function shouldRefreshCurrentToken(thresholdMs = 5 * 60 * 1000) {
   return shouldRefreshToken(token, thresholdMs);
 }
 
+export function isAdminOrCabManager() {
+  const user = getCurrentUser();
+  if (!user) return false;
+
+  return user.roles && (user.roles.includes('ADMIN') || user.roles.includes('CAB_MANAGER'));
+}
+
+export function canApproveRfc(user) {
+  return user.roles && (
+    user.roles.includes('ADMIN') ||
+    user.roles.includes('CAB_MANAGER') ||
+    user.roles.includes('RFC_APPROVER')
+  );
+}
+

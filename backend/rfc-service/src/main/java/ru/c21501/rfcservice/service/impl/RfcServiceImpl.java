@@ -43,8 +43,9 @@ public class RfcServiceImpl implements RfcService {
     @Override
     @Transactional
     public RfcEntity createRfc(RfcRequest request, UserEntity requester) {
-        log.info("Creating RFC: title={}, requester={}", request.getTitle(), requester.getUsername());
 
+        log.info("Creating RFC: title={}, requester={}", request.getTitle(), requester.getUsername());
+        //throw new RuntimeException("Тестовая ошибка: сервер временно недоступен. Попробуйте позже.");
         // 1. Проверяем и обрабатываем attachments
         List<AttachmentEntity> attachments = new ArrayList<>();
         if (request.getAttachmentIds() != null && !request.getAttachmentIds().isEmpty()) {
