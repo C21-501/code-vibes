@@ -46,9 +46,11 @@ export const RFC_ACTION = {
   UPDATE: 'UPDATE',
   DELETE: 'DELETE',
   APPROVE: 'APPROVE',
-  UNAPPROVE: 'UNAPPROVE', // Добавляем UNAPPROVE
+  UNAPPROVE: 'UNAPPROVE',
   CONFIRM: 'CONFIRM',
-  UPDATE_EXECUTION: 'UPDATE_EXECUTION'
+  UPDATE_EXECUTION: 'UPDATE_EXECUTION',
+  REVIEW: 'REVIEW',
+  IMPLEMENT: 'IMPLEMENT'
 };
 
 /**
@@ -141,12 +143,89 @@ const getRussianNoun = (number, one, two, five) => {
 };
 
 /**
+ * Проверяет, все ли подсистемы подтверждены
+ */
+export const areAllSubsystemsConfirmed = (rfc) => {
+  if (!rfc?.affectedSystems) return false;
+
+  return rfc.affectedSystems.every(system =>
+    system.affectedSubsystems?.every(subsystem =>
+      subsystem.confirmationStatus === CONFIRMATION_STATUS.CONFIRMED
+    )
+  );
+};
+
+/**
+ * Проверяет, все ли подсистемы выполнены
+ */
+export const areAllSubsystemsDone = (rfc) => {
+  if (!rfc?.affectedSystems) return false;
+
+  return rfc.affectedSystems.every(system =>
+    system.affectedSubsystems?.every(subsystem =>
+      subsystem.executionStatus === EXECUTION_STATUS.DONE
+    )
+  );
+};
+
+/**
  * Проверяет, может ли пользователь редактировать ЛЮБОЙ RFC (CAB_MANAGER и ADMIN)
  */
 export const canEditAnyRfc = (user) => {
   if (!user) return false;
-
   return [USER_ROLE.ADMIN, USER_ROLE.CAB_MANAGER].includes(user.role);
+};
+
+/**
+ * Проверяет, может ли CAB_MANAGER перевести RFC на рассмотрение
+ */
+export const canReviewRfc = (user, rfc) => {
+  if (!user || !rfc) return false;
+
+  console.log('canReviewRfc check:', {
+    userRole: user.role,
+    rfcStatus: rfc.status,
+    allConfirmed: areAllSubsystemsConfirmed(rfc)
+  });
+
+  // Только CAB_MANAGER и ADMIN могут переводить на рассмотрение
+  const hasReviewRole = [USER_ROLE.ADMIN, USER_ROLE.CAB_MANAGER].includes(user.role);
+
+  // Можно переводить только из статуса NEW
+  const canBeReviewed = rfc.status === RFC_STATUS.NEW;
+
+  // Все подсистемы должны быть подтверждены
+  const allConfirmed = areAllSubsystemsConfirmed(rfc);
+
+  const result = hasReviewRole && canBeReviewed && allConfirmed;
+  console.log('canReviewRfc result:', result);
+  return result;
+};
+
+/**
+ * Проверяет, может ли CAB_MANAGER подтвердить внедрение RFC
+ */
+export const canImplementRfc = (user, rfc) => {
+  if (!user || !rfc) return false;
+
+  console.log('canImplementRfc check:', {
+    userRole: user.role,
+    rfcStatus: rfc.status,
+    allDone: areAllSubsystemsDone(rfc)
+  });
+
+  // Только CAB_MANAGER и ADMIN могут подтверждать внедрение
+  const hasImplementRole = [USER_ROLE.ADMIN, USER_ROLE.CAB_MANAGER].includes(user.role);
+
+  // Можно подтверждать только из статуса APPROVED
+  const canBeImplemented = rfc.status === RFC_STATUS.APPROVED;
+
+  // Все подсистемы должны быть выполнены
+  const allDone = areAllSubsystemsDone(rfc);
+
+  const result = hasImplementRole && canBeImplemented && allDone;
+  console.log('canImplementRfc result:', result);
+  return result;
 };
 
 /**
@@ -157,18 +236,23 @@ export const canApproveRfc = (user, rfc) => {
 
   console.log('canApproveRfc check:', {
     userRole: user.role,
-    rfcStatus: rfc.status,
-    requesterId: rfc.requesterId,
-    userId: user.id
+    rfcStatus: rfc.status
   });
 
-  // Проверка по ролям
+  // RFC_APPROVER, CAB_MANAGER и ADMIN могут согласовывать
   const hasApprovalRole = [USER_ROLE.ADMIN, USER_ROLE.CAB_MANAGER, USER_ROLE.RFC_APPROVER].includes(user.role);
 
-  // Проверяем, что RFC в статусе, когда можно согласовывать
-  const canBeApproved = [RFC_STATUS.NEW, RFC_STATUS.UNDER_REVIEW].includes(rfc.status);
+  // Можно согласовывать только в статусе UNDER_REVIEW
+  const canBeApproved = rfc.status === RFC_STATUS.UNDER_REVIEW;
 
-  // УБРАНА проверка isNotRequester - создатель МОЖЕТ согласовывать по логике бекенда
+  // УБРАНА проверка выполнения всех подсистем для согласования
+  // const allDone = areAllSubsystemsDone(rfc);
+
+  // Проверяем, что пользователь еще не согласовал этот RFC
+  const hasApproved = rfc.approvals?.some(approval => approval.approverId === user.id);
+  if (hasApproved) return false;
+
+  // УБРАНА проверка allDone из условия
   const result = hasApprovalRole && canBeApproved;
   console.log('canApproveRfc result:', result);
   return result;
@@ -182,23 +266,20 @@ export const canUnapproveRfc = (user, rfc) => {
 
   console.log('canUnapproveRfc check:', {
     userRole: user.role,
-    rfcStatus: rfc.status,
-    requesterId: rfc.requesterId,
-    userId: user.id
+    rfcStatus: rfc.status
   });
 
-  // Проверка по ролям (те же роли, что и для согласования)
+  // RFC_APPROVER, CAB_MANAGER и ADMIN могут отменять согласование
   const hasApprovalRole = [USER_ROLE.ADMIN, USER_ROLE.CAB_MANAGER, USER_ROLE.RFC_APPROVER].includes(user.role);
 
-  // Проверяем, что RFC в статусе, когда можно отменить согласование
-  const canBeUnapproved = [RFC_STATUS.APPROVED, RFC_STATUS.UNDER_REVIEW].includes(rfc.status);
+  // Можно отменять согласование в статусах UNDER_REVIEW и APPROVED
+  const canBeUnapproved = [RFC_STATUS.UNDER_REVIEW, RFC_STATUS.APPROVED].includes(rfc.status);
 
-  // УБРАНА проверка isNotRequester - создатель МОЖЕТ отменять согласование по логике бекенда
-  // Дополнительно проверяем, что пользователь ранее согласовывал этот RFC
-  // (это можно реализовать, если бекенд предоставляет информацию о согласованиях)
-  const hasApproved = true; // Временно всегда true, можно доработать когда будут данные о согласованиях
+  // Проверяем, что пользователь уже согласовал этот RFC
+  const hasApproved = rfc.approvals?.some(approval => approval.approverId === user.id);
+  if (!hasApproved) return false;
 
-  const result = hasApprovalRole && canBeUnapproved && hasApproved;
+  const result = hasApprovalRole && canBeUnapproved;
   console.log('canUnapproveRfc result:', result);
   return result;
 };
@@ -211,8 +292,12 @@ export const canConfirmSubsystems = (user, rfc) => {
 
   console.log('canConfirmSubsystems check:', {
     userId: user.id,
+    rfcStatus: rfc.status,
     hasAffectedSystems: !!rfc.affectedSystems
   });
+
+  // Можно подтверждать подсистемы только в статусе NEW
+  if (rfc.status !== RFC_STATUS.NEW) return false;
 
   // Проверка по данным подсистем
   if (!rfc.affectedSystems || !Array.isArray(rfc.affectedSystems)) {
@@ -243,8 +328,12 @@ export const canUpdateExecution = (user, rfc) => {
 
   console.log('canUpdateExecution check:', {
     userId: user.id,
+    rfcStatus: rfc.status,
     hasAffectedSystems: !!rfc.affectedSystems
   });
+
+  // МОЖНО обновлять выполнение только в статусе APPROVED (Согласован)
+  if (rfc.status !== RFC_STATUS.APPROVED) return false;
 
   // Проверка по данным подсистем
   if (!rfc.affectedSystems || !Array.isArray(rfc.affectedSystems)) {
@@ -342,7 +431,7 @@ export const getConfirmableSubsystems = (user, rfc) => {
           systemName: system.systemName || 'Неизвестная система',
           systemId: system.systemId,
           // Используем affectedSubsystemId для API вызовов
-          affectedSubsystemId: subsystem.id // В данном случае subsystem.id - это ID связи в affected_subsystems
+          affectedSubsystemId: subsystem.id
         });
       }
     });
@@ -379,7 +468,7 @@ export const getExecutableSubsystems = (user, rfc) => {
           systemName: system.systemName || 'Неизвестная система',
           systemId: system.systemId,
           // Используем affectedSubsystemId для API вызовов
-          affectedSubsystemId: subsystem.id // В данном случае subsystem.id - это ID связи в affected_subsystems
+          affectedSubsystemId: subsystem.id
         });
       }
     });
@@ -472,6 +561,10 @@ export const canPerformAction = (user, rfc, action) => {
       return canUpdateExecution(user, rfc);
     case RFC_ACTION.DELETE:
       return canDeleteRfc(user, rfc);
+    case RFC_ACTION.REVIEW:
+      return canReviewRfc(user, rfc);
+    case RFC_ACTION.IMPLEMENT:
+      return canImplementRfc(user, rfc);
     default:
       return false;
   }
@@ -505,10 +598,80 @@ export const getAvailableActions = (user, rfc) => {
     actions.push(RFC_ACTION.UPDATE_EXECUTION);
   }
 
+  if (canReviewRfc(user, rfc)) {
+    actions.push(RFC_ACTION.REVIEW);
+  }
+
+  if (canImplementRfc(user, rfc)) {
+    actions.push(RFC_ACTION.IMPLEMENT);
+  }
+
   // Для удаления используем проверку через canDeleteRfc, которая основана на actions от бекенда
   if (canDeleteRfc(user, rfc)) {
     actions.push(RFC_ACTION.DELETE);
   }
 
   return actions;
+};
+
+/**
+ * Получает количество подтвержденных подсистем
+ */
+export const getConfirmedSubsystemsCount = (rfc) => {
+  if (!rfc?.affectedSystems) return 0;
+
+  return rfc.affectedSystems.reduce((total, system) => {
+    if (!system.affectedSubsystems) return total;
+    return total + system.affectedSubsystems.filter(
+      subsystem => subsystem.confirmationStatus === CONFIRMATION_STATUS.CONFIRMED
+    ).length;
+  }, 0);
+};
+
+/**
+ * Получает общее количество подсистем
+ */
+export const getTotalSubsystemsCount = (rfc) => {
+  if (!rfc?.affectedSystems) return 0;
+
+  return rfc.affectedSystems.reduce((total, system) => {
+    if (!system.affectedSubsystems) return total;
+    return total + system.affectedSubsystems.length;
+  }, 0);
+};
+
+/**
+ * Получает количество выполненных подсистем
+ */
+export const getDoneSubsystemsCount = (rfc) => {
+  if (!rfc?.affectedSystems) return 0;
+
+  return rfc.affectedSystems.reduce((total, system) => {
+    if (!system.affectedSubsystems) return total;
+    return total + system.affectedSubsystems.filter(
+      subsystem => subsystem.executionStatus === EXECUTION_STATUS.DONE
+    ).length;
+  }, 0);
+};
+
+/**
+ * Получает прогресс подтверждения подсистем в процентах
+ */
+export const getConfirmationProgress = (rfc) => {
+  const total = getTotalSubsystemsCount(rfc);
+  if (total === 0) return 0;
+
+  const confirmed = getConfirmedSubsystemsCount(rfc);
+  return Math.round((confirmed / total) * 100);
+};
+
+/**
+ * Получает прогресс выполнения подсистем в процентах
+ */
+export const getExecutionProgress = (rfc) => {
+  const total = getTotalSubsystemsCount(rfc);
+  if (total === 0) return 0;
+
+  const done = getDoneSubsystemsCount(rfc);
+  return Math.round((done / total) * 100);
 };
