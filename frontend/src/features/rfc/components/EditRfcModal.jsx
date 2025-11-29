@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
 import { getSystems } from '../../systems/api/systemApi';
-import { getSystemSubsystems } from '../../systems/api/subsystemApi'; // Исправленный импорт
+import { getSystemSubsystems } from '../../systems/api/subsystemApi';
 import { getTeams } from '../../teams/api/teamApi';
+import { getUsers } from '../../users/api/userApi';
 import { attachmentApi } from '../../../shared/api/attachmentApi';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import Toast from '../../../shared/components/Toast';
+import SingleUserSearchSelect from './SingleUserSearchSelect';
 import './CreateRfcModal.css';
 
 const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
@@ -21,6 +23,7 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
   const [systems, setSystems] = useState([]);
   const [subsystems, setSubsystems] = useState({}); // { systemId: [subsystems] }
   const [teams, setTeams] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -35,7 +38,20 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
         implementationDate: rfc.implementationDate ?
           new Date(rfc.implementationDate).toISOString().slice(0, 16) : '',
         urgency: rfc.urgency || 'PLANNED',
-        affectedSystems: rfc.affectedSystems || [],
+        affectedSystems: rfc.affectedSystems ? rfc.affectedSystems.map(system => ({
+          systemId: system.systemId.toString(),
+          affectedSubsystems: system.affectedSubsystems.map(subsystem => ({
+            subsystemId: subsystem.subsystemId.toString(),
+            executor: {
+              id: subsystem.executorId,
+              firstName: subsystem.executorFirstName || subsystem.executorName?.split(' ')[0] || '',
+              lastName: subsystem.executorLastName || subsystem.executorName?.split(' ').slice(1).join(' ') || '',
+              username: subsystem.executorUsername || '',
+              role: subsystem.executorRole || 'USER'
+            },
+            isExisting: true // Помечаем существующие подсистемы
+          }))
+        })) : [],
         attachmentIds: rfc.attachments ? rfc.attachments.map(a => a.id) : []
       });
 
@@ -50,7 +66,7 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
     }
   }, [rfc, isOpen]);
 
-  // Загружаем системы и команды
+  // Загружаем системы, команды и пользователей
   useEffect(() => {
     if (isOpen) {
       loadSystemsAndTeams();
@@ -60,13 +76,15 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
   const loadSystemsAndTeams = async () => {
     setLoading(true);
     try {
-      const [systemsResponse, teamsResponse] = await Promise.all([
+      const [systemsResponse, teamsResponse, usersResponse] = await Promise.all([
         getSystems({ page: 0, size: 100 }),
-        getTeams({ page: 0, size: 100 })
+        getTeams({ page: 0, size: 100 }),
+        getUsers({ page: 0, size: 100 })
       ]);
 
       setSystems(systemsResponse.content || []);
       setTeams(teamsResponse.content || []);
+      setAllUsers(usersResponse.content || []);
     } catch (error) {
       console.error('Error loading data:', error);
       setError('Не удалось загрузить данные');
@@ -79,7 +97,6 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
     if (!systemId) return;
 
     try {
-      // Используем существующую функцию getSystemSubsystems
       const subsystemsResponse = await getSystemSubsystems(systemId);
       setSubsystems(prev => ({
         ...prev,
@@ -87,7 +104,6 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
       }));
     } catch (error) {
       console.error('Error loading subsystems for system:', systemId, error);
-      // Если API не реализовано, используем пустой массив
       setSubsystems(prev => ({
         ...prev,
         [systemId]: []
@@ -110,7 +126,6 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
 
   const handleSystemChange = async (systemIndex, field, value) => {
     if (field === 'systemId') {
-      // Загружаем подсистемы при выборе системы
       await loadSubsystemsForSystem(value);
     }
 
@@ -153,7 +168,8 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
                 ...system.affectedSubsystems,
                 {
                   subsystemId: '',
-                  executorId: ''
+                  executor: null,
+                  isExisting: false // Новые подсистемы можно редактировать
                 }
               ]
             }
@@ -246,7 +262,7 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
           throw new Error('Для каждой системы должна быть добавлена хотя бы одна подсистема');
         }
         for (const subsystem of system.affectedSubsystems) {
-          if (!subsystem.subsystemId || !subsystem.executorId) {
+          if (!subsystem.subsystemId || !subsystem.executor) {
             throw new Error('Для всех подсистем должны быть выбраны подсистема и исполнитель');
           }
         }
@@ -262,7 +278,7 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
           systemId: parseInt(system.systemId),
           affectedSubsystems: system.affectedSubsystems.map(subsystem => ({
             subsystemId: parseInt(subsystem.subsystemId),
-            executorId: parseInt(subsystem.executorId)
+            executorId: subsystem.executor ? parseInt(subsystem.executor.id) : null
           }))
         })),
         attachmentIds: formData.attachmentIds
@@ -281,15 +297,6 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
   // Получаем подсистемы для конкретной системы
   const getSubsystemsForSystem = (systemId) => {
     return subsystems[systemId] || [];
-  };
-
-  // Получаем доступных исполнителей для подсистемы
-  const getAvailableExecutors = (subsystemId) => {
-    if (!subsystemId) return teams.flatMap(team => team.members || []);
-
-    // Здесь можно добавить логику фильтрации исполнителей по команде подсистемы
-    // Пока возвращаем всех пользователей из команд
-    return teams.flatMap(team => team.members || []);
   };
 
   if (!isOpen) return null;
@@ -457,20 +464,13 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
                         {!subsystem.subsystemId && <div className="error-message">Выберите подсистему</div>}
                       </div>
                       <div className="form-group" style={{ flex: 1 }}>
-                        <select
-                          value={subsystem.executorId}
-                          onChange={(e) => handleSubsystemChange(systemIndex, subsystemIndex, 'executorId', e.target.value)}
-                          required
-                          className={!subsystem.executorId ? 'error' : ''}
-                        >
-                          <option value="">Выберите исполнителя</option>
-                          {getAvailableExecutors(subsystem.subsystemId).map(member => (
-                            <option key={member.id} value={member.id}>
-                              {member.firstName} {member.lastName}
-                            </option>
-                          ))}
-                        </select>
-                        {!subsystem.executorId && <div className="error-message">Выберите исполнителя</div>}
+                        <SingleUserSearchSelect
+                          value={subsystem.executor}
+                          onChange={(user) => handleSubsystemChange(systemIndex, subsystemIndex, 'executor', user)}
+                          error={!subsystem.executor ? 'Выберите исполнителя' : ''}
+                          placeholder={subsystem.isExisting ? "Исполнитель" : "Выберите исполнителя"}
+                          disabled={subsystem.isExisting}
+                        />
                       </div>
                       <button
                         type="button"

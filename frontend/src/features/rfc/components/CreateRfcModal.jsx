@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './CreateRfcModal.css';
 import { getAllSystems } from '../../systems/api/systemApi';
 import { getAllSystemSubsystems } from '../../systems/api/subsystemApi';
+import { getUsers } from '../../users/api/userApi';
+import SingleUserSearchSelect from './SingleUserSearchSelect';
 
 const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -15,6 +17,7 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
   const [errors, setErrors] = useState({});
   const [systems, setSystems] = useState([]);
   const [subsystems, setSubsystems] = useState({}); // { systemId: [subsystems] }
+  const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [systemsLoading, setSystemsLoading] = useState(false);
   const [systemsError, setSystemsError] = useState(null);
@@ -31,17 +34,21 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
       });
       setErrors({});
       setSystemsError(null);
-      loadSystems();
+      loadSystemsAndUsers();
     }
   }, [isOpen]);
 
-  // Загрузка всех систем
-  const loadSystems = async () => {
+  // Загрузка всех систем и пользователей
+  const loadSystemsAndUsers = async () => {
     setSystemsLoading(true);
     setSystemsError(null);
     try {
-      const systemsData = await getAllSystems();
+      const [systemsData, usersData] = await Promise.all([
+        getAllSystems(),
+        getUsers({ page: 0, size: 100 })
+      ]);
       setSystems(systemsData);
+      setAllUsers(usersData.content || []);
     } catch (error) {
       console.error('Failed to load systems:', error);
       setSystemsError('Не удалось загрузить список систем. Пожалуйста, попробуйте позже.');
@@ -91,7 +98,7 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
             if (!subsystem.subsystemId) {
               newErrors[`subsystem_${index}_${subIndex}`] = 'Подсистема обязательна';
             }
-            if (!subsystem.executorId) {
+            if (!subsystem.executor) {
               newErrors[`executor_${index}_${subIndex}`] = 'Исполнитель обязателен';
             }
           });
@@ -114,7 +121,7 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
         systemId: parseInt(system.systemId),
         affectedSubsystems: system.affectedSubsystems.map(subsystem => ({
           subsystemId: parseInt(subsystem.subsystemId),
-          executorId: parseInt(subsystem.executorId)
+          executorId: subsystem.executor ? parseInt(subsystem.executor.id) : null
         }))
       })),
       attachmentIds: []
@@ -195,7 +202,7 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
         ...newAffectedSystems[systemIndex],
         affectedSubsystems: [
           ...(newAffectedSystems[systemIndex].affectedSubsystems || []),
-          { subsystemId: '', executorId: '' }
+          { subsystemId: '', executor: null }
         ]
       };
       return { ...prev, affectedSystems: newAffectedSystems };
@@ -232,12 +239,12 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
   };
 
   // Изменение исполнителя
-  const handleExecutorChange = (systemIndex, subsystemIndex, executorId) => {
+  const handleExecutorChange = (systemIndex, subsystemIndex, executor) => {
     setFormData(prev => {
       const newAffectedSystems = [...prev.affectedSystems];
       newAffectedSystems[systemIndex].affectedSubsystems[subsystemIndex] = {
         ...newAffectedSystems[systemIndex].affectedSubsystems[subsystemIndex],
-        executorId
+        executor
       };
       return { ...prev, affectedSystems: newAffectedSystems };
     });
@@ -328,7 +335,7 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
                   {systemsError}
                   <button
                     type="button"
-                    onClick={loadSystems}
+                    onClick={loadSystemsAndUsers}
                     className="btn btn-secondary btn-sm"
                     style={{ marginLeft: '10px' }}
                   >
@@ -422,21 +429,14 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
                             </div>
 
                             <div className="form-group">
-                              <label>ID исполнителя *</label>
-                              <input
-                                type="number"
-                                value={subsystem.executorId || ''}
-                                onChange={(e) => handleExecutorChange(systemIndex, subsystemIndex, e.target.value)}
-                                placeholder="Введите ID исполнителя"
-                                className={errors[`executor_${systemIndex}_${subsystemIndex}`] ? 'error' : ''}
-                                required
+                              <label>Исполнитель *</label>
+                              <SingleUserSearchSelect
+                                value={subsystem.executor}
+                                onChange={(user) => handleExecutorChange(systemIndex, subsystemIndex, user)}
+                                error={errors[`executor_${systemIndex}_${subsystemIndex}`]}
+                                placeholder="Поиск исполнителя по имени..."
+                                disabled={!subsystem.subsystemId}
                               />
-                              {errors[`executor_${systemIndex}_${subsystemIndex}`] && (
-                                <div className="error-message">
-                                  {errors[`executor_${systemIndex}_${subsystemIndex}`]}
-                                </div>
-                              )}
-                              <small>Пример: 1, 2, 3</small>
                             </div>
 
                             <div className="form-group" style={{ flex: '0 0 auto', alignSelf: 'flex-end' }}>

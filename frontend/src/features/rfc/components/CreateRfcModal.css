@@ -282,3 +282,45 @@
 .create-rfc-modal::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+/* Добавьте эти стили для лучшего отображения заблокированного поля */
+.selected-user-display {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.selected-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #3498db;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+.user-meta {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-top: 2px;
+}
