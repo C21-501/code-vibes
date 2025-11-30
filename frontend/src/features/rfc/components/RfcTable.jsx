@@ -24,6 +24,18 @@ const RfcTable = ({
     return `${user.lastName} ${user.firstName?.charAt(0)}.`;
   };
 
+  // Функция для форматирования имени создателя
+  const formatRequesterName = (rfc) => {
+    if (rfc.requester) {
+      // Если есть полный объект пользователя
+      return `${rfc.requester.lastName} ${rfc.requester.firstName?.charAt(0)}.`;
+    } else if (rfc.requesterId) {
+      // Если есть только ID, показываем ID
+      return `ID: ${rfc.requesterId}`;
+    }
+    return 'Неизвестно';
+  };
+
   const getSystemsCount = (rfc) => {
     return rfc.affectedSystems?.length || 0;
   };
@@ -60,7 +72,7 @@ const RfcTable = ({
             <th style={{ width: '140px' }}>Статус</th>
             <th style={{ width: '130px' }}>Срочность</th>
             <th style={{ width: '150px' }}>Дата исполнения</th>
-            <th style={{ width: '120px' }}>Создатель</th>
+            <th style={{ width: '150px' }}>Создатель</th>
             <th style={{ width: '150px' }}>Дата создания</th>
             <th style={{ width: '150px' }}>Действия</th>
           </tr>
@@ -103,7 +115,11 @@ const RfcTable = ({
                   </span>
                 </td>
                 <td>{formatDate(rfc.implementationDate)}</td>
-                <td>{formatUserName(rfc.requester)}</td>
+                <td>
+                  <span className="requester-name">
+                    {formatRequesterName(rfc)}
+                  </span>
+                </td>
                 <td>{formatDate(rfc.createDatetime)}</td>
                 <td>
                   <div className="action-buttons">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRfcs } from '../hooks/useRfcs';
 import { useAuth } from '../../auth/context/AuthContext';
 import { rfcApi } from '../api/rfcApi';
+import { usersApi } from '../../users/api/userApi';
 import {
   getStatusLabel,
   getUrgencyLabel,
@@ -31,6 +32,7 @@ const RfcManagement = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedRfcForStatus, setSelectedRfcForStatus] = useState(null);
   const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
+  const [usersCache, setUsersCache] = useState(new Map()); // Кэш пользователей
 
   // Используем хук для управления RFC с методами для действий
   const {
@@ -54,6 +56,53 @@ const RfcManagement = () => {
     urgency: '',
     requesterId: ''
   });
+
+  // Функция для получения данных пользователя
+  const getUserData = async (userId) => {
+    if (!userId) return null;
+
+    // Проверяем кэш
+    if (usersCache.has(userId)) {
+      return usersCache.get(userId);
+    }
+
+    try {
+      const userData = await usersApi.getUserById(userId);
+      // Сохраняем в кэш
+      setUsersCache(prev => new Map(prev).set(userId, userData));
+      return userData;
+    } catch (error) {
+      console.error(`Failed to fetch user ${userId}:`, error);
+      return null;
+    }
+  };
+
+  // Функция для обогащения RFC данными пользователей
+  const enrichRfcWithUserData = async (rfc) => {
+    if (!rfc) return rfc;
+
+    const enrichedRfc = { ...rfc };
+
+    // Загружаем данные создателя
+    if (rfc.requesterId) {
+      enrichedRfc.requester = await getUserData(rfc.requesterId);
+    }
+
+    // Загружаем данные исполнителей для подсистем
+    if (rfc.affectedSystems && Array.isArray(rfc.affectedSystems)) {
+      for (let system of enrichedRfc.affectedSystems) {
+        if (system.affectedSubsystems && Array.isArray(system.affectedSubsystems)) {
+          for (let subsystem of system.affectedSubsystems) {
+            if (subsystem.executorId) {
+              subsystem.executor = await getUserData(subsystem.executorId);
+            }
+          }
+        }
+      }
+    }
+
+    return enrichedRfc;
+  };
 
   // Функции для уведомлений
   const showToast = (type, title, message) => {
@@ -123,7 +172,9 @@ const RfcManagement = () => {
   const handleViewRfc = async (rfcId) => {
     try {
       const rfc = await rfcApi.getRfcById(rfcId);
-      setSelectedRfc(rfc);
+      // Обогащаем RFC данными пользователей
+      const enrichedRfc = await enrichRfcWithUserData(rfc);
+      setSelectedRfc(enrichedRfc);
       setShowViewModal(true);
     } catch (error) {
       const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось загрузить данные RFC';
@@ -134,7 +185,9 @@ const RfcManagement = () => {
   const handleEditRfc = async (rfcId) => {
     try {
       const rfc = await rfcApi.getRfcById(rfcId);
-      setSelectedRfcForEdit(rfc);
+      // Обогащаем RFC данными пользователей
+      const enrichedRfc = await enrichRfcWithUserData(rfc);
+      setSelectedRfcForEdit(enrichedRfc);
       setShowEditModal(true);
     } catch (error) {
       const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось загрузить данные RFC';
@@ -176,7 +229,9 @@ const RfcManagement = () => {
   const updateSelectedRfc = async (rfcId) => {
     try {
       console.log('Fetching updated RFC data for:', rfcId);
-      const updatedRfc = await rfcApi.getRfcById(rfcId);
+      const rfc = await rfcApi.getRfcById(rfcId);
+      // Обогащаем RFC данными пользователей
+      const updatedRfc = await enrichRfcWithUserData(rfc);
       console.log('Fetched updated RFC:', updatedRfc);
       setSelectedRfc(updatedRfc);
       return updatedRfc;
@@ -185,6 +240,16 @@ const RfcManagement = () => {
       return null;
     }
   };
+
+  // Обогащаем RFC в списке данными пользователей
+  const enrichedRfcs = rfcs.map(rfc => {
+    const enriched = { ...rfc };
+    // Добавляем создателя из кэша если есть
+    if (rfc.requesterId && usersCache.has(rfc.requesterId)) {
+      enriched.requester = usersCache.get(rfc.requesterId);
+    }
+    return enriched;
+  });
 
   // Новые обработчики для действий в RfcModal
   const handleApprove = async (rfcId, comment = '') => {
@@ -292,7 +357,7 @@ const RfcManagement = () => {
     return (
       <>
         <RfcTable
-          rfcs={rfcs}
+          rfcs={enrichedRfcs}  // Используем обогащенные данные
           currentUser={user}
           onViewRfc={handleViewRfc}
           onEditRfc={handleEditRfc}
@@ -301,7 +366,7 @@ const RfcManagement = () => {
         />
 
         {/* Пагинация */}
-        {rfcs.length > 0 && (
+        {enrichedRfcs.length > 0 && (
           <div className="rfc-pagination">
             <div className="pagination-info">
               Показано {pagination.page * pagination.size + 1} -{' '}
@@ -436,7 +501,10 @@ const RfcManagement = () => {
               <div className="detail-row">
                 <span className="detail-label">Создатель:</span>
                 <span className="detail-value">
-                  {selectedRfc.requester ? `${selectedRfc.requester.firstName} ${selectedRfc.requester.lastName}` : 'Неизвестно'}
+                  {selectedRfc.requester
+                    ? `${selectedRfc.requester.firstName} ${selectedRfc.requester.lastName}`
+                    : `ID: ${selectedRfc.requesterId || 'Неизвестно'}`
+                  }
                 </span>
               </div>
             </div>
@@ -466,6 +534,11 @@ const RfcManagement = () => {
                           {subsystem.executor && (
                             <span className="executor-info">
                               Исполнитель: {subsystem.executor.firstName} {subsystem.executor.lastName}
+                            </span>
+                          )}
+                          {!subsystem.executor && subsystem.executorId && (
+                            <span className="executor-info">
+                              Исполнитель: ID: {subsystem.executorId}
                             </span>
                           )}
                         </div>
