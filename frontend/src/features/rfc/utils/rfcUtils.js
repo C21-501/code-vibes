@@ -8,6 +8,7 @@ export const RFC_STATUS = {
   NEW: 'NEW',
   UNDER_REVIEW: 'UNDER_REVIEW',
   APPROVED: 'APPROVED',
+  IN_PROGRESS: 'IN_PROGRESS',  // Добавлен статус IN_PROGRESS
   IMPLEMENTED: 'IMPLEMENTED',
   REJECTED: 'REJECTED'
 };
@@ -217,8 +218,8 @@ export const canImplementRfc = (user, rfc) => {
   // Только CAB_MANAGER и ADMIN могут подтверждать внедрение
   const hasImplementRole = [USER_ROLE.ADMIN, USER_ROLE.CAB_MANAGER].includes(user.role);
 
-  // Можно подтверждать только из статуса APPROVED
-  const canBeImplemented = rfc.status === RFC_STATUS.APPROVED;
+  // Можно подтверждать только из статуса APPROVED или IN_PROGRESS
+  const canBeImplemented = [RFC_STATUS.APPROVED, RFC_STATUS.IN_PROGRESS].includes(rfc.status);
 
   // Все подсистемы должны быть выполнены
   const allDone = areAllSubsystemsDone(rfc);
@@ -332,8 +333,12 @@ export const canUpdateExecution = (user, rfc) => {
     hasAffectedSystems: !!rfc.affectedSystems
   });
 
-  // МОЖНО обновлять выполнение только в статусе APPROVED (Согласован)
-  if (rfc.status !== RFC_STATUS.APPROVED) return false;
+  // МОЖНО обновлять выполнение в статусах APPROVED И IN_PROGRESS
+  const allowedStatuses = [RFC_STATUS.APPROVED, RFC_STATUS.IN_PROGRESS];
+  if (!allowedStatuses.includes(rfc.status)) {
+    console.log('canUpdateExecution: RFC status not allowed for execution updates');
+    return false;
+  }
 
   // Проверка по данным подсистем
   if (!rfc.affectedSystems || !Array.isArray(rfc.affectedSystems)) {
@@ -486,6 +491,7 @@ export const getStatusLabel = (status) => {
     [RFC_STATUS.NEW]: 'Новый',
     [RFC_STATUS.UNDER_REVIEW]: 'На рассмотрении',
     [RFC_STATUS.APPROVED]: 'Согласован',
+    [RFC_STATUS.IN_PROGRESS]: 'В процессе',  // Добавлен статус IN_PROGRESS
     [RFC_STATUS.IMPLEMENTED]: 'Внедрен',
     [RFC_STATUS.REJECTED]: 'Отклонен',
     [CONFIRMATION_STATUS.PENDING]: 'Ожидает подтверждения',
@@ -506,6 +512,7 @@ export const getStatusClass = (status) => {
     [RFC_STATUS.NEW]: 'status-new',
     [RFC_STATUS.UNDER_REVIEW]: 'status-under-review',
     [RFC_STATUS.APPROVED]: 'status-approved',
+    [RFC_STATUS.IN_PROGRESS]: 'status-in-progress',  // Добавлен статус IN_PROGRESS
     [RFC_STATUS.IMPLEMENTED]: 'status-implemented',
     [RFC_STATUS.REJECTED]: 'status-rejected',
     [CONFIRMATION_STATUS.PENDING]: 'status-pending',
