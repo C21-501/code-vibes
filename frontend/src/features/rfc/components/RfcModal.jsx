@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
 import {
   canApproveRfc,
@@ -24,6 +24,13 @@ const RfcModal = ({
 }) => {
   const { user } = useAuth();
   const [comment, setComment] = useState('');
+
+  // Сбрасываем комментарий при открытии модального окна
+  useEffect(() => {
+    if (isOpen) {
+      setComment('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -110,12 +117,17 @@ const RfcModal = ({
 
               {/* Комментарий для всех действий */}
               <div className="action-comment">
-                <label htmlFor="actionComment">Комментарий к действию:</label>
+                <label htmlFor="actionComment">
+                  Комментарий к действию (необязательно):
+                  <span style={{color: '#666', fontSize: '12px', marginLeft: '5px'}}>
+                    - если не указан, будет использован комментарий по умолчанию
+                  </span>
+                </label>
                 <textarea
                   id="actionComment"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Введите комментарий к действию..."
+                  placeholder="Введите комментарий к действию (необязательно)..."
                   rows="3"
                   maxLength="1000"
                 />
@@ -133,7 +145,6 @@ const RfcModal = ({
                       <button
                         className="btn btn-primary"
                         onClick={handleApprove}
-                        disabled={!comment.trim()}
                       >
                         Согласовать RFC
                       </button>
@@ -142,7 +153,6 @@ const RfcModal = ({
                       <button
                         className="btn btn-warning"
                         onClick={handleUnapprove}
-                        disabled={!comment.trim()}
                       >
                         Отменить согласование
                       </button>
@@ -168,14 +178,12 @@ const RfcModal = ({
                         <button
                           className="btn btn-success"
                           onClick={() => handleConfirm(subsystem.subsystemId, 'CONFIRMED')}
-                          disabled={!comment.trim()}
                         >
                           Подтвердить
                         </button>
                         <button
                           className="btn btn-danger"
                           onClick={() => handleConfirm(subsystem.subsystemId, 'REJECTED')}
-                          disabled={!comment.trim()}
                         >
                           Отклонить
                         </button>
@@ -203,7 +211,6 @@ const RfcModal = ({
                           <button
                             className="btn btn-info"
                             onClick={() => handleUpdateExecution(subsystem.subsystemId, 'IN_PROGRESS')}
-                            disabled={!comment.trim()}
                           >
                             Начать выполнение
                           </button>
@@ -212,7 +219,6 @@ const RfcModal = ({
                           <button
                             className="btn btn-success"
                             onClick={() => handleUpdateExecution(subsystem.subsystemId, 'DONE')}
-                            disabled={!comment.trim()}
                           >
                             Завершить выполнение
                           </button>

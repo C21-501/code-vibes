@@ -251,11 +251,12 @@ const RfcManagement = () => {
     return enriched;
   });
 
-  // Новые обработчики для действий в RfcModal
+  // Новые обработчики для действий в RfcModal с комментариями по умолчанию
   const handleApprove = async (rfcId, comment = '') => {
     try {
       console.log('Starting approve process for RFC:', rfcId);
-      const response = await approveRfc(rfcId, comment);
+      const finalComment = comment.trim() || 'RFC согласован в соответствии с установленными процедурами';
+      const response = await approveRfc(rfcId, finalComment);
       console.log('Approve API response:', response);
 
       // Принудительно обновляем выбранный RFC
@@ -275,7 +276,8 @@ const RfcManagement = () => {
   const handleUnapprove = async (rfcId, comment = '') => {
     try {
       console.log('Starting unapprove process for RFC:', rfcId);
-      const response = await unapproveRfc(rfcId, comment);
+      const finalComment = comment.trim() || 'Согласование RFC отозвано по техническим причинам';
+      const response = await unapproveRfc(rfcId, finalComment);
       console.log('Unapprove API response:', response);
 
       // Принудительно обновляем выбранный RFC
@@ -295,7 +297,17 @@ const RfcManagement = () => {
   const handleConfirm = async (rfcId, subsystemId, status, comment = '') => {
     try {
       console.log('Confirming subsystem:', { rfcId, subsystemId, status, comment });
-      await confirmSubsystem(rfcId, subsystemId, status, comment);
+
+      let defaultComment = '';
+      if (status === 'CONFIRMED') {
+        defaultComment = 'Подсистема готова к выполнению работ по RFC';
+      } else {
+        defaultComment = 'Подсистема не готова к выполнению работ по RFC';
+      }
+
+      const finalComment = comment.trim() || defaultComment;
+      await confirmSubsystem(rfcId, subsystemId, status, finalComment);
+
       // Обновляем выбранный RFC
       await updateSelectedRfc(rfcId);
       const action = status === 'CONFIRMED' ? 'подтверждена' : 'отклонена';
@@ -309,7 +321,17 @@ const RfcManagement = () => {
   const handleUpdateExecution = async (rfcId, subsystemId, status, comment = '') => {
     try {
       console.log('Updating execution:', { rfcId, subsystemId, status, comment });
-      await updateExecutionStatus(rfcId, subsystemId, status, comment);
+
+      let defaultComment = '';
+      if (status === 'IN_PROGRESS') {
+        defaultComment = 'Работы по подсистеме начаты';
+      } else {
+        defaultComment = 'Работы по подсистеме завершены';
+      }
+
+      const finalComment = comment.trim() || defaultComment;
+      await updateExecutionStatus(rfcId, subsystemId, status, finalComment);
+
       // Обновляем выбранный RFC
       await updateSelectedRfc(rfcId);
       const action = status === 'IN_PROGRESS' ? 'начато' : 'завершено';
