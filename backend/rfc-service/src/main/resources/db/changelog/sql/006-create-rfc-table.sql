@@ -26,7 +26,7 @@ ALTER TABLE rfc ADD CONSTRAINT chk_rfc_urgency
 
 -- Add check constraint for status enum
 ALTER TABLE rfc ADD CONSTRAINT chk_rfc_status
-    CHECK (status IN ('NEW', 'UNDER_REVIEW', 'APPROVED', 'IMPLEMENTED', 'REJECTED'));
+    CHECK (status IN ('NEW', 'UNDER_REVIEW', 'APPROVED', 'IN_PROGRESS', 'IMPLEMENTED', 'REJECTED'));
 
 -- Add comments
 COMMENT ON TABLE rfc IS 'Таблица запросов на изменение (Request for Change)';
