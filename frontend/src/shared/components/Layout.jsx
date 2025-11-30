@@ -2,18 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../features/auth/context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { isAdmin } from '../../utils/jwtUtils';
+import { isAdminOrCabManager } from '../../utils/jwtUtils';
 import './Layout.css';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [userIsAdmin, setUserIsAdmin] = useState(false);
+  const [canAccessAudit, setCanAccessAudit] = useState(false);
 
-  // Check admin status on mount
+  // Check admin or CAB_MANAGER status on mount
   useEffect(() => {
-    setUserIsAdmin(isAdmin());
+    setCanAccessAudit(isAdminOrCabManager());
   }, []);
 
   const handleLogout = () => {
@@ -59,7 +59,7 @@ const Layout = ({ children }) => {
           >
             👤 Пользователи
           </button>
-          {userIsAdmin && (
+          {canAccessAudit && (
             <button
               className={`nav-link ${isActive('/audit-rfc') ? 'active' : ''}`}
               onClick={() => handleNavigation('/audit-rfc')}
