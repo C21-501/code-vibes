@@ -1,13 +1,20 @@
 // src/shared/components/Layout.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../features/auth/context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { isAdmin } from '../../utils/jwtUtils';
 import './Layout.css';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
+
+  // Check admin status on mount
+  useEffect(() => {
+    setUserIsAdmin(isAdmin());
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -35,12 +42,6 @@ const Layout = ({ children }) => {
             📋 Список RFC
           </button>
           <button
-            className={`nav-link ${isActive('/audit-rfc') ? 'active' : ''}`}
-            onClick={() => handleNavigation('/audit-rfc')}
-          >
-            🔍 Аудит RFC
-          </button>
-          <button
             className={`nav-link ${isActive('/teams') ? 'active' : ''}`}
             onClick={() => handleNavigation('/teams')}
           >
@@ -58,6 +59,14 @@ const Layout = ({ children }) => {
           >
             👤 Пользователи
           </button>
+          {userIsAdmin && (
+            <button
+              className={`nav-link ${isActive('/audit-rfc') ? 'active' : ''}`}
+              onClick={() => handleNavigation('/audit-rfc')}
+            >
+              🔍 Аудит RFC
+            </button>
+          )}
         </nav>
 
         <div className="sidebar-footer">

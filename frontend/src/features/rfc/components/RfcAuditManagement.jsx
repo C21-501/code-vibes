@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react';
 import RfcAuditTable from './RfcAuditTable';
 import Pagination from '../../../shared/components/Pagination';
 import Toast from '../../../shared/components/Toast';
+import UserHeader from '../../users/components/UserHeader';
+import { getCurrentUser, isAdmin } from '../../../utils/jwtUtils';
 import { rfcApi } from '../api/rfcApi';
 import './RfcAuditManagement.css';
 
@@ -33,6 +35,23 @@ export default function RfcAuditManagement() {
 
   // State for loading
   const [loading, setLoading] = useState(false);
+
+  // Get current user from JWT token
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
+
+  // Load current user from token on mount
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      setUserIsAdmin(isAdmin());
+    } else {
+      // If no valid user, redirect to login
+      console.warn('No valid user token found');
+      // Optional: redirect to login or show error
+    }
+  }, []);
 
   // Fetch history when rfcId and pagination change
   useEffect(() => {
@@ -129,6 +148,9 @@ export default function RfcAuditManagement() {
     <div className="rfc-audit-management">
       <div className="header">
         <h1>Аудит RFC</h1>
+        <div className="header-right">
+          {currentUser && <UserHeader user={currentUser} />}
+        </div>
       </div>
 
       {/* Search Filters */}

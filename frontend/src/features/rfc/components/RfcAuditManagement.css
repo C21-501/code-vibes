@@ -18,6 +18,12 @@
   color: #2c3e50;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
 /* Filters */
 .filters {
   background: white;
