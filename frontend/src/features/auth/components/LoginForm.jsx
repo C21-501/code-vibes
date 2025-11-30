@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authApi } from '../../../features/auth/api/authApi'; // Импортируем authApi
+import { useAuth } from '../context/AuthContext'; // Используем контекст
 import Toast from '../../../shared/components/Toast';
 import { getAndClearReturnUrl, clearAuthTokens } from '../../../utils/authContext';
 import { isCurrentTokenExpired } from '../../../utils/jwtUtils';
-import apiClient from '../../../utils/apiClient';
 import './LoginForm.css';
 
 function LoginForm() {
   const navigate = useNavigate();
+  const { login, isLoading: authLoading, error: authError, clearError } = useAuth();
 
   // Clean up expired/invalid tokens on mount
   useEffect(() => {
@@ -41,6 +41,13 @@ function LoginForm() {
     message: ''
   });
 
+  // Очищаем ошибки контекста при монтировании
+  useEffect(() => {
+    if (authError) {
+      clearError();
+    }
+  }, []);
+
   /**
    * Handle input changes
    */
@@ -57,6 +64,11 @@ function LoginForm() {
         ...prev,
         [name]: ''
       }));
+    }
+
+    // Clear auth error when user starts typing
+    if (authError) {
+      clearError();
     }
   };
 
@@ -111,13 +123,14 @@ function LoginForm() {
   };
 
   /**
-   * Handle form submission using authApi
+   * Handle form submission using AuthContext
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Clear previous errors
     setErrors({ username: '', password: '', general: '' });
+    clearError();
 
     // Validate form
     if (!validateForm()) {
@@ -128,31 +141,21 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
-      // Prepare request body according to LoginRequest schema
-      const loginRequest = {
-        username: formData.username.trim(),
-        password: formData.password
-      };
+      // Используем login из контекста аутентификации
+      await login(formData.username, formData.password);
 
-      // ✅ ИСПОЛЬЗУЕМ authApi ВМЕСТО ПРЯМОГО fetch
-      const response = await authApi.login(loginRequest);
-
-      // ✅ Токены уже сохранены в localStorage в authApi.login
       // Показываем успешное уведомление
       showToast('success', 'Успешный вход', 'Вы успешно авторизованы в системе!');
 
       // Очищаем форму
       setFormData({ username: '', password: '' });
 
-      // Уведомляем API client об успешном входе
-      await apiClient.onLoginSuccess();
-
       // Получаем сохраненный URL для возврата или используем /rfc по умолчанию
       const returnUrl = getAndClearReturnUrl() || '/rfc';
 
       // Редирект после короткой задержки для показа сообщения
       setTimeout(() => {
-        navigate(returnUrl);
+        navigate(returnUrl, { replace: true });
       }, 1000);
 
     } catch (error) {
@@ -160,7 +163,7 @@ function LoginForm() {
 
       // Обрабатываем различные типы ошибок
       let errorTitle = 'Ошибка входа';
-      let errorMessage = 'Произошла ошибка при входе в систему';
+      let errorMessage = error.message || 'Произошла ошибка при входе в систему';
 
       if (error.response) {
         // Сервер ответил с ошибкой
@@ -185,9 +188,6 @@ function LoginForm() {
         // Запрос был сделан, но ответ не получен
         errorTitle = 'Ошибка подключения';
         errorMessage = 'Не удалось подключиться к серверу. Проверьте ваше интернет-соединение.';
-      } else {
-        // Что-то пошло не так при настройке запроса
-        errorMessage = error.message || 'Произошла непредвиденная ошибка';
       }
 
       showToast('error', errorTitle, errorMessage);
@@ -203,6 +203,9 @@ function LoginForm() {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  // Объединяем loading состояния
+  const isFormLoading = isLoading || authLoading;
 
   return (
     <>
@@ -229,7 +232,7 @@ function LoginForm() {
                   className={errors.username ? 'error' : ''}
                   placeholder="Введите ваше имя пользователя"
                   autoComplete="username"
-                  disabled={isLoading}
+                  disabled={isFormLoading}
                   required
                   minLength={1}
                   maxLength={50}
@@ -256,7 +259,7 @@ function LoginForm() {
                   className={errors.password ? 'error' : ''}
                   placeholder="Введите ваш пароль"
                   autoComplete="current-password"
-                  disabled={isLoading}
+                  disabled={isFormLoading}
                   required
                   minLength={1}
                   maxLength={100}
@@ -265,7 +268,7 @@ function LoginForm() {
                   type="button"
                   className="password-toggle-btn"
                   onClick={togglePasswordVisibility}
-                  disabled={isLoading}
+                  disabled={isFormLoading}
                 >
                   {showPassword ? '🙈' : '👁️'}
                 </button>
@@ -283,11 +286,18 @@ function LoginForm() {
               </div>
             )}
 
+            {/* Auth context error */}
+            {authError && !errors.general && (
+              <div className="error-message show general-error">
+                {authError}
+              </div>
+            )}
+
             {/* Submit button */}
             <button
               type="submit"
-              className={`btn-login ${isLoading ? 'loading' : ''}`}
-              disabled={isLoading}
+              className={`btn-login ${isFormLoading ? 'loading' : ''}`}
+              disabled={isFormLoading}
             >
               <span className="btn-text">Войти в систему</span>
               <div className="spinner"></div>
