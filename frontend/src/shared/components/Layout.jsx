@@ -35,6 +35,12 @@ const Layout = ({ children }) => {
             📋 Список RFC
           </button>
           <button
+            className={`nav-link ${isActive('/audit-rfc') ? 'active' : ''}`}
+            onClick={() => handleNavigation('/audit-rfc')}
+          >
+            🔍 Аудит RFC
+          </button>
+          <button
             className={`nav-link ${isActive('/teams') ? 'active' : ''}`}
             onClick={() => handleNavigation('/teams')}
           >

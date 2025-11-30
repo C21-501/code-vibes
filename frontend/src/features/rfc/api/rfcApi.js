@@ -65,6 +65,15 @@ export const rfcApi = {
   getRfcApprovals: (id) =>
     api.get(`/rfc/${id}/approvals`).then(response => response.data),
 
+  // GET /rfc/{id}/history - Get RFC history with pagination
+  getRfcHistory: (id, params = {}) =>
+    api.get(`/rfc/${id}/history`, {
+      params: {
+        page: params.page || 0,
+        size: params.size || 20
+      }
+    }).then(response => response.data),
+
   // PATCH /rfc/{rfcId}/subsystem/{subsystemId}/confirmation - Update confirmation status
   updateSubsystemConfirmation: (rfcId, subsystemId, confirmationData) =>
     api.patch(`/rfc/${rfcId}/subsystem/${subsystemId}/confirmation`, confirmationData)

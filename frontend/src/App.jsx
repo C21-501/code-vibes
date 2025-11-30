@@ -5,6 +5,7 @@ import UserManagement from './features/users/components/UserManagement'
 import TeamManagement from './features/teams/components/TeamManagement'
 import SystemManagement from './features/systems/components/SystemManagement'
 import RfcManagement from './features/rfc/components/RfcManagement'
+import RfcAuditManagement from './features/rfc/components/RfcAuditManagement'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
 import Layout from './shared/components/Layout'
 import LoadingSpinner from './shared/components/LoadingSpinner'
@@ -99,6 +100,17 @@ function AppContent() {
           <ProtectedRoute>
             <Layout>
               <SystemManagement />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/audit-rfc"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <RfcAuditManagement />
             </Layout>
           </ProtectedRoute>
         }
