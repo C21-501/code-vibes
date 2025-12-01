@@ -3,7 +3,10 @@ import './CreateRfcModal.css';
 import { getAllSystems } from '../../systems/api/systemApi';
 import { getAllSystemSubsystems } from '../../systems/api/subsystemApi';
 import { getUsers } from '../../users/api/userApi';
+import { attachmentApi } from '../../../shared/api/attachmentApi';
 import SingleUserSearchSelect from './SingleUserSearchSelect';
+import LoadingSpinner from '../../../shared/components/LoadingSpinner';
+import Toast from '../../../shared/components/Toast';
 
 const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -11,16 +14,20 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
     description: '',
     implementationDate: '',
     urgency: 'PLANNED',
-    affectedSystems: []
+    affectedSystems: [],
+    attachmentIds: []
   });
 
   const [errors, setErrors] = useState({});
   const [systems, setSystems] = useState([]);
-  const [subsystems, setSubsystems] = useState({}); // { systemId: [subsystems] }
+  const [subsystems, setSubsystems] = useState({});
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [systemsLoading, setSystemsLoading] = useState(false);
   const [systemsError, setSystemsError] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
 
   // Сброс формы при открытии/закрытии
   useEffect(() => {
@@ -30,8 +37,10 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
         description: '',
         implementationDate: '',
         urgency: 'PLANNED',
-        affectedSystems: []
+        affectedSystems: [],
+        attachmentIds: []
       });
+      setAttachments([]);
       setErrors({});
       setSystemsError(null);
       loadSystemsAndUsers();
@@ -59,7 +68,7 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
 
   // Загрузка подсистем для системы
   const loadSubsystems = async (systemId) => {
-    if (subsystems[systemId]) return; // Уже загружены
+    if (subsystems[systemId]) return;
 
     try {
       const subsystemsData = await getAllSystemSubsystems(systemId);
@@ -70,6 +79,71 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
     } catch (error) {
       console.error(`Failed to load subsystems for system ${systemId}:`, error);
     }
+  };
+
+  // Функции для работы с файлами
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+
+    // Проверка размера файла (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('error', 'Ошибка', 'Размер файла не должен превышать 5MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const response = await attachmentApi.uploadAttachment(file);
+      const newAttachment = {
+        id: response.id,
+        originalFilename: file.name,
+        fileSize: file.size,
+        contentType: file.type,
+        createDatetime: new Date().toISOString()
+      };
+
+      setAttachments(prev => [...prev, newAttachment]);
+      setFormData(prev => ({
+        ...prev,
+        attachmentIds: [...prev.attachmentIds, response.id]
+      }));
+
+      showToast('success', 'Успех', 'Файл успешно загружен');
+    } catch (error) {
+      console.error('File upload error:', error);
+      const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось загрузить файл';
+      showToast('error', 'Ошибка', errorMessage);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAttachment = (attachmentId) => {
+    setAttachments(prev => prev.filter(a => a.id !== attachmentId));
+    setFormData(prev => ({
+      ...prev,
+      attachmentIds: prev.attachmentIds.filter(id => id !== attachmentId)
+    }));
+  };
+
+  const showToast = (type, title, message) => {
+    setToast({ show: true, type, title, message });
+    setTimeout(() => setToast({ ...toast, show: false }), 5000);
+  };
+
+  const handleFileInputChange = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => handleFileUpload(file));
+    e.target.value = ''; // Сброс input
+  };
+
+  // Функция для форматирования размера файла
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   if (!isOpen) return null;
@@ -124,7 +198,7 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
           executorId: subsystem.executor ? parseInt(subsystem.executor.id) : null
         }))
       })),
-      attachmentIds: []
+      attachmentIds: formData.attachmentIds
     };
 
     onSubmit(apiData);
@@ -458,8 +532,66 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
               ))}
             </div>
 
+            {/* Новая секция для вложений */}
+            <div className="form-section">
+              <div className="form-section-header">
+                <h3>Вложения</h3>
+              </div>
+
+              <div className="attachments-section">
+                <div className="file-upload-area">
+                  <input
+                    type="file"
+                    id="file-upload"
+                    multiple
+                    onChange={handleFileInputChange}
+                    disabled={uploading}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="file-upload" className="file-upload-label">
+                    {uploading ? (
+                      <LoadingSpinner size="small" />
+                    ) : (
+                      <>
+                        <span className="upload-icon">📎</span>
+                        <span>Выберите файлы для загрузки</span>
+                        <small>Максимум 5MB на файл</small>
+                      </>
+                    )}
+                  </label>
+                </div>
+
+                {attachments.length > 0 && (
+                  <div className="attachments-list">
+                    <h4>Загруженные файлы:</h4>
+                    {attachments.map(attachment => (
+                      <div key={attachment.id} className="attachment-item">
+                        <div className="attachment-info">
+                          <span className="attachment-icon">📎</span>
+                          <div className="attachment-details">
+                            <span className="attachment-name">{attachment.originalFilename}</span>
+                            <span className="attachment-meta">
+                              {formatFileSize(attachment.fileSize)} •
+                              {new Date(attachment.createDatetime).toLocaleDateString('ru-RU')}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAttachment(attachment.id)}
+                          className="btn-remove-attachment"
+                        >
+                          × Удалить
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="modal-footer">
-              <button type="submit" className="btn btn-primary" disabled={loading || systemsLoading}>
+              <button type="submit" className="btn btn-primary" disabled={loading || systemsLoading || uploading}>
                 {loading ? 'Загрузка...' : 'Создать RFC'}
               </button>
               <button type="button" onClick={onClose} className="btn btn-secondary">
@@ -469,6 +601,14 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
           </form>
         </div>
       </div>
+
+      <Toast
+        show={toast.show}
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
     </div>
   );
 };

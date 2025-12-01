@@ -18,14 +18,16 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
     implementationDate: '',
     urgency: 'PLANNED',
     affectedSystems: [],
-    attachmentIds: []
+    attachmentIds: [],
+    attachments: []
   });
   const [systems, setSystems] = useState([]);
-  const [subsystems, setSubsystems] = useState({}); // { systemId: [subsystems] }
+  const [subsystems, setSubsystems] = useState({});
   const [teams, setTeams] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
 
@@ -49,10 +51,11 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
               username: subsystem.executorUsername || '',
               role: subsystem.executorRole || 'USER'
             },
-            isExisting: true // Помечаем существующие подсистемы
+            isExisting: true
           }))
         })) : [],
-        attachmentIds: rfc.attachments ? rfc.attachments.map(a => a.id) : []
+        attachmentIds: rfc.attachments ? rfc.attachments.map(a => a.id) : [],
+        attachments: rfc.attachments || []
       });
 
       // Загружаем подсистемы для уже выбранных систем
@@ -111,9 +114,63 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
     }
   };
 
+  // Функции для работы с файлами
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+
+    // Проверка размера файла (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('error', 'Ошибка', 'Размер файла не должен превышать 5MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const response = await attachmentApi.uploadAttachment(file);
+      const newAttachment = {
+        id: response.id,
+        originalFilename: file.name,
+        fileSize: file.size,
+        contentType: file.type,
+        createDatetime: new Date().toISOString()
+      };
+
+      setFormData(prev => ({
+        ...prev,
+        attachments: [...prev.attachments, newAttachment],
+        attachmentIds: [...prev.attachmentIds, response.id]
+      }));
+
+      showToast('success', 'Успех', 'Файл успешно загружен');
+    } catch (error) {
+      console.error('File upload error:', error);
+      const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось загрузить файл';
+      showToast('error', 'Ошибка', errorMessage);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAttachment = (attachmentId) => {
+    setFormData(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter(a => a.id !== attachmentId),
+      attachmentIds: prev.attachmentIds.filter(id => id !== attachmentId)
+    }));
+  };
+
   const showToast = (type, title, message) => {
     setToast({ show: true, type, title, message });
     setTimeout(() => setToast({ ...toast, show: false }), 5000);
+  };
+
+  // Функция для форматирования размера файла
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const handleInputChange = (e) => {
@@ -169,7 +226,7 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
                 {
                   subsystemId: '',
                   executor: null,
-                  isExisting: false // Новые подсистемы можно редактировать
+                  isExisting: false
                 }
               ]
             }
@@ -205,33 +262,6 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
             }
           : system
       )
-    }));
-  };
-
-  const handleAttachmentUpload = async (file) => {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await attachmentApi.uploadAttachment(formData);
-      setFormData(prev => ({
-        ...prev,
-        attachmentIds: [...prev.attachmentIds, response.id]
-      }));
-
-      showToast('success', 'Успех', 'Файл успешно загружен');
-      return response;
-    } catch (error) {
-      const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось загрузить файл';
-      showToast('error', 'Ошибка', errorMessage);
-      throw error;
-    }
-  };
-
-  const handleRemoveAttachment = (attachmentId) => {
-    setFormData(prev => ({
-      ...prev,
-      attachmentIds: prev.attachmentIds.filter(id => id !== attachmentId)
     }));
   };
 
@@ -453,6 +483,7 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
                           onChange={(e) => handleSubsystemChange(systemIndex, subsystemIndex, 'subsystemId', e.target.value)}
                           required
                           className={!subsystem.subsystemId ? 'error' : ''}
+                          disabled={subsystem.isExisting}
                         >
                           <option value="">Выберите подсистему</option>
                           {getSubsystemsForSystem(system.systemId).map(subsys => (
@@ -477,6 +508,7 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
                         onClick={() => handleRemoveSubsystem(systemIndex, subsystemIndex)}
                         className="btn-remove"
                         style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer', marginTop: '0' }}
+                        disabled={subsystem.isExisting && system.affectedSubsystems.length === 1}
                       >
                         ×
                       </button>
@@ -499,52 +531,49 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
           <div className="form-section">
             <h3>Вложения</h3>
             <div className="attachments-section">
-              <input
-                type="file"
-                id="file-upload"
-                onChange={(e) => {
-                  if (e.target.files[0]) {
-                    handleAttachmentUpload(e.target.files[0]);
-                  }
-                }}
-                style={{ display: 'none' }}
-              />
-              <label htmlFor="file-upload" className="btn-upload" style={{
-                display: 'inline-block',
-                background: '#2ecc71',
-                color: 'white',
-                padding: '8px 12px',
-                borderRadius: '3px',
-                cursor: 'pointer',
-                marginBottom: '10px'
-              }}>
-                📎 Загрузить файл
-              </label>
-
-              <div className="attachments-list">
-                {formData.attachmentIds.map((id, index) => (
-                  <div key={id} className="attachment-item" style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '5px 10px',
-                    background: '#f9f9f9',
-                    border: '1px solid #ddd',
-                    borderRadius: '3px',
-                    marginBottom: '5px'
-                  }}>
-                    <span>Вложение {index + 1} (ID: {id})</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAttachment(id)}
-                      className="btn-remove"
-                      style={{ background: '#e74c3c', color: 'white', border: 'none', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer' }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+              <div className="file-upload-area">
+                <input
+                  type="file"
+                  id="file-upload"
+                  onChange={(e) => {
+                    if (e.target.files[0]) {
+                      handleFileUpload(e.target.files[0]);
+                    }
+                  }}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="file-upload" className="file-upload-label">
+                  {uploading ? <LoadingSpinner size="small" /> : '📎 Загрузить новый файл'}
+                </label>
               </div>
+
+              {formData.attachments.length > 0 && (
+                <div className="attachments-list">
+                  <h4>Текущие вложения:</h4>
+                  {formData.attachments.map(attachment => (
+                    <div key={attachment.id} className="attachment-item">
+                      <div className="attachment-info">
+                        <span className="attachment-icon">📎</span>
+                        <div className="attachment-details">
+                          <span className="attachment-name">{attachment.originalFilename}</span>
+                          <span className="attachment-meta">
+                            {formatFileSize(attachment.fileSize)} •
+                            {new Date(attachment.createDatetime).toLocaleDateString('ru-RU')}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAttachment(attachment.id)}
+                        className="btn-remove-attachment"
+                      >
+                        × Удалить
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -568,7 +597,7 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
             <button
               type="submit"
               className="btn-primary"
-              disabled={submitting || loading}
+              disabled={submitting || loading || uploading}
               style={{
                 background: '#3498db',
                 color: 'white',

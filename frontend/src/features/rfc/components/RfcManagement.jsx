@@ -101,6 +101,15 @@ const RfcManagement = () => {
       }
     }
 
+    // Обрабатываем вложения - добавляем информацию о загрузившем пользователе
+    if (rfc.attachments && Array.isArray(rfc.attachments)) {
+      for (let attachment of enrichedRfc.attachments) {
+        if (attachment.uploadedById) {
+          attachment.uploadedBy = await getUserData(attachment.uploadedById);
+        }
+      }
+    }
+
     return enrichedRfc;
   };
 

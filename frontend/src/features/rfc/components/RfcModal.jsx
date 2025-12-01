@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
+import { attachmentApi } from '../../../shared/api/attachmentApi';
 import {
   canApproveRfc,
   canUnapproveRfc,
@@ -8,8 +9,12 @@ import {
   getConfirmableSubsystems,
   getExecutableSubsystems,
   getStatusLabel,
-  getStatusClass
+  getStatusClass,
+  getUrgencyLabel,
+  getUrgencyClass,
+  formatDate
 } from '../utils/rfcUtils';
+import Toast from '../../../shared/components/Toast';
 import './RfcModal.css';
 
 const RfcModal = ({
@@ -24,6 +29,8 @@ const RfcModal = ({
 }) => {
   const { user } = useAuth();
   const [comment, setComment] = useState('');
+  const [downloading, setDownloading] = useState(null);
+  const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
 
   // Сбрасываем комментарий при открытии модального окна
   useEffect(() => {
@@ -31,6 +38,33 @@ const RfcModal = ({
       setComment('');
     }
   }, [isOpen]);
+
+  // Функция для скачивания файла
+  const handleDownloadAttachment = async (attachmentId, filename) => {
+    setDownloading(attachmentId);
+    try {
+      await attachmentApi.downloadAttachment(attachmentId, filename);
+    } catch (error) {
+      console.error('Download error:', error);
+      showToast('error', 'Ошибка', 'Не удалось скачать файл');
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  // Функция для форматирования размера файла
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const showToast = (type, title, message) => {
+    setToast({ show: true, type, title, message });
+    setTimeout(() => setToast({ ...toast, show: false }), 5000);
+  };
 
   if (!isOpen) return null;
 
@@ -42,6 +76,7 @@ const RfcModal = ({
   console.log('RFC Approvals:', rfc?.approvals);
   console.log('RFC Affected Systems:', rfc?.affectedSystems);
   console.log('RFC actions:', rfc?.actions);
+  console.log('RFC Attachments:', rfc?.attachments);
 
   const canApprove = canApproveRfc(user, rfc);
   const canUnapprove = canUnapproveRfc(user, rfc);
@@ -99,6 +134,36 @@ const RfcModal = ({
         </div>
         <div className="modal-body">
           {children}
+
+          {/* Секция вложений */}
+          {rfc?.attachments && rfc.attachments.length > 0 && (
+            <div className="detail-section">
+              <h3>Вложения</h3>
+              <div className="attachments-list">
+                {rfc.attachments.map(attachment => (
+                  <div key={attachment.id} className="attachment-item">
+                    <div className="attachment-info">
+                      <span className="attachment-icon">📎</span>
+                      <div className="attachment-details">
+                        <span className="attachment-name">{attachment.originalFilename}</span>
+                        <span className="attachment-meta">
+                          {formatFileSize(attachment.fileSize)} •
+                          {new Date(attachment.createDatetime).toLocaleDateString('ru-RU')}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDownloadAttachment(attachment.id, attachment.originalFilename)}
+                      disabled={downloading === attachment.id}
+                      className="btn-download"
+                    >
+                      {downloading === attachment.id ? '⏳' : '⬇️'} Скачать
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Блок действий */}
           {(canApprove || canUnapprove || canConfirm || canUpdateExec) && (
@@ -232,6 +297,14 @@ const RfcModal = ({
           )}
         </div>
       </div>
+
+      <Toast
+        show={toast.show}
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
     </div>
   );
 };
