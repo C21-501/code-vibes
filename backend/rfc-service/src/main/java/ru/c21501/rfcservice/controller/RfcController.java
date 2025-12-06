@@ -32,10 +32,13 @@ public class RfcController implements RfcApi {
     }
 
     @Override
-    public RfcPageResponse getRfcs(Integer page, Integer size, String status, String urgency, Long requesterId) {
-        log.info("GET /api/rfc - Getting RFC list with filters: status={}, urgency={}, requesterId={}, page={}, size={}",
-                status, urgency, requesterId, page, size);
-        return rfcApiService.getRfcs(page, size, status, urgency, requesterId);
+    public RfcPageResponse getRfcs(Integer page, Integer size, String status, String urgency, Long requesterId, String title) {
+        log.info(
+                "GET /api/rfc - Getting RFC list with filters: " +
+                        "status={}, urgency={}, requesterId={}, title={}, page={}, size={}",
+                status, urgency, requesterId, title, page, size
+        );
+        return rfcApiService.getRfcs(page, size, status, urgency, requesterId, title);
     }
 
     @Override

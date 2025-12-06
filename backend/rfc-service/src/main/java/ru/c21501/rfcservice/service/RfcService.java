@@ -47,7 +47,7 @@ public interface RfcService {
      * @param pageable    параметры пагинации
      * @return страница с RFC
      */
-    Page<RfcEntity> getRfcs(String status, String urgency, Long requesterId, Pageable pageable);
+    Page<RfcEntity> getRfcs(String status, String urgency, Long requesterId, String title, Pageable pageable);
 
     /**
      * Удалить RFC (soft-delete)
