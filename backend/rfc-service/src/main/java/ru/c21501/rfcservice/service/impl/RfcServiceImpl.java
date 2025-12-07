@@ -173,8 +173,9 @@ public class RfcServiceImpl implements RfcService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<RfcEntity> getRfcs(String status, String urgency, Long requesterId, Pageable pageable) {
-        log.debug("Getting RFCs: status={}, urgency={}, requesterId={}", status, urgency, requesterId);
+    public Page<RfcEntity> getRfcs(String status, String urgency, Long requesterId, String title, Pageable pageable) {
+        log.debug("Getting RFCs: status={}, urgency={}, requesterId={}, title={}",
+                status, urgency, requesterId, title);
 
         Specification<RfcEntity> spec = RfcSpecification.isNotDeleted();
 
@@ -186,6 +187,9 @@ public class RfcServiceImpl implements RfcService {
         }
         if (requesterId != null) {
             spec = spec.and(RfcSpecification.hasRequesterId(requesterId));
+        }
+        if (title != null && !title.trim().isEmpty()) {
+            spec = spec.and(RfcSpecification.hasTitleLike(title.trim()));
         }
 
         return rfcRepository.findAll(spec, pageable);
