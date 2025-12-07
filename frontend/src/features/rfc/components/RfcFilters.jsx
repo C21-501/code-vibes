@@ -1,45 +1,91 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { RFC_STATUS, URGENCY } from '../utils/rfcUtils';
 import './RfcFilters.css';
 
-const RfcFilters = ({
+const RfcFilters = React.memo(({
   filters,
   onStatusChange,
   onUrgencyChange,
   onRequesterChange,
+  onTitleChange,
   onMyRfcChange,
-  onApplyFilters,
   currentUser
 }) => {
-  const [localFilters, setLocalFilters] = useState(filters);
+  const [titleInput, setTitleInput] = useState(filters.title || '');
+  const debounceTimeout = useRef(null);
+  const prevFiltersRef = useRef(filters);
 
-  const handleStatusChange = (e) => {
-    const newFilters = { ...localFilters, status: e.target.value };
-    setLocalFilters(newFilters);
+  // Синхронизация поля названия с пропсами только при реальном изменении
+  useEffect(() => {
+    // Проверяем, изменился ли фильтр title в пропсах
+    if (filters.title !== prevFiltersRef.current.title) {
+      setTitleInput(filters.title || '');
+      prevFiltersRef.current = filters;
+    }
+  }, [filters]);
+
+  // Debounce для поиска по названию
+  useEffect(() => {
+    // Очищаем предыдущий таймаут
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    // Если поиск пустой, применяем сразу
+    if (!titleInput || titleInput.trim().length === 0) {
+      onTitleChange('');
+      return;
+    }
+
+    // Если 1-2 символа, ждем
+    if (titleInput.trim().length < 3) {
+      return;
+    }
+
+    // Устанавливаем таймаут для поиска с 3+ символами
+    debounceTimeout.current = setTimeout(() => {
+      onTitleChange(titleInput.trim());
+    }, 500);
+
+    // Очистка
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [titleInput, onTitleChange]);
+
+  const handleStatusChange = useCallback((e) => {
     onStatusChange(e.target.value);
-  };
+  }, [onStatusChange]);
 
-  const handleUrgencyChange = (e) => {
-    const newFilters = { ...localFilters, urgency: e.target.value };
-    setLocalFilters(newFilters);
+  const handleUrgencyChange = useCallback((e) => {
     onUrgencyChange(e.target.value);
-  };
+  }, [onUrgencyChange]);
 
-  const handleRequesterChange = (e) => {
-    const newFilters = { ...localFilters, requesterId: e.target.value };
-    setLocalFilters(newFilters);
-    onRequesterChange(e.target.value);
-  };
+  const handleRequesterChange = useCallback((e) => {
+    const value = e.target.value;
+    onRequesterChange(value === '' ? '' : value);
+  }, [onRequesterChange]);
 
-  const handleMyRfcChange = (e) => {
+  const handleTitleInputChange = useCallback((e) => {
+    setTitleInput(e.target.value);
+  }, []);
+
+  const handleMyRfcChange = useCallback((e) => {
     onMyRfcChange(e.target.checked);
-  };
+  }, [onMyRfcChange]);
 
-  const handleReset = () => {
-    const resetFilters = { status: '', urgency: '', requesterId: '' };
-    setLocalFilters(resetFilters);
-    onApplyFilters(resetFilters);
-  };
+  const handleReset = useCallback(() => {
+    onStatusChange('');
+    onUrgencyChange('');
+    onRequesterChange('');
+    onTitleChange('');
+    setTitleInput('');
+    if (currentUser) {
+      onMyRfcChange(false);
+    }
+  }, [onStatusChange, onUrgencyChange, onRequesterChange, onTitleChange, onMyRfcChange, currentUser]);
 
   return (
     <div className="rfc-filters">
@@ -48,7 +94,7 @@ const RfcFilters = ({
           <label htmlFor="status-filter">Статус</label>
           <select
             id="status-filter"
-            value={localFilters.status}
+            value={filters.status}
             onChange={handleStatusChange}
           >
             <option value="">Все статусы</option>
@@ -64,7 +110,7 @@ const RfcFilters = ({
           <label htmlFor="urgency-filter">Срочность</label>
           <select
             id="urgency-filter"
-            value={localFilters.urgency}
+            value={filters.urgency}
             onChange={handleUrgencyChange}
           >
             <option value="">Все</option>
@@ -74,14 +120,33 @@ const RfcFilters = ({
           </select>
         </div>
 
+        {/* ПОИСК ПО НАЗВАНИЮ (перенесен на третье место) */}
+        <div className="filter-group">
+          <label htmlFor="title-filter">Поиск по названию</label>
+          <input
+            type="text"
+            id="title-filter"
+            value={titleInput}
+            onChange={handleTitleInputChange}
+            placeholder="Введите минимум 3 символа..."
+          />
+          {titleInput && titleInput.trim().length > 0 && titleInput.trim().length < 3 && (
+            <small style={{ color: '#f39c12', marginTop: '5px', display: 'block' }}>
+              Введите ещё {3 - titleInput.trim().length} символ(а) для поиска
+            </small>
+          )}
+        </div>
+
+        {/* ID СОЗДАТЕЛЯ (перенесен на четвертое место) */}
         <div className="filter-group">
           <label htmlFor="requester-filter">ID создателя</label>
           <input
             type="number"
             id="requester-filter"
-            value={localFilters.requesterId}
+            value={filters.requesterId || ''}
             onChange={handleRequesterChange}
             placeholder="Введите ID"
+            min="0"
           />
         </div>
 
@@ -91,7 +156,7 @@ const RfcFilters = ({
             <input
               type="checkbox"
               id="my-rfc-filter"
-              checked={localFilters.requesterId === currentUser?.id}
+              checked={filters.requesterId === currentUser?.id}
               onChange={handleMyRfcChange}
               className="filter-checkbox"
             />
@@ -112,6 +177,8 @@ const RfcFilters = ({
       </div>
     </div>
   );
-};
+});
+
+RfcFilters.displayName = 'RfcFilters';
 
 export default RfcFilters;

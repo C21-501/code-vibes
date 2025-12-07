@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { rfcApi } from '../api/rfcApi';
 
 export const useRfcs = (initialFilters = {}) => {
@@ -13,9 +13,18 @@ export const useRfcs = (initialFilters = {}) => {
     first: true,
     last: false
   });
-  const [filters, setFilters] = useState(initialFilters);
+  const [filters, setFilters] = useState({
+    status: initialFilters.status || '',
+    urgency: initialFilters.urgency || '',
+    requesterId: initialFilters.requesterId || '',
+    title: initialFilters.title || ''
+  });
 
-  const loadRfcs = async (page = 0, newFilters = filters) => {
+  // useRef для хранения предыдущих фильтров
+  const prevFiltersRef = useRef(filters);
+  const isMountedRef = useRef(false);
+
+  const loadRfcs = useCallback(async (page = 0, newFilters = filters) => {
     setLoading(true);
     setError(null);
 
@@ -42,26 +51,40 @@ export const useRfcs = (initialFilters = {}) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.size]);
 
-  const updateFilters = (newFilters) => {
+  const updateFilters = useCallback((newFilters) => {
+    // Проверяем, действительно ли фильтры изменились
+    const filtersChanged =
+      newFilters.status !== filters.status ||
+      newFilters.urgency !== filters.urgency ||
+      newFilters.requesterId !== filters.requesterId ||
+      newFilters.title !== filters.title;
+
+    if (!filtersChanged && isMountedRef.current) {
+      return; // Фильтры не изменились, выходим
+    }
+
     setFilters(newFilters);
     loadRfcs(0, newFilters);
-  };
+  }, [filters, loadRfcs]);
 
-  const goToPage = (page) => {
+  const goToPage = useCallback((page) => {
     loadRfcs(page, filters);
-  };
+  }, [filters, loadRfcs]);
+
+  const refetch = useCallback(() => {
+    loadRfcs(pagination.page, filters);
+  }, [pagination.page, filters, loadRfcs]);
 
   // Новые методы для approve/confirm
-  const approveRfc = async (rfcId, comment = '') => {
+  const approveRfc = useCallback(async (rfcId, comment = '') => {
     try {
       console.log('Approving RFC:', { rfcId, comment });
       const response = await rfcApi.approveRfc(rfcId, { comment });
       console.log('Approve RFC response:', response);
 
-      // Принудительно обновляем данные RFC после согласования
-      await loadRfcs(pagination.page, filters);
+      await refetch();
       return response;
     } catch (err) {
       const errorMessage = err.response?.data?.errors?.[0]?.message || 'Ошибка согласования RFC';
@@ -69,16 +92,15 @@ export const useRfcs = (initialFilters = {}) => {
       setError(errorMessage);
       throw new Error(errorMessage);
     }
-  };
+  }, [refetch]);
 
-  const unapproveRfc = async (rfcId, comment = '') => {
+  const unapproveRfc = useCallback(async (rfcId, comment = '') => {
     try {
       console.log('Unapproving RFC:', { rfcId, comment });
       const response = await rfcApi.unapproveRfc(rfcId, { comment });
       console.log('Unapprove RFC response:', response);
 
-      // Принудительно обновляем данные RFC после отмены согласования
-      await loadRfcs(pagination.page, filters);
+      await refetch();
       return response;
     } catch (err) {
       const errorMessage = err.response?.data?.errors?.[0]?.message || 'Ошибка отмены согласования RFC';
@@ -86,16 +108,15 @@ export const useRfcs = (initialFilters = {}) => {
       setError(errorMessage);
       throw new Error(errorMessage);
     }
-  };
+  }, [refetch]);
 
-  const confirmSubsystem = async (rfcId, subsystemId, status, comment = '') => {
+  const confirmSubsystem = useCallback(async (rfcId, subsystemId, status, comment = '') => {
     try {
       console.log('Confirming subsystem:', { rfcId, subsystemId, status, comment });
       const response = await rfcApi.updateSubsystemConfirmation(rfcId, subsystemId, { status, comment });
       console.log('Confirm subsystem response:', response);
 
-      // Принудительно обновляем данные RFC после подтверждения подсистемы
-      await loadRfcs(pagination.page, filters);
+      await refetch();
       return response;
     } catch (err) {
       const errorMessage = err.response?.data?.errors?.[0]?.message || 'Ошибка подтверждения подсистемы';
@@ -103,16 +124,15 @@ export const useRfcs = (initialFilters = {}) => {
       setError(errorMessage);
       throw new Error(errorMessage);
     }
-  };
+  }, [refetch]);
 
-  const updateExecutionStatus = async (rfcId, subsystemId, status, comment = '') => {
+  const updateExecutionStatus = useCallback(async (rfcId, subsystemId, status, comment = '') => {
     try {
       console.log('Updating execution status:', { rfcId, subsystemId, status, comment });
       const response = await rfcApi.updateSubsystemExecution(rfcId, subsystemId, { status, comment });
       console.log('Update execution status response:', response);
 
-      // Принудительно обновляем данные RFC после обновления статуса выполнения
-      await loadRfcs(pagination.page, filters);
+      await refetch();
       return response;
     } catch (err) {
       const errorMessage = err.response?.data?.errors?.[0]?.message || 'Ошибка обновления статуса выполнения';
@@ -120,18 +140,15 @@ export const useRfcs = (initialFilters = {}) => {
       setError(errorMessage);
       throw new Error(errorMessage);
     }
-  };
+  }, [refetch]);
 
   // Функция для удаления RFC
-  const deleteRfc = async (id) => {
+  const deleteRfc = useCallback(async (id) => {
     try {
       setLoading(true);
       await rfcApi.deleteRfc(id);
 
-      // Удаляем RFC из локального состояния
       setRfcs(prevRfcs => prevRfcs.filter(rfc => rfc.id !== id));
-
-      // Обновляем пагинацию
       setPagination(prev => ({
         ...prev,
         totalElements: prev.totalElements - 1
@@ -146,15 +163,14 @@ export const useRfcs = (initialFilters = {}) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Функция для обновления RFC
-  const updateRfc = async (id, rfcData) => {
+  const updateRfc = useCallback(async (id, rfcData) => {
     try {
       setLoading(true);
       const response = await rfcApi.updateRfc(id, rfcData);
 
-      // Обновляем RFC в локальном состоянии
       setRfcs(prevRfcs =>
         prevRfcs.map(rfc => rfc.id === id ? response : rfc)
       );
@@ -168,16 +184,14 @@ export const useRfcs = (initialFilters = {}) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Функция для принудительного обновления конкретного RFC
-  const refreshRfc = async (rfcId) => {
+  const refreshRfc = useCallback(async (rfcId) => {
     try {
       console.log('Refreshing RFC:', rfcId);
       const updatedRfc = await rfcApi.getRfcById(rfcId);
-      console.log('Refreshed RFC data:', updatedRfc);
 
-      // Обновляем RFC в списке
       setRfcs(prevRfcs =>
         prevRfcs.map(rfc => rfc.id === rfcId ? updatedRfc : rfc)
       );
@@ -186,10 +200,15 @@ export const useRfcs = (initialFilters = {}) => {
       console.error('Error refreshing RFC:', err);
       return null;
     }
-  };
+  }, []);
 
   useEffect(() => {
+    isMountedRef.current = true;
     loadRfcs(0, filters);
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   return {
@@ -201,14 +220,13 @@ export const useRfcs = (initialFilters = {}) => {
     loadRfcs,
     updateFilters,
     goToPage,
-    refetch: () => loadRfcs(pagination.page, filters),
-    // Новые методы
+    refetch,
     approveRfc,
     unapproveRfc,
     confirmSubsystem,
     updateExecutionStatus,
     refreshRfc,
     deleteRfc,
-    updateRfc // Добавляем метод обновления
+    updateRfc
   };
 };

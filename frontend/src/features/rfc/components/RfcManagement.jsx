@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRfcs } from '../hooks/useRfcs';
 import { useAuth } from '../../auth/context/AuthContext';
 import { rfcApi } from '../api/rfcApi';
@@ -32,9 +32,16 @@ const RfcManagement = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedRfcForStatus, setSelectedRfcForStatus] = useState(null);
   const [toast, setToast] = useState({ show: false, type: '', title: '', message: '' });
-  const [usersCache, setUsersCache] = useState(new Map()); // Кэш пользователей
+  const [usersCache, setUsersCache] = useState(new Map());
 
-  // Используем хук для управления RFC с методами для действий
+  // Используем useMemo для начальных фильтров
+  const initialFilters = useMemo(() => ({
+    status: '',
+    urgency: '',
+    requesterId: '',
+    title: ''
+  }), []);
+
   const {
     rfcs,
     loading,
@@ -51,44 +58,36 @@ const RfcManagement = () => {
     refreshRfc,
     deleteRfc,
     updateRfc
-  } = useRfcs({
-    status: '',
-    urgency: '',
-    requesterId: ''
-  });
+  } = useRfcs(initialFilters);
 
-  // Функция для получения данных пользователя
-  const getUserData = async (userId) => {
+  // Функция для получения данных пользователя с кэшированием
+  const getUserData = useCallback(async (userId) => {
     if (!userId) return null;
 
-    // Проверяем кэш
     if (usersCache.has(userId)) {
       return usersCache.get(userId);
     }
 
     try {
       const userData = await usersApi.getUserById(userId);
-      // Сохраняем в кэш
       setUsersCache(prev => new Map(prev).set(userId, userData));
       return userData;
     } catch (error) {
       console.error(`Failed to fetch user ${userId}:`, error);
       return null;
     }
-  };
+  }, [usersCache]);
 
   // Функция для обогащения RFC данными пользователей
-  const enrichRfcWithUserData = async (rfc) => {
+  const enrichRfcWithUserData = useCallback(async (rfc) => {
     if (!rfc) return rfc;
 
     const enrichedRfc = { ...rfc };
 
-    // Загружаем данные создателя
     if (rfc.requesterId) {
       enrichedRfc.requester = await getUserData(rfc.requesterId);
     }
 
-    // Загружаем данные исполнителей для подсистем
     if (rfc.affectedSystems && Array.isArray(rfc.affectedSystems)) {
       for (let system of enrichedRfc.affectedSystems) {
         if (system.affectedSubsystems && Array.isArray(system.affectedSubsystems)) {
@@ -101,7 +100,6 @@ const RfcManagement = () => {
       }
     }
 
-    // Обрабатываем вложения - добавляем информацию о загрузившем пользователе
     if (rfc.attachments && Array.isArray(rfc.attachments)) {
       for (let attachment of enrichedRfc.attachments) {
         if (attachment.uploadedById) {
@@ -111,77 +109,76 @@ const RfcManagement = () => {
     }
 
     return enrichedRfc;
-  };
+  }, [getUserData]);
 
   // Функции для уведомлений
-  const showToast = (type, title, message) => {
+  const showToast = useCallback((type, title, message) => {
     setToast({ show: true, type, title, message });
-    setTimeout(() => setToast({ ...toast, show: false }), 5000);
-  };
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
 
-  const hideToast = () => {
-    setToast({ ...toast, show: false });
-  };
+  const hideToast = useCallback(() => {
+    setToast(prev => ({ ...prev, show: false }));
+  }, []);
 
-  // Обработчики фильтров
-  const handleStatusFilterChange = (status) => {
+  // Обработчики фильтров с useCallback
+  const handleStatusFilterChange = useCallback((status) => {
     updateFilters({ ...filters, status });
-  };
+  }, [filters, updateFilters]);
 
-  const handleUrgencyFilterChange = (urgency) => {
+  const handleUrgencyFilterChange = useCallback((urgency) => {
     updateFilters({ ...filters, urgency });
-  };
+  }, [filters, updateFilters]);
 
-  const handleRequesterFilterChange = (requesterId) => {
+  const handleRequesterFilterChange = useCallback((requesterId) => {
     updateFilters({ ...filters, requesterId });
-  };
+  }, [filters, updateFilters]);
 
-  const handleMyRfcFilterChange = (checked) => {
+  const handleTitleFilterChange = useCallback((title) => {
+    updateFilters({ ...filters, title });
+  }, [filters, updateFilters]);
+
+  const handleMyRfcFilterChange = useCallback((checked) => {
     if (checked) {
       updateFilters({ ...filters, requesterId: user?.id });
     } else {
       updateFilters({ ...filters, requesterId: '' });
     }
-  };
-
-  const handleApplyFilters = (newFilters) => {
-    updateFilters(newFilters);
-  };
+  }, [filters, updateFilters, user]);
 
   // Обработчики пагинации
-  const handlePageChange = (page) => {
+  const handlePageChange = useCallback((page) => {
     goToPage(page);
-  };
+  }, [goToPage]);
 
-  const handlePrevPage = () => {
+  const handlePrevPage = useCallback(() => {
     if (!pagination.first) {
       goToPage(pagination.page - 1);
     }
-  };
+  }, [pagination.first, pagination.page, goToPage]);
 
-  const handleNextPage = () => {
+  const handleNextPage = useCallback(() => {
     if (!pagination.last) {
       goToPage(pagination.page + 1);
     }
-  };
+  }, [pagination.last, pagination.page, goToPage]);
 
   // Обработчики RFC
-  const handleCreateRfc = async (rfcData) => {
+  const handleCreateRfc = useCallback(async (rfcData) => {
     try {
       await rfcApi.createRfc(rfcData);
       setShowCreateModal(false);
       showToast('success', 'Успех', 'RFC успешно создан');
-      refetch(); // Перезагружаем список
+      refetch();
     } catch (error) {
       const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось создать RFC';
       showToast('error', 'Ошибка', errorMessage);
     }
-  };
+  }, [refetch, showToast]);
 
-  const handleViewRfc = async (rfcId) => {
+  const handleViewRfc = useCallback(async (rfcId) => {
     try {
       const rfc = await rfcApi.getRfcById(rfcId);
-      // Обогащаем RFC данными пользователей
       const enrichedRfc = await enrichRfcWithUserData(rfc);
       setSelectedRfc(enrichedRfc);
       setShowViewModal(true);
@@ -189,12 +186,11 @@ const RfcManagement = () => {
       const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось загрузить данные RFC';
       showToast('error', 'Ошибка', errorMessage);
     }
-  };
+  }, [enrichRfcWithUserData, showToast]);
 
-  const handleEditRfc = async (rfcId) => {
+  const handleEditRfc = useCallback(async (rfcId) => {
     try {
       const rfc = await rfcApi.getRfcById(rfcId);
-      // Обогащаем RFC данными пользователей
       const enrichedRfc = await enrichRfcWithUserData(rfc);
       setSelectedRfcForEdit(enrichedRfc);
       setShowEditModal(true);
@@ -202,21 +198,21 @@ const RfcManagement = () => {
       const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось загрузить данные RFC';
       showToast('error', 'Ошибка', errorMessage);
     }
-  };
+  }, [enrichRfcWithUserData, showToast]);
 
-  const handleUpdateRfc = async (rfcId, rfcData) => {
+  const handleUpdateRfc = useCallback(async (rfcId, rfcData) => {
     try {
       await updateRfc(rfcId, rfcData);
       setShowEditModal(false);
       setSelectedRfcForEdit(null);
       showToast('success', 'Успех', 'RFC успешно обновлен');
-      refetch(); // Перезагружаем список
+      refetch();
     } catch (error) {
       showToast('error', 'Ошибка', error.message || 'Не удалось обновить RFC');
     }
-  };
+  }, [updateRfc, refetch, showToast]);
 
-  const handleDeleteRfc = async (rfcId) => {
+  const handleDeleteRfc = useCallback(async (rfcId) => {
     if (!window.confirm('Вы уверены, что хотите удалить этот RFC?')) {
       return;
     }
@@ -227,52 +223,44 @@ const RfcManagement = () => {
     } catch (error) {
       showToast('error', 'Ошибка', error.message || 'Не удалось удалить RFC');
     }
-  };
+  }, [deleteRfc, showToast]);
 
-  const handleStatusAction = (rfc) => {
+  const handleStatusAction = useCallback((rfc) => {
     setSelectedRfcForStatus(rfc);
     setShowStatusModal(true);
-  };
+  }, []);
 
-  // Функция для обновления выбранного RFC
-  const updateSelectedRfc = async (rfcId) => {
+  const updateSelectedRfc = useCallback(async (rfcId) => {
     try {
       console.log('Fetching updated RFC data for:', rfcId);
       const rfc = await rfcApi.getRfcById(rfcId);
-      // Обогащаем RFC данными пользователей
       const updatedRfc = await enrichRfcWithUserData(rfc);
-      console.log('Fetched updated RFC:', updatedRfc);
       setSelectedRfc(updatedRfc);
       return updatedRfc;
     } catch (error) {
       console.error('Error updating selected RFC:', error);
       return null;
     }
-  };
+  }, [enrichRfcWithUserData]);
 
-  // Обогащаем RFC в списке данными пользователей
-  const enrichedRfcs = rfcs.map(rfc => {
-    const enriched = { ...rfc };
-    // Добавляем создателя из кэша если есть
-    if (rfc.requesterId && usersCache.has(rfc.requesterId)) {
-      enriched.requester = usersCache.get(rfc.requesterId);
-    }
-    return enriched;
-  });
+  // Обогащенные RFC с кэшированными пользователями
+  const enrichedRfcs = useMemo(() => {
+    return rfcs.map(rfc => {
+      const enriched = { ...rfc };
+      if (rfc.requesterId && usersCache.has(rfc.requesterId)) {
+        enriched.requester = usersCache.get(rfc.requesterId);
+      }
+      return enriched;
+    });
+  }, [rfcs, usersCache]);
 
-  // Новые обработчики для действий в RfcModal с комментариями по умолчанию
-  const handleApprove = async (rfcId, comment = '') => {
+  const handleApprove = useCallback(async (rfcId, comment = '') => {
     try {
       console.log('Starting approve process for RFC:', rfcId);
       const finalComment = comment.trim() || 'RFC согласован в соответствии с установленными процедурами';
-      const response = await approveRfc(rfcId, finalComment);
-      console.log('Approve API response:', response);
+      await approveRfc(rfcId, finalComment);
 
-      // Принудительно обновляем выбранный RFC
-      const updatedRfc = await updateSelectedRfc(rfcId);
-      console.log('Updated RFC after approval:', updatedRfc);
-
-      // Также обновляем список RFC
+      await updateSelectedRfc(rfcId);
       await refetch();
 
       showToast('success', 'Успех', 'RFC успешно согласован');
@@ -280,20 +268,15 @@ const RfcManagement = () => {
       console.error('Error in handleApprove:', error);
       showToast('error', 'Ошибка', error.message || 'Не удалось согласовать RFC');
     }
-  };
+  }, [approveRfc, updateSelectedRfc, refetch, showToast]);
 
-  const handleUnapprove = async (rfcId, comment = '') => {
+  const handleUnapprove = useCallback(async (rfcId, comment = '') => {
     try {
       console.log('Starting unapprove process for RFC:', rfcId);
       const finalComment = comment.trim() || 'Согласование RFC отозвано по техническим причинам';
-      const response = await unapproveRfc(rfcId, finalComment);
-      console.log('Unapprove API response:', response);
+      await unapproveRfc(rfcId, finalComment);
 
-      // Принудительно обновляем выбранный RFC
-      const updatedRfc = await updateSelectedRfc(rfcId);
-      console.log('Updated RFC after unapproval:', updatedRfc);
-
-      // Также обновляем список RFC
+      await updateSelectedRfc(rfcId);
       await refetch();
 
       showToast('success', 'Успех', 'Согласование RFC отменено');
@@ -301,9 +284,9 @@ const RfcManagement = () => {
       console.error('Error in handleUnapprove:', error);
       showToast('error', 'Ошибка', error.message || 'Не удалось отменить согласование RFC');
     }
-  };
+  }, [unapproveRfc, updateSelectedRfc, refetch, showToast]);
 
-  const handleConfirm = async (rfcId, subsystemId, status, comment = '') => {
+  const handleConfirm = useCallback(async (rfcId, subsystemId, status, comment = '') => {
     try {
       console.log('Confirming subsystem:', { rfcId, subsystemId, status, comment });
 
@@ -317,7 +300,6 @@ const RfcManagement = () => {
       const finalComment = comment.trim() || defaultComment;
       await confirmSubsystem(rfcId, subsystemId, status, finalComment);
 
-      // Обновляем выбранный RFC
       await updateSelectedRfc(rfcId);
       const action = status === 'CONFIRMED' ? 'подтверждена' : 'отклонена';
       showToast('success', 'Успех', `Подсистема ${action}`);
@@ -325,9 +307,9 @@ const RfcManagement = () => {
       console.error('Error in handleConfirm:', error);
       showToast('error', 'Ошибка', error.message || 'Не удалось выполнить действие с подсистемой');
     }
-  };
+  }, [confirmSubsystem, updateSelectedRfc, showToast]);
 
-  const handleUpdateExecution = async (rfcId, subsystemId, status, comment = '') => {
+  const handleUpdateExecution = useCallback(async (rfcId, subsystemId, status, comment = '') => {
     try {
       console.log('Updating execution:', { rfcId, subsystemId, status, comment });
 
@@ -341,7 +323,6 @@ const RfcManagement = () => {
       const finalComment = comment.trim() || defaultComment;
       await updateExecutionStatus(rfcId, subsystemId, status, finalComment);
 
-      // Обновляем выбранный RFC
       await updateSelectedRfc(rfcId);
       const action = status === 'IN_PROGRESS' ? 'начато' : 'завершено';
       showToast('success', 'Успех', `Выполнение подсистемы ${action}`);
@@ -349,19 +330,8 @@ const RfcManagement = () => {
       console.error('Error in handleUpdateExecution:', error);
       showToast('error', 'Ошибка', error.message || 'Не удалось обновить статус выполнения');
     }
-  };
+  }, [updateExecutionStatus, updateSelectedRfc, showToast]);
 
-  const handleStatusUpdate = async (rfcId, action, comment = '') => {
-    try {
-      // Используем существующий API если нужно
-      showToast('info', 'Информация', 'Функция изменения статуса в разработке');
-    } catch (error) {
-      const errorMessage = error.response?.data?.errors?.[0]?.message || 'Не удалось обновить статус RFC';
-      showToast('error', 'Ошибка', errorMessage);
-    }
-  };
-
-  // Рендер контента в зависимости от состояния
   const renderContent = () => {
     if (loading) {
       return (
@@ -388,7 +358,7 @@ const RfcManagement = () => {
     return (
       <>
         <RfcTable
-          rfcs={enrichedRfcs}  // Используем обогащенные данные
+          rfcs={enrichedRfcs}
           currentUser={user}
           onViewRfc={handleViewRfc}
           onEditRfc={handleEditRfc}
@@ -396,7 +366,6 @@ const RfcManagement = () => {
           onStatusAction={handleStatusAction}
         />
 
-        {/* Пагинация */}
         {enrichedRfcs.length > 0 && (
           <div className="rfc-pagination">
             <div className="pagination-info">
@@ -455,23 +424,20 @@ const RfcManagement = () => {
         </button>
       </div>
 
-      {/* Фильтры */}
       <RfcFilters
         filters={filters}
         onStatusChange={handleStatusFilterChange}
         onUrgencyChange={handleUrgencyFilterChange}
         onRequesterChange={handleRequesterFilterChange}
+        onTitleChange={handleTitleFilterChange}
         onMyRfcChange={handleMyRfcFilterChange}
-        onApplyFilters={handleApplyFilters}
         currentUser={user}
       />
 
-      {/* Содержимое */}
       <div className="rfc-content">
         {renderContent()}
       </div>
 
-      {/* Модальные окна */}
       {showCreateModal && (
         <CreateRfcModal
           isOpen={showCreateModal}
@@ -545,7 +511,6 @@ const RfcManagement = () => {
               <p className="description-text">{selectedRfc.description || 'Нет описания'}</p>
             </div>
 
-            {/* Информация о затронутых системах */}
             {selectedRfc.affectedSystems && selectedRfc.affectedSystems.length > 0 && (
               <div className="detail-section">
                 <h3>Затронутые системы и подсистемы</h3>
@@ -583,7 +548,6 @@ const RfcManagement = () => {
         </RfcModal>
       )}
 
-      {/* Модальное окно изменения статуса */}
       {showStatusModal && selectedRfcForStatus && (
         <StatusActionModal
           isOpen={showStatusModal}
@@ -593,11 +557,9 @@ const RfcManagement = () => {
           }}
           rfc={selectedRfcForStatus}
           currentUser={user}
-          onStatusUpdate={handleStatusUpdate}
         />
       )}
 
-      {/* Уведомления */}
       <Toast
         show={toast.show}
         type={toast.type}

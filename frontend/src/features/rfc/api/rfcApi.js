@@ -13,7 +13,8 @@ export const rfcApi = {
         size: params.size || 20,
         status: params.status,
         urgency: params.urgency,
-        requesterId: params.requesterId
+        requesterId: params.requesterId,
+        title: params.title // Добавляем параметр поиска по названию
       }
     }).then(response => response.data),
 
