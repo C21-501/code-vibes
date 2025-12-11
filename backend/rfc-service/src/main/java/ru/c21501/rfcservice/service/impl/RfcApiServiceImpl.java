@@ -69,9 +69,14 @@ public class RfcApiServiceImpl implements RfcApiService {
     }
 
     @Override
-    public RfcPageResponse getRfcs(Integer page, Integer size, String status, String urgency, Long requesterId) {
-        log.info("Getting RFCs with filters - status: {}, urgency: {}, requesterId: {}, page: {}, size: {}",
-                status, urgency, requesterId, page, size);
+    public RfcPageResponse getRfcs(Integer page,
+                                   Integer size,
+                                   String status,
+                                   String urgency,
+                                   Long requesterId,
+                                   String title) {
+        log.info("Getting RFCs with filters - status: {}, urgency: {}, requesterId: {}, title: {}, page: {}, size: {}",
+                status, urgency, requesterId, title, page, size);
 
         // Получаем текущего пользователя для резолва actions
         UserEntity currentUser = securityContextService.getCurrentUser();
@@ -80,7 +85,7 @@ public class RfcApiServiceImpl implements RfcApiService {
         Pageable pageable = PageRequest.of(page != null ? page : 0, size != null ? size : 20);
 
         // Получаем страницу с RFC
-        Page<RfcEntity> rfcPage = rfcService.getRfcs(status, urgency, requesterId, pageable);
+        Page<RfcEntity> rfcPage = rfcService.getRfcs(status, urgency, requesterId, title, pageable);
 
         // Конвертируем сущности в DTO с учетом текущего пользователя
         List<RfcResponse> rfcResponses = rfcPage.getContent().stream()

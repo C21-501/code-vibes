@@ -50,5 +50,10 @@ public interface RfcApiService {
      * @param requesterId фильтр по ID создателя (опционально)
      * @return страница с RFC
      */
-    ru.c21501.rfcservice.openapi.model.RfcPageResponse getRfcs(Integer page, Integer size, String status, String urgency, Long requesterId);
+    ru.c21501.rfcservice.openapi.model.RfcPageResponse getRfcs(Integer page,
+                                                               Integer size,
+                                                               String status,
+                                                               String urgency,
+                                                               Long requesterId,
+                                                               String title);
 }
