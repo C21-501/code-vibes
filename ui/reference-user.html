@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление пользователями - RFC Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .logo {
+            padding: 0 20px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding-bottom: 80px; /* Space for logout button */
+        }
+
+        .nav-item {
+            margin: 5px 0;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 15px 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        /* Logout button */
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 12px;
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-logout:hover {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* User info */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .role-requester {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .role-executor {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .role-cab-manager {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .role-admin {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-view {
+            padding: 6px 12px;
+            background: white;
+            color: #3498db;
+            border: 1px solid #3498db;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: #3498db;
+            color: white;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-edit {
+            padding: 6px 12px;
+            background: white;
+            color: #f39c12;
+            border: 1px solid #f39c12;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-edit:hover {
+            background: #f39c12;
+            color: white;
+            box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+        }
+
+        .btn-delete {
+            padding: 6px 12px;
+            background: white;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-delete:hover {
+            background: #e74c3c;
+            color: white;
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Filters */
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .filter-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .filter-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        /* User Table */
+        .user-table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .user-table thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .user-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .user-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+
+        .user-table tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        .user-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .pagination-info {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #f8f9fa;
+            border-color: #3498db;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .pagination-dots {
+            padding: 0 8px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .detail-section {
+            margin-bottom: 25px;
+        }
+
+        .detail-section h3 {
+            font-size: 16px;
+            color: #495057;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle input {
+            padding-right: 40px;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .password-toggle-btn:hover {
+            color: #495057;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: none;
+            animation: slideInRight 0.3s ease;
+            z-index: 2000;
+            min-width: 300px;
+        }
+
+        .toast.show {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .toast.success .toast-icon {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .toast.error .toast-icon {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .user-table {
+                font-size: 12px;
+            }
+
+            .user-table th,
+            .user-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">RFC System</div>
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="rfc-list.html" class="nav-link">📋 Список RFC</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="reference-team.html" class="nav-link">👥 Команды</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">🖥️ Системы</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">🔧 Подсистемы</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="reference-user.html" class="nav-link active">👤 Пользователи</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-logout" id="logout-btn">
+                    <span>🚪</span>
+                    <span>Выйти</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h1>Управление пользователями</h1>
+                <div class="header-right">
+                    <div class="user-info">
+                        <div class="user-avatar" id="user-avatar">ИИ</div>
+                        <div class="user-details">
+                            <div class="user-name" id="user-name">Иван Иванов</div>
+                            <div class="user-role">
+                                <span class="role-badge role-admin" id="user-role-badge">Администратор</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="openCreateUserModal()">
+                        ➕ Создать пользователя
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="searchString">Поиск</label>
+                        <input 
+                            type="text" 
+                            id="searchString" 
+                            placeholder="Поиск по ID, username, имени или фамилии..."
+                            oninput="filterUsers()"
+                        >
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-primary" onclick="resetFilters()">
+                            🔄 Сбросить фильтры
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="user-table-container">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">ID</th>
+                            <th>Username</th>
+                            <th>Имя</th>
+                            <th>Фамилия</th>
+                            <th>Роль</th>
+                            <th style="width: 180px;">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be rendered here by JavaScript -->
+                    </tbody>
+                </table>
+                
+                <!-- Empty state (shown when no users) -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">👤</div>
+                    <h3>Пользователи не найдены</h3>
+                    <p>Попробуйте изменить параметры поиска или создайте нового пользователя</p>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <div class="pagination-info" id="paginationInfo">
+                        Показано 1-20 из 20 записей (страница 1 из 1)
+                    </div>
+                    <div class="pagination-controls" id="paginationControls">
+                        <button class="pagination-btn" id="prevPageBtn" disabled>← Предыдущая</button>
+                        <div id="pageNumbers" style="display: flex; gap: 5px;">
+                            <button class="pagination-btn active">1</button>
+                        </div>
+                        <button class="pagination-btn" id="nextPageBtn" disabled>Следующая →</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- View User Modal -->
+    <div id="viewUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="viewModalTitle">Информация о пользователе</h2>
+                <button class="close" onclick="closeViewUserModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="viewModalBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeViewUserModal()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Создать пользователя</h2>
+                <button class="close" onclick="closeUserModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm" onsubmit="saveUser(event)">
+                    <input type="hidden" id="userId">
+                    
+                    <div class="form-group">
+                        <label for="username">Username *</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            required 
+                            minlength="3" 
+                            maxlength="50"
+                            pattern="^[a-zA-Z0-9_-]+$"
+                            placeholder="Введите username (только буквы, цифры, _, -)"
+                        >
+                        <small>От 3 до 50 символов. Только буквы, цифры, подчеркивание и дефис (pattern: ^[a-zA-Z0-9_-]+$)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="firstName">Имя *</label>
+                        <input 
+                            type="text" 
+                            id="firstName" 
+                            required 
+                            minlength="1" 
+                            maxlength="100"
+                            placeholder="Введите имя"
+                        >
+                        <small>От 1 до 100 символов (required, minLength: 1, maxLength: 100)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastName">Фамилия *</label>
+                        <input 
+                            type="text" 
+                            id="lastName" 
+                            required 
+                            minlength="1" 
+                            maxlength="100"
+                            placeholder="Введите фамилию"
+                        >
+                        <small>От 1 до 100 символов (required, minLength: 1, maxLength: 100)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">Роль *</label>
+                        <select id="role" required>
+                            <option value="">Выберите роль</option>
+                            <option value="REQUESTER">Инициатор</option>
+                            <option value="EXECUTOR">Исполнитель</option>
+                            <option value="CAB_MANAGER">CAB Менеджер</option>
+                            <option value="ADMIN">Администратор</option>
+                        </select>
+                        <small>Выберите роль пользователя в системе (required, UserRole enum)</small>
+                    </div>
+
+                    <div class="form-group" id="passwordGroup">
+                        <label for="password">Пароль *</label>
+                        <div class="password-toggle">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                required
+                                minlength="8" 
+                                maxlength="100"
+                                placeholder="Введите пароль"
+                            >
+                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password')">
+                                👁️
+                            </button>
+                        </div>
+                        <small>От 8 до 100 символов (обязательно при создании)</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="background: #6c757d; color: white;" onclick="closeUserModal()">
+                    Отмена
+                </button>
+                <button class="btn btn-primary" onclick="document.getElementById('userForm').requestSubmit()">
+                    Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-content">
+            <div class="toast-title" id="toastTitle">Успех</div>
+            <div class="toast-message" id="toastMessage">Операция выполнена успешно</div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data based on OpenAPI specification
+        // Following PageResponse schema from Common.yaml and UserPageResponse
+        // State variables matching UserPageResponse structure:
+        let currentPage = 0; // Maps to response.number (0-indexed, as per OpenAPI spec pageable-page parameter)
+        let pageSize = 20; // Maps to response.size (default: 20, range: 1-100 per pageable-size parameter)
+        let totalElements = 0; // Maps to response.totalElements
+        let totalPages = 0; // Maps to response.totalPages
+        let allUsers = []; // Maps to response.content (array of UserResponse)
+        let filteredUsers = []; // Local filtered copy for mock implementation
+
+        // Initialize with mock data
+        function initializeMockData() {
+            // Mock users (from UserResponse schema)
+            // UserResponse structure according to OpenAPI spec:
+            // {
+            //   id: integer (int64),          // Required - unique user identifier
+            //   username: string,             // Required - username
+            //   firstName: string,           // Required - first name
+            //   lastName: string,            // Required - last name
+            //   role: UserRole                // Required - enum: REQUESTER, EXECUTOR, CAB_MANAGER, ADMIN
+            // }
+            allUsers = [
+                { id: 1, username: 'i.ivanov', firstName: 'Иван', lastName: 'Иванов', role: 'ADMIN' },
+                { id: 2, username: 'p.petrov', firstName: 'Петр', lastName: 'Петров', role: 'EXECUTOR' },
+                { id: 3, username: 's.sidorov', firstName: 'Сергей', lastName: 'Сидоров', role: 'EXECUTOR' },
+                { id: 4, username: 'a.alekseev', firstName: 'Алексей', lastName: 'Алексеев', role: 'CAB_MANAGER' },
+                { id: 5, username: 'm.mikhailov', firstName: 'Михаил', lastName: 'Михайлов', role: 'REQUESTER' },
+                { id: 6, username: 'd.dmitriev', firstName: 'Дмитрий', lastName: 'Дмитриев', role: 'EXECUTOR' },
+                { id: 7, username: 'n.nikolaev', firstName: 'Николай', lastName: 'Николаев', role: 'EXECUTOR' },
+                { id: 8, username: 'v.vasiliev', firstName: 'Василий', lastName: 'Васильев', role: 'REQUESTER' },
+                { id: 9, username: 'o.orlov', firstName: 'Олег', lastName: 'Орлов', role: 'CAB_MANAGER' },
+                { id: 10, username: 'e.egorov', firstName: 'Егор', lastName: 'Егоров', role: 'EXECUTOR' },
+                { id: 11, username: 't.tarasov', firstName: 'Тарас', lastName: 'Тарасов', role: 'REQUESTER' },
+                { id: 12, username: 'r.romanov', firstName: 'Роман', lastName: 'Романов', role: 'EXECUTOR' },
+                { id: 13, username: 'k.kuznetsov', firstName: 'Кирилл', lastName: 'Кузнецов', role: 'CAB_MANAGER' },
+                { id: 14, username: 'f.fedorov', firstName: 'Федор', lastName: 'Федоров', role: 'EXECUTOR' },
+                { id: 15, username: 'g.grigoriev', firstName: 'Григорий', lastName: 'Григорьев', role: 'REQUESTER' },
+                { id: 16, username: 'l.lebedev', firstName: 'Леонид', lastName: 'Лебедев', role: 'EXECUTOR' },
+                { id: 17, username: 'b.borisov', firstName: 'Борис', lastName: 'Борисов', role: 'ADMIN' },
+                { id: 18, username: 'y.yakovlev', firstName: 'Яков', lastName: 'Яковлев', role: 'EXECUTOR' },
+                { id: 19, username: 'z.zakharov', firstName: 'Захар', lastName: 'Захаров', role: 'REQUESTER' },
+                { id: 20, username: 'u.ushakov', firstName: 'Устин', lastName: 'Ушаков', role: 'EXECUTOR' },
+                { id: 21, username: 'i.ilyin', firstName: 'Илья', lastName: 'Ильин', role: 'CAB_MANAGER' },
+                { id: 22, username: 'a.andreev', firstName: 'Андрей', lastName: 'Андреев', role: 'EXECUTOR' }
+            ];
+
+            filteredUsers = [...allUsers];
+            totalElements = filteredUsers.length;
+            calculatePagination();
+            renderUsers();
+        }
+
+        function calculatePagination() {
+            totalPages = Math.ceil(totalElements / pageSize);
+            if (currentPage >= totalPages && totalPages > 0) {
+                currentPage = totalPages - 1;
+            }
+            if (currentPage < 0) {
+                currentPage = 0;
+            }
+        }
+
+        // Filter users according to OpenAPI spec: search by ID, username, firstName, lastName (case-insensitive)
+        // According to OpenAPI spec: searchString parameter has minLength: 1, so empty string should not be sent
+        function filterUsers() {
+            const searchStringInput = document.getElementById('searchString').value.trim();
+            
+            // Reset to first page when filtering
+            currentPage = 0;
+            
+            // In real app, make API call: GET /user
+            // Parameters:
+            //   - page: integer (0-indexed, default: 0, minimum: 0)
+            //   - size: integer (default: 20, minimum: 1, maximum: 100)
+            //   - searchString: string (optional, minLength: 1) - only send if not empty
+            // 
+            // Handle responses according to OpenAPI spec:
+            // - 200 OK: UserPageResponse {
+            //     content: UserResponse[],  // Array of users matching search criteria
+            //     totalElements: number,   // Total count of matching users
+            //     totalPages: number,      // Total number of pages
+            //     size: number,           // Page size used (from request or default)
+            //     number: number,         // Current page number (0-indexed)
+            //     first: boolean,        // Is this the first page?
+            //     last: boolean          // Is this the last page?
+            //   }
+            // - 400 BadRequest: ErrorResponse with validation errors
+            // - 401 Unauthorized: ErrorResponse
+            // - 500 InternalServerError: ErrorResponse
+            //
+            // Example API call:
+            // const params = new URLSearchParams({
+            //   page: currentPage.toString(),
+            //   size: pageSize.toString()
+            // });
+            // if (searchStringInput) {
+            //   params.append('searchString', searchStringInput);
+            // }
+            // 
+            // fetch(`/user?${params.toString()}`, {
+            //   method: 'GET',
+            //   headers: { 'Content-Type': 'application/json' }
+            // })
+            //   .then(response => {
+            //     if (response.status === 200) {
+            //       return response.json().then(data => {
+            //         // data is UserPageResponse
+            //         processUserPageResponse(data);
+            //       });
+            //     } else if (response.status === 400) {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse with errors array
+            //         const errorMessage = data.errors?.map(e => e.message).join(', ') || 'Ошибка валидации данных';
+            //         showToast('error', 'Ошибка валидации', errorMessage);
+            //       });
+            //     } else if (response.status === 401) {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse
+            //         showToast('error', 'Не авторизован', 'Необходима авторизация для выполнения операции');
+            //         // Optionally redirect to login: window.location.href = '/login';
+            //       });
+            //     } else if (response.status === 500) {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse
+            //         showToast('error', 'Ошибка сервера', data.errors[0]?.message || 'Произошла внутренняя ошибка сервера');
+            //       });
+            //     } else {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse
+            //         showToast('error', 'Ошибка', data.errors[0]?.message || 'Произошла ошибка при загрузке пользователей');
+            //       });
+            //     }
+            //   })
+            //   .catch(error => {
+            //     showToast('error', 'Ошибка', 'Не удалось загрузить пользователей');
+            //   });
+            
+            // Mock implementation for reference:
+            if (searchStringInput === '') {
+                filteredUsers = [...allUsers];
+            } else {
+                // Case-insensitive search by ID, username, firstName, lastName as per OpenAPI spec
+                const searchLower = searchStringInput.toLowerCase();
+                filteredUsers = allUsers.filter(user => 
+                    user.id.toString().includes(searchStringInput) || // Exact ID match
+                    user.username.toLowerCase().includes(searchLower) ||
+                    user.firstName.toLowerCase().includes(searchLower) ||
+                    user.lastName.toLowerCase().includes(searchLower)
+                );
+            }
+            
+            totalElements = filteredUsers.length;
+            calculatePagination();
+            renderUsers();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchString').value = '';
+            filterUsers();
+        }
+
+        function renderUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            const emptyState = document.getElementById('emptyState');
+            
+            const startIndex = currentPage * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredUsers.length);
+            const pageUsers = filteredUsers.slice(startIndex, endIndex);
+            
+            if (pageUsers.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+                tbody.innerHTML = pageUsers.map(user => `
+                    <tr>
+                        <td><strong>#${user.id}</strong></td>
+                        <td><strong>@${escapeHtml(user.username)}</strong></td>
+                        <td>${escapeHtml(user.firstName)}</td>
+                        <td>${escapeHtml(user.lastName)}</td>
+                        <td>
+                            <span class="role-badge role-${user.role.toLowerCase().replace('_', '-')}">
+                                ${getRoleLabel(user.role)}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-view" onclick="viewUser(${user.id})">
+                                    👁️ Просмотр
+                                </button>
+                                <button class="btn-edit" onclick="editUser(${user.id})">
+                                    ✏️ Изменить
+                                </button>
+                                <button class="btn-delete" onclick="deleteUser(${user.id})">
+                                    🗑️ Удалить
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            
+            updatePaginationInfo();
+        }
+
+        // Update pagination UI based on PageResponse from API
+        // Following PageResponse schema from Common.yaml
+        // In real app, this should use response.first and response.last from API response
+        function updatePaginationInfo() {
+            const startItem = currentPage * pageSize + 1;
+            const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
+            
+            const paginationInfo = document.getElementById('paginationInfo');
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            const pageNumbers = document.getElementById('pageNumbers');
+
+            // Calculate first/last flags as per PageResponse schema
+            // In real app, use response.first and response.last from UserPageResponse
+            const first = currentPage === 0;
+            const last = currentPage >= totalPages - 1;
+
+            // Update info text using PageResponse fields:
+            // - totalElements: total count
+            // - size: page size
+            // - number: current page (0-indexed)
+            // - totalPages: total pages
+            if (totalElements === 0) {
+                paginationInfo.textContent = 'Нет записей для отображения';
+            } else {
+                paginationInfo.textContent = `Показано ${startItem}-${endItem} из ${totalElements} записей (страница ${currentPage + 1} из ${totalPages})`;
+            }
+
+            // Update Previous button using response.first flag
+            prevBtn.disabled = first;
+
+            // Update Next button using response.last flag
+            nextBtn.disabled = last;
+
+            // Generate page number buttons
+            renderPageNumbers();
+        }
+
+        function renderPageNumbers() {
+            const pageNumbers = document.getElementById('pageNumbers');
+            
+            // Show max 5 page buttons
+            const maxButtons = 5;
+            let startPage = Math.max(0, currentPage - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages - 1, startPage + maxButtons - 1);
+            
+            // Adjust if at the end
+            if (endPage - startPage < maxButtons - 1) {
+                startPage = Math.max(0, endPage - maxButtons + 1);
+            }
+
+            pageNumbers.innerHTML = '';
+
+            // First page button
+            if (startPage > 0) {
+                const firstBtn = document.createElement('button');
+                firstBtn.className = 'pagination-btn';
+                firstBtn.textContent = '1';
+                firstBtn.onclick = () => goToPage(0);
+                pageNumbers.appendChild(firstBtn);
+                
+                if (startPage > 1) {
+                    const dots = document.createElement('span');
+                    dots.className = 'pagination-dots';
+                    dots.textContent = '...';
+                    dots.style.padding = '0 8px';
+                    dots.style.color = '#6c757d';
+                    dots.style.display = 'flex';
+                    dots.style.alignItems = 'center';
+                    pageNumbers.appendChild(dots);
+                }
+            }
+
+            // Page number buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'pagination-btn' + (i === currentPage ? ' active' : '');
+                btn.textContent = i + 1;
+                btn.onclick = () => goToPage(i);
+                pageNumbers.appendChild(btn);
+            }
+
+            // Last page button
+            if (endPage < totalPages - 1) {
+                if (endPage < totalPages - 2) {
+                    const dots = document.createElement('span');
+                    dots.className = 'pagination-dots';
+                    dots.textContent = '...';
+                    dots.style.padding = '0 8px';
+                    dots.style.color = '#6c757d';
+                    dots.style.display = 'flex';
+                    dots.style.alignItems = 'center';
+                    pageNumbers.appendChild(dots);
+                }
+                
+                const lastBtn = document.createElement('button');
+                lastBtn.className = 'pagination-btn';
+                lastBtn.textContent = totalPages;
+                lastBtn.onclick = () => goToPage(totalPages - 1);
+                pageNumbers.appendChild(lastBtn);
+            }
+
+            // Update button click handlers
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            
+            prevBtn.onclick = () => {
+                if (currentPage > 0) {
+                    goToPage(currentPage - 1);
+                }
+            };
+
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages - 1) {
+                    goToPage(currentPage + 1);
+                }
+            };
+        }
+
+        // Navigate to specific page (0-indexed)
+        // In real app, make API call: GET /user?page=${pageNumber}&size=20&searchString=...
+        function goToPage(pageNumber) {
+            console.log('Navigate to page:', pageNumber);
+            currentPage = pageNumber;
+            
+            // In real app, make API call with page parameter according to OpenAPI spec:
+            // Parameters:
+            //   - page: integer (0-indexed, default: 0, minimum: 0)
+            //   - size: integer (default: 20, minimum: 1, maximum: 100)
+            //   - searchString: string (optional, minLength: 1) - only send if not empty
+            // 
+            // Response: UserPageResponse {
+            //   content: UserResponse[],  // Array of users matching search criteria
+            //   totalElements: number,   // Total count of matching users
+            //   totalPages: number,      // Total number of pages
+            //   size: number,            // Page size used (from request or default)
+            //   number: number,         // Current page number (0-indexed)
+            //   first: boolean,         // Is this the first page?
+            //   last: boolean           // Is this the last page?
+            // }
+            // 
+            // Example API call (same as in filterUsers):
+            // const searchStringInput = document.getElementById('searchString').value.trim();
+            // const params = new URLSearchParams({
+            //   page: pageNumber.toString(),
+            //   size: pageSize.toString()
+            // });
+            // if (searchStringInput) {
+            //   params.append('searchString', searchStringInput);
+            // }
+            // 
+            // fetch(`/user?${params.toString()}`, {
+            //   method: 'GET',
+            //   headers: { 'Content-Type': 'application/json' }
+            // })
+            //   .then(response => {
+            //     if (response.status === 200) {
+            //       return response.json().then(data => {
+            //         // data is UserPageResponse
+            //         processUserPageResponse(data);
+            //       });
+            //     } else if (response.status === 400) {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse with errors array
+            //         const errorMessage = data.errors?.map(e => e.message).join(', ') || 'Ошибка валидации данных';
+            //         showToast('error', 'Ошибка валидации', errorMessage);
+            //       });
+            //     } else if (response.status === 401) {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse
+            //         showToast('error', 'Не авторизован', 'Необходима авторизация для выполнения операции');
+            //         // Optionally redirect to login: window.location.href = '/login';
+            //       });
+            //     } else if (response.status === 500) {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse
+            //         showToast('error', 'Ошибка сервера', data.errors[0]?.message || 'Произошла внутренняя ошибка сервера');
+            //       });
+            //     } else {
+            //       return response.json().then(data => {
+            //         // data is ErrorResponse
+            //         showToast('error', 'Ошибка', data.errors[0]?.message || 'Произошла ошибка при загрузке пользователей');
+            //       });
+            //     }
+            //   })
+            //   .catch(error => {
+            //     showToast('error', 'Ошибка', 'Не удалось загрузить пользователей');
+            //   });
+            
+            // Mock implementation for reference:
+            renderUsers();
+        }
+        
+        // Example function showing how to process API response according to UserPageResponse schema
+        // This function should be called after successful API response
+        function processUserPageResponse(response) {
+            // response is UserPageResponse from API
+            // Use response.content for user data
+            allUsers = response.content;
+            
+            // Update pagination state from response
+            totalElements = response.totalElements;
+            totalPages = response.totalPages;
+            currentPage = response.number; // Use 'number' from response, not local currentPage
+            pageSize = response.size; // Use 'size' from response
+            
+            // Use response.first and response.last for button states
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            prevBtn.disabled = response.first;
+            nextBtn.disabled = response.last;
+            
+            // Re-render table with new data
+            renderUsers();
+        }
+
+        // View user details
+        function viewUser(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) {
+                showToast('error', 'Ошибка', 'Пользователь не найден');
+                return;
+            }
+
+            const modal = document.getElementById('viewUserModal');
+            const title = document.getElementById('viewModalTitle');
+            const body = document.getElementById('viewModalBody');
+
+            title.textContent = `${user.firstName} ${user.lastName}`;
+            body.innerHTML = `
+                <div class="detail-section">
+                    <h3>Основная информация</h3>
+                    <div class="detail-row">
+                        <div class="detail-label">ID пользователя:</div>
+                        <div class="detail-value"><strong>#${user.id}</strong></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Username:</div>
+                        <div class="detail-value"><strong>@${escapeHtml(user.username)}</strong></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Имя:</div>
+                        <div class="detail-value">${escapeHtml(user.firstName)}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Фамилия:</div>
+                        <div class="detail-value">${escapeHtml(user.lastName)}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Роль:</div>
+                        <div class="detail-value">
+                            <span class="role-badge role-${user.role.toLowerCase().replace('_', '-')}">
+                                ${getRoleLabel(user.role)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.add('active');
+        }
+
+        function closeViewUserModal() {
+            document.getElementById('viewUserModal').classList.remove('active');
+        }
+
+        // Create user
+        // Opens modal for creating new user according to POST /user operation
+        // UserRequest requires: username, firstName, lastName, role, password
+        function openCreateUserModal() {
+            document.getElementById('modalTitle').textContent = 'Создать пользователя';
+            document.getElementById('userForm').reset();
+            document.getElementById('userId').value = '';
+            document.getElementById('password').required = true; // Password required for UserRequest
+            document.getElementById('passwordGroup').style.display = 'block';
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        // Edit user
+        // Opens modal for updating existing user according to PUT /user/{id} operation
+        // UpdateUserRequest requires: username, firstName, lastName, role (password NOT required)
+        function editUser(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) {
+                showToast('error', 'Ошибка', 'Пользователь не найден');
+                return;
+            }
+
+            // In real app, could fetch user details via GET /user/{id} first
+            // GET /user/{id} returns UserResponse (id, username, firstName, lastName, role)
+            // Handle responses: 200 (UserResponse), 400, 401, 404, 500
+
+            document.getElementById('modalTitle').textContent = 'Редактировать пользователя';
+            document.getElementById('userId').value = user.id;
+            document.getElementById('username').value = user.username;
+            document.getElementById('firstName').value = user.firstName;
+            document.getElementById('lastName').value = user.lastName;
+            document.getElementById('role').value = user.role;
+            document.getElementById('password').value = '';
+            document.getElementById('password').required = false; // Password not required for UpdateUserRequest
+            document.getElementById('passwordGroup').style.display = 'none'; // Hide password field for update
+            
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            const btn = input.nextElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+
+        function saveUser(event) {
+            event.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const username = document.getElementById('username').value.trim();
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const role = document.getElementById('role').value;
+            const password = document.getElementById('password').value;
+            
+            if (userId) {
+                // Update existing user according to UpdateUserRequest schema (PUT /user/{id})
+                // UpdateUserRequest structure:
+                // {
+                //   username: string,        // Required, minLength: 3, maxLength: 50, pattern: '^[a-zA-Z0-9_-]+$'
+                //   firstName: string,       // Required, minLength: 1, maxLength: 100
+                //   lastName: string,       // Required, minLength: 1, maxLength: 100
+                //   role: UserRole          // Required, enum: REQUESTER, EXECUTOR, CAB_MANAGER, ADMIN
+                // }
+                // Note: password is NOT required/included in UpdateUserRequest
+                
+                const userIdInt = parseInt(userId);
+                
+                // Validate userId parameter (path-id: integer, int64, required)
+                if (isNaN(userIdInt) || userIdInt <= 0) {
+                    showToast('error', 'Ошибка валидации', 'Некорректный ID пользователя');
+                    return;
+                }
+                
+                // Validate username pattern according to OpenAPI spec
+                const usernamePattern = /^[a-zA-Z0-9_-]+$/;
+                if (!usernamePattern.test(username)) {
+                    showToast('error', 'Ошибка валидации', 'Username может содержать только буквы, цифры, подчеркивание и дефис');
+                    return;
+                }
+                
+                // Validate username length
+                if (username.length < 3 || username.length > 50) {
+                    showToast('error', 'Ошибка валидации', 'Username должен быть от 3 до 50 символов');
+                    return;
+                }
+                
+                // Validate firstName length
+                if (firstName.length < 1 || firstName.length > 100) {
+                    showToast('error', 'Ошибка валидации', 'Имя должно быть от 1 до 100 символов');
+                    return;
+                }
+                
+                // Validate lastName length
+                if (lastName.length < 1 || lastName.length > 100) {
+                    showToast('error', 'Ошибка валидации', 'Фамилия должна быть от 1 до 100 символов');
+                    return;
+                }
+                
+                // Validate role
+                const validRoles = ['REQUESTER', 'EXECUTOR', 'CAB_MANAGER', 'ADMIN'];
+                if (!validRoles.includes(role)) {
+                    showToast('error', 'Ошибка валидации', 'Необходимо выбрать роль');
+                    return;
+                }
+                
+                // In real app, make API call: PUT /user/{id}
+                // Path parameter: id (integer, int64, required)
+                // Request body: UpdateUserRequest { username, firstName, lastName, role }
+                // 
+                // Handle responses according to OpenAPI spec:
+                // - 200 OK: UserResponse (id, username, firstName, lastName, role)
+                //   - Update user in list and refresh table
+                // - 400 BadRequest: ErrorResponse with validation errors
+                //   - Display error messages from response.errors array
+                // - 401 Unauthorized: ErrorResponse
+                //   - Redirect to login or show authentication error
+                // - 404 NotFound: ErrorResponse (user not found)
+                //   - Show specific error message about user not found
+                // - 409 Conflict: ErrorResponse (username already exists for another user)
+                //   - Show specific error message about username conflict
+                // - 500 InternalServerError: ErrorResponse
+                //   - Show generic server error message
+                //
+                // Example API call:
+                // fetch(`/user/${userIdInt}`, {
+                //   method: 'PUT',
+                //   headers: { 'Content-Type': 'application/json' },
+                //   body: JSON.stringify({ username, firstName, lastName, role })
+                // })
+                //   .then(response => {
+                //     if (response.status === 200) {
+                //       return response.json().then(data => {
+                //         // data is UserResponse
+                //         const userIndex = allUsers.findIndex(u => u.id === userIdInt);
+                //         if (userIndex !== -1) {
+                //           allUsers[userIndex] = data;
+                //           showToast('success', 'Успех', 'Пользователь успешно обновлен');
+                //           closeUserModal();
+                //           filterUsers();
+                //         }
+                //       });
+                //     } else if (response.status === 400) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse with errors array
+                //         const errorMessage = data.errors?.map(e => e.message).join(', ') || 'Ошибка валидации данных';
+                //         showToast('error', 'Ошибка валидации', errorMessage);
+                //       });
+                //     } else if (response.status === 401) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Не авторизован', 'Необходима авторизация для выполнения операции');
+                //         // Optionally redirect to login: window.location.href = '/login';
+                //       });
+                //     } else if (response.status === 404) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Не найдено', data.errors[0]?.message || 'Пользователь не найден');
+                //       });
+                //     } else if (response.status === 409) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Конфликт', data.errors[0]?.message || 'Пользователь с таким username уже существует');
+                //       });
+                //     } else if (response.status === 500) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Ошибка сервера', data.errors[0]?.message || 'Произошла внутренняя ошибка сервера');
+                //       });
+                //     } else {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Ошибка', data.errors[0]?.message || 'Произошла ошибка при обновлении пользователя');
+                //       });
+                //     }
+                //   })
+                //   .catch(error => {
+                //     showToast('error', 'Ошибка', 'Не удалось обновить пользователя');
+                //   });
+                
+                // Mock implementation for reference:
+                const userIndex = allUsers.findIndex(u => u.id === userIdInt);
+                if (userIndex === -1) {
+                    // Simulating 404 NotFound
+                    showToast('error', 'Не найдено', 'Пользователь не найден');
+                    return;
+                }
+                
+                // Check if username already exists for another user (simulating 409 Conflict)
+                if (allUsers.some(u => u.username === username && u.id !== userIdInt)) {
+                    showToast('error', 'Конфликт', 'Пользователь с таким username уже существует');
+                    return;
+                }
+                
+                allUsers[userIndex] = {
+                    ...allUsers[userIndex],
+                    username,
+                    firstName,
+                    lastName,
+                    role
+                };
+                showToast('success', 'Успех', 'Пользователь успешно обновлен');
+            } else {
+                // Create new user according to UserRequest schema (POST /user)
+                // UserRequest structure:
+                // {
+                //   username: string,        // Required, minLength: 3, maxLength: 50, pattern: '^[a-zA-Z0-9_-]+$'
+                //   firstName: string,       // Required, minLength: 1, maxLength: 100
+                //   lastName: string,       // Required, minLength: 1, maxLength: 100
+                //   role: UserRole,         // Required, enum: REQUESTER, EXECUTOR, CAB_MANAGER, ADMIN
+                //   password: string        // Required, format: password, minLength: 8, maxLength: 100
+                // }
+                
+                // Validate username pattern according to OpenAPI spec
+                const usernamePattern = /^[a-zA-Z0-9_-]+$/;
+                if (!usernamePattern.test(username)) {
+                    showToast('error', 'Ошибка валидации', 'Username может содержать только буквы, цифры, подчеркивание и дефис');
+                    return;
+                }
+                
+                // Validate username length
+                if (username.length < 3 || username.length > 50) {
+                    showToast('error', 'Ошибка валидации', 'Username должен быть от 3 до 50 символов');
+                    return;
+                }
+                
+                // Validate firstName length
+                if (firstName.length < 1 || firstName.length > 100) {
+                    showToast('error', 'Ошибка валидации', 'Имя должно быть от 1 до 100 символов');
+                    return;
+                }
+                
+                // Validate lastName length
+                if (lastName.length < 1 || lastName.length > 100) {
+                    showToast('error', 'Ошибка валидации', 'Фамилия должна быть от 1 до 100 символов');
+                    return;
+                }
+                
+                // Validate password according to OpenAPI spec
+                if (!password || password.length < 8 || password.length > 100) {
+                    showToast('error', 'Ошибка валидации', 'Пароль должен быть от 8 до 100 символов');
+                    return;
+                }
+                
+                // Validate role
+                const validRoles = ['REQUESTER', 'EXECUTOR', 'CAB_MANAGER', 'ADMIN'];
+                if (!validRoles.includes(role)) {
+                    showToast('error', 'Ошибка валидации', 'Необходимо выбрать роль');
+                    return;
+                }
+                
+                // In real app, make API call: POST /user
+                // Request body: UserRequest { username, firstName, lastName, role, password }
+                // 
+                // Handle responses according to OpenAPI spec:
+                // - 201 Created: UserResponse (id, username, firstName, lastName, role)
+                //   - Add new user to list and refresh table
+                // - 400 BadRequest: ErrorResponse with validation errors
+                //   - Display error messages from response.errors array
+                // - 401 Unauthorized: ErrorResponse
+                //   - Redirect to login or show authentication error
+                // - 409 Conflict: ErrorResponse (username already exists)
+                //   - Show specific error message about username conflict
+                // - 500 InternalServerError: ErrorResponse
+                //   - Show generic server error message
+                //
+                // Example API call:
+                // fetch('/user', {
+                //   method: 'POST',
+                //   headers: { 'Content-Type': 'application/json' },
+                //   body: JSON.stringify({ username, firstName, lastName, role, password })
+                // })
+                //   .then(response => {
+                //     if (response.status === 201) {
+                //       return response.json().then(data => {
+                //         // data is UserResponse
+                //         allUsers.push(data);
+                //         showToast('success', 'Успех', 'Пользователь успешно создан');
+                //         closeUserModal();
+                //         filterUsers();
+                //       });
+                //     } else if (response.status === 400) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse with errors array
+                //         const errorMessage = data.errors?.map(e => e.message).join(', ') || 'Ошибка валидации данных';
+                //         showToast('error', 'Ошибка валидации', errorMessage);
+                //       });
+                //     } else if (response.status === 401) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Не авторизован', 'Необходима авторизация для выполнения операции');
+                //         // Optionally redirect to login: window.location.href = '/login';
+                //       });
+                //     } else if (response.status === 409) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse with errors array
+                //         showToast('error', 'Конфликт', data.errors[0]?.message || 'Пользователь с таким username уже существует');
+                //       });
+                //     } else if (response.status === 500) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Ошибка сервера', data.errors[0]?.message || 'Произошла внутренняя ошибка сервера');
+                //       });
+                //     } else {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Ошибка', data.errors[0]?.message || 'Произошла ошибка при создании пользователя');
+                //       });
+                //     }
+                //   })
+                //   .catch(error => {
+                //     showToast('error', 'Ошибка', 'Не удалось создать пользователя');
+                //   });
+                
+                // Mock implementation for reference:
+                // Check if username already exists (simulating 409 Conflict)
+                if (allUsers.some(u => u.username === username)) {
+                    showToast('error', 'Конфликт', 'Пользователь с таким username уже существует');
+                    return;
+                }
+                
+                const newId = Math.max(...allUsers.map(u => u.id), 0) + 1;
+                const newUser = {
+                    id: newId,
+                    username,
+                    firstName,
+                    lastName,
+                    role
+                };
+                allUsers.push(newUser);
+                showToast('success', 'Успех', 'Пользователь успешно создан');
+            }
+            
+            closeUserModal();
+            filterUsers(); // Re-render with current filters
+        }
+
+        // Delete user
+        // Deletes user according to DELETE /user/{id} operation
+        // Path parameter: id (integer, int64, required)
+        function deleteUser(userId) {
+            // Validate userId parameter (path-id: integer, int64, required)
+            const userIdInt = parseInt(userId);
+            if (isNaN(userIdInt) || userIdInt <= 0) {
+                showToast('error', 'Ошибка валидации', 'Некорректный ID пользователя');
+                return;
+            }
+            
+            // Find user for confirmation message (in real app, could fetch via GET /user/{id})
+            const user = allUsers.find(u => u.id === userIdInt);
+            if (!user) {
+                // Simulating 404 NotFound
+                showToast('error', 'Не найдено', 'Пользователь не найден');
+                return;
+            }
+
+            // Show confirmation dialog before deletion
+            if (confirm(`Вы уверены, что хотите удалить пользователя "${user.firstName} ${user.lastName}" (@${user.username})?`)) {
+                // In real app, make API call: DELETE /user/{id}
+                // Path parameter: id (integer, int64, required)
+                // 
+                // Handle responses according to OpenAPI spec:
+                // - 204 No Content: User successfully deleted (no response body)
+                //   - Remove user from list and refresh table
+                // - 400 BadRequest: ErrorResponse with validation errors
+                //   - Display error messages from response.errors array
+                // - 401 Unauthorized: ErrorResponse
+                //   - Redirect to login or show authentication error
+                // - 404 NotFound: ErrorResponse (user not found)
+                //   - Show specific error message about user not found
+                // - 500 InternalServerError: ErrorResponse
+                //   - Show generic server error message
+                //
+                // Example API call:
+                // fetch(`/user/${userIdInt}`, {
+                //   method: 'DELETE'
+                // })
+                //   .then(response => {
+                //     if (response.status === 204) {
+                //       // 204 No Content - no response body
+                //       const index = allUsers.findIndex(u => u.id === userIdInt);
+                //       if (index !== -1) {
+                //         allUsers.splice(index, 1);
+                //         showToast('success', 'Успех', 'Пользователь успешно удален');
+                //         filterUsers();
+                //       }
+                //     } else if (response.status === 400) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse with errors array
+                //         const errorMessage = data.errors?.map(e => e.message).join(', ') || 'Ошибка валидации данных';
+                //         showToast('error', 'Ошибка валидации', errorMessage);
+                //       });
+                //     } else if (response.status === 401) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Не авторизован', 'Необходима авторизация для выполнения операции');
+                //         // Optionally redirect to login: window.location.href = '/login';
+                //       });
+                //     } else if (response.status === 404) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Не найдено', data.errors[0]?.message || 'Пользователь не найден');
+                //       });
+                //     } else if (response.status === 500) {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Ошибка сервера', data.errors[0]?.message || 'Произошла внутренняя ошибка сервера');
+                //       });
+                //     } else {
+                //       return response.json().then(data => {
+                //         // data is ErrorResponse
+                //         showToast('error', 'Ошибка', data.errors[0]?.message || 'Произошла ошибка при удалении пользователя');
+                //       });
+                //     }
+                //   })
+                //   .catch(error => {
+                //     showToast('error', 'Ошибка', 'Не удалось удалить пользователя');
+                //   });
+                
+                // Mock implementation for reference:
+                const index = allUsers.findIndex(u => u.id === userIdInt);
+                if (index !== -1) {
+                    allUsers.splice(index, 1);
+                    showToast('success', 'Успех', 'Пользователь успешно удален');
+                    filterUsers();
+                } else {
+                    // Simulating 404 NotFound
+                    showToast('error', 'Не найдено', 'Пользователь не найден');
+                }
+            }
+        }
+
+        // Utility functions
+        function getRoleLabel(role) {
+            const labels = {
+                'REQUESTER': 'Инициатор',
+                'EXECUTOR': 'Исполнитель',
+                'CAB_MANAGER': 'CAB Менеджер',
+                'ADMIN': 'Администратор'
+            };
+            return labels[role] || role;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function showToast(type, title, message) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.className = `toast ${type}`;
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function logout() {
+            if (confirm('Вы уверены, что хотите выйти из системы?')) {
+                console.log('Logging out...');
+                // In real app: clear session, tokens, redirect to login
+                // window.location.href = '/logout';
+                showToast('success', 'Выход', 'Вы успешно вышли из системы');
+            }
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            const viewModal = document.getElementById('viewUserModal');
+            const userModal = document.getElementById('userModal');
+            
+            if (event.target === viewModal) {
+                closeViewUserModal();
+            }
+            if (event.target === userModal) {
+                closeUserModal();
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulated current user data (in real app, would come from authentication)
+            const currentUser = {
+                id: 1,
+                username: 'i.ivanov',
+                firstName: 'Иван',
+                lastName: 'Иванов',
+                role: 'ADMIN' // REQUESTER, EXECUTOR, CAB_MANAGER, ADMIN
+            };
+
+            // Initialize user info in header
+            initializeUserInfo(currentUser);
+            
+            // Initialize mock data
+            initializeMockData();
+
+            // Logout button
+            const logoutBtn = document.getElementById('logout-btn');
+            logoutBtn.addEventListener('click', logout);
+        });
+
+        // Initialize user info function (matching rfc-list.html and reference-team.html)
+        function initializeUserInfo(user) {
+            const userAvatar = document.getElementById('user-avatar');
+            const userName = document.getElementById('user-name');
+            const userRoleBadge = document.getElementById('user-role-badge');
+
+            // Set avatar initials from firstName and lastName
+            const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
+            userAvatar.textContent = initials;
+
+            // Set user name as "firstName lastName"
+            const fullName = `${user.firstName} ${user.lastName}`;
+            userName.textContent = fullName;
+
+            // Set role badge according to UserRole enum from Common.yaml
+            const roleMap = {
+                'REQUESTER': { class: 'role-requester', text: 'Инициатор' },
+                'EXECUTOR': { class: 'role-executor', text: 'Исполнитель' },
+                'CAB_MANAGER': { class: 'role-cab-manager', text: 'Менеджер CAB' },
+                'ADMIN': { class: 'role-admin', text: 'Администратор' }
+            };
+
+            const roleInfo = roleMap[user.role] || roleMap['REQUESTER'];
+            userRoleBadge.className = 'role-badge ' + roleInfo.class;
+            userRoleBadge.textContent = roleInfo.text;
+        }
+    </script>
+</body>
+</html>
+

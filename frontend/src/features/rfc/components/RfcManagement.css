@@ -1,0 +1,124 @@
+ .rfc-management {
+   padding: 20px;
+ }
+
+ .rfc-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 24px;
+ }
+
+ .rfc-header h1 {
+   color: #2c3e50;
+   margin: 0;
+ }
+
+ .rfc-content {
+   background: white;
+   border-radius: 8px;
+   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+ }
+
+ .rfc-loading,
+ .rfc-error {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   padding: 60px 20px;
+   text-align: center;
+ }
+
+ .rfc-error .error-icon {
+   font-size: 48px;
+   margin-bottom: 16px;
+ }
+
+ .rfc-error h3 {
+   color: #e74c3c;
+   margin-bottom: 8px;
+ }
+
+ .rfc-error p {
+   color: #6c757d;
+   margin-bottom: 16px;
+ }
+
+ .btn-retry {
+   padding: 10px 20px;
+   background: #3498db;
+   color: white;
+   border: none;
+   border-radius: 6px;
+   cursor: pointer;
+ }
+
+ .btn-retry:hover {
+   background: #2980b9;
+ }
+
+ .rfc-pagination {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding: 20px;
+   border-top: 1px solid #e9ecef;
+   background: white;
+ }
+
+ .pagination-info {
+   color: #6c757d;
+   font-size: 14px;
+ }
+
+ .pagination-controls {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+ }
+
+ .pagination-btn {
+   padding: 8px 12px;
+   border: 1px solid #ddd;
+   background: white;
+   border-radius: 6px;
+   cursor: pointer;
+   font-size: 14px;
+ }
+
+ .pagination-btn:hover:not(:disabled) {
+   background: #f8f9fa;
+   border-color: #3498db;
+ }
+
+ .pagination-btn:disabled {
+   opacity: 0.5;
+   cursor: not-allowed;
+ }
+
+ .pagination-btn.active {
+   background: #3498db;
+   color: white;
+   border-color: #3498db;
+ }
+
+ .page-numbers {
+   display: flex;
+   gap: 4px;
+ }
+
+ .empty-state {
+   text-align: center;
+   padding: 60px 20px;
+ }
+
+ .empty-state-content {
+   color: #6c757d;
+ }
+
+ .empty-state-icon {
+   font-size: 48px;
+   margin-bottom: 16px;
+   opacity: 0.5;
+ }

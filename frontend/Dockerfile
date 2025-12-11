@@ -1,31 +1,35 @@
-# Стадия сборки
+# Multi-stage build for production
+
+# Stage 1: Build the React application
 FROM node:20-alpine AS builder
 
+# Set working directory
 WORKDIR /app
 
-# Копируем package.json и package-lock.json для кэширования зависимостей
-COPY package*.json ./
+# Copy package files
+COPY package.json package-lock.json* ./
 
-# Устанавливаем зависимости
-RUN npm ci
+# Install dependencies
+RUN npm install --legacy-peer-deps
 
-# Копируем исходный код
+# Copy source code
 COPY . .
 
-# Собираем проект
+# Build the application
 RUN npm run build
 
-# Стадия запуска
-FROM nginx:alpine
+# Stage 2: Serve the application with nginx
+FROM nginx:1.25-alpine
 
-# Копируем собранные статические файлы из стадии сборки
+# Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Копируем конфигурацию nginx (опционально)
-# COPY nginx.conf /etc/nginx/nginx.conf
+# Copy custom nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Открываем порт 80
+# Expose port 80
 EXPOSE 80
 
-# Запускаем nginx
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
+
