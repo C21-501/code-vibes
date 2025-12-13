@@ -15,6 +15,7 @@ import ru.c21501.rfcservice.openapi.model.Urgency;
 import ru.c21501.rfcservice.repository.RfcRepository;
 import ru.c21501.rfcservice.service.PlankaIntegrationService;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 
 /**
@@ -251,8 +252,10 @@ public class PlankaIntegrationServiceImpl implements PlankaIntegrationService {
                     log.info("==================================================");
                     
                     rfc.setStatus(newStatus);
+                    // Устанавливаем метку времени чтобы scheduler не перезаписывал статус
+                    rfc.setPlankaStatusChangedAt(OffsetDateTime.now());
                     rfcRepository.save(rfc);
-                    log.info("RFC {} status updated to {} from Planka", rfc.getId(), newStatus);
+                    log.info("RFC {} status updated to {} from Planka (protected for 5 minutes)", rfc.getId(), newStatus);
                     return;
                 }
             }
@@ -335,9 +338,11 @@ public class PlankaIntegrationServiceImpl implements PlankaIntegrationService {
             log.info("=====================================");
             
             rfc.setStatus(newStatus);
+            // Устанавливаем метку времени чтобы scheduler не перезаписывал статус
+            rfc.setPlankaStatusChangedAt(OffsetDateTime.now());
             rfcRepository.save(rfc);
             
-            log.info("RFC {} status successfully updated to {} by Planka user: {}", 
+            log.info("RFC {} status successfully updated to {} by Planka user: {} (protected for 5 minutes)", 
                     rfc.getId(), newStatus, userName);
         }
     }

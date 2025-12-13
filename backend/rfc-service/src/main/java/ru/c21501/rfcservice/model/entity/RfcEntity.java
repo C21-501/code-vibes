@@ -54,6 +54,13 @@ public class RfcEntity {
     @Column(name = "planka_card_id")
     private String plankaCardId;
 
+    /**
+     * Временная метка последнего изменения статуса из Planka.
+     * Используется чтобы scheduler не перезаписывал статус в течение определённого времени.
+     */
+    @Column(name = "planka_status_changed_at")
+    private OffsetDateTime plankaStatusChangedAt;
+
     @CreationTimestamp
     @Column(name = "create_datetime", nullable = false, updatable = false)
     private OffsetDateTime createDatetime;

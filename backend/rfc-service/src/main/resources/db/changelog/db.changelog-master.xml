@@ -40,5 +40,6 @@
 
     <!-- Planka integration -->
     <include file="014-add-planka-card-id-to-rfc.xml" relativeToChangelogFile="true"/>
+    <include file="015-add-planka-status-changed-at.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
