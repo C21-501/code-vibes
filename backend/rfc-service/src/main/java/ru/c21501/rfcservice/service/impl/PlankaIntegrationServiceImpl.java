@@ -41,11 +41,11 @@ public class PlankaIntegrationServiceImpl implements PlankaIntegrationService {
      * Маппинг статусов RFC на названия списков в Planka
      */
     private static final Map<RfcStatus, List<String>> STATUS_TO_LIST_NAMES = Map.of(
-            RfcStatus.NEW, List.of("Новые", "New", "Новые запросы", "New Requests", "Backlog"),
+            RfcStatus.NEW, List.of("Новый", "Новые", "New", "Новые запросы", "New Requests", "Backlog"),
             RfcStatus.UNDER_REVIEW, List.of("На рассмотрении", "Under Review", "Review", "In Review"),
-            RfcStatus.APPROVED, List.of("Утверждено", "Approved", "Ready"),
-            RfcStatus.IMPLEMENTED, List.of("Выполнено", "Implemented", "Done", "Completed"),
-            RfcStatus.REJECTED, List.of("Отклонено", "Rejected", "Cancelled")
+            RfcStatus.APPROVED, List.of("Одобрен", "Утверждено", "Approved", "Ready"),
+            RfcStatus.IMPLEMENTED, List.of("Внедрен", "Выполнено", "Implemented", "Done", "Completed"),
+            RfcStatus.REJECTED, List.of("Отклонен", "Отклонено", "Rejected", "Cancelled")
     );
 
     /**
