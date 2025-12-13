@@ -47,9 +47,47 @@ public class PlankaWebhookPayload {
     public static class WebhookData {
         
         /**
+         * Item данные (Planka формат)
+         */
+        private Map<String, Object> item;
+        
+        /**
          * ID карточки в Planka
          */
         private String cardId;
+        
+        /**
+         * Получить cardId из item или напрямую
+         */
+        public String getCardId() {
+            if (cardId != null) return cardId;
+            if (item != null && item.get("id") != null) {
+                return item.get("id").toString();
+            }
+            return null;
+        }
+        
+        /**
+         * Получить listId из item или напрямую
+         */
+        public String getListId() {
+            if (listId != null) return listId;
+            if (item != null && item.get("listId") != null) {
+                return item.get("listId").toString();
+            }
+            return null;
+        }
+        
+        /**
+         * Получить name из item или напрямую
+         */
+        public String getName() {
+            if (name != null) return name;
+            if (item != null && item.get("name") != null) {
+                return item.get("name").toString();
+            }
+            return null;
+        }
 
         /**
          * Название карточки

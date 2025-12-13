@@ -24,13 +24,20 @@ public class WebhookController {
     @PostMapping("/planka")
     public ResponseEntity<Void> handlePlankaWebhook(
             @RequestHeader(value = "X-Webhook-Secret", required = false) String webhookSecret,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody PlankaWebhookPayload payload
     ) {
         log.info("Received webhook from Planka: event={}, cardId={}", 
                 payload.getEvent(), payload.getData() != null ? payload.getData().getCardId() : null);
         
+        // Извлекаем токен из Authorization header если X-Webhook-Secret не указан
+        String effectiveSecret = webhookSecret;
+        if (effectiveSecret == null && authHeader != null && authHeader.startsWith("Bearer ")) {
+            effectiveSecret = authHeader.substring(7);
+        }
+        
         try {
-            plankaIntegrationService.handlePlankaWebhook(payload, webhookSecret);
+            plankaIntegrationService.handlePlankaWebhook(payload, effectiveSecret);
             return ResponseEntity.ok().build();
         } catch (SecurityException e) {
             log.warn("Invalid webhook secret from Planka");
