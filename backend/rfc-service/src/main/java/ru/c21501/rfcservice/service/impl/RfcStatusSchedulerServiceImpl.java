@@ -16,6 +16,7 @@ import ru.c21501.rfcservice.openapi.model.RfcStatus;
 import ru.c21501.rfcservice.repository.RfcApprovalRepository;
 import ru.c21501.rfcservice.repository.RfcRepository;
 import ru.c21501.rfcservice.repository.UserRepository;
+import ru.c21501.rfcservice.service.PlankaIntegrationService;
 import ru.c21501.rfcservice.service.RfcStatusSchedulerService;
 
 import java.time.OffsetDateTime;
@@ -32,6 +33,7 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
     private final RfcRepository rfcRepository;
     private final RfcApprovalRepository rfcApprovalRepository;
     private final UserRepository userRepository;
+    private final PlankaIntegrationService plankaIntegrationService;
 
     /**
      * Обновляет статусы RFC каждые 3 секунды
@@ -53,6 +55,13 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
                     rfc.setStatus(newStatus);
                     rfc.setUpdateDatetime(OffsetDateTime.now());
                     rfcRepository.save(rfc);
+                    
+                    // Синхронизируем с Planka
+                    try {
+                        plankaIntegrationService.syncRfcToPlanka(rfc);
+                    } catch (Exception e) {
+                        log.warn("Failed to sync RFC {} to Planka: {}", rfc.getId(), e.getMessage());
+                    }
                 }
             } catch (Exception e) {
                 log.error("Error updating status for RFC {}: {}", rfc.getId(), e.getMessage(), e);
