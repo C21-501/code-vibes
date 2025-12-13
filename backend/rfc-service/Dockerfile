@@ -27,7 +27,7 @@ RUN addgroup --system spring && adduser --system spring --ingroup spring
 WORKDIR /app
 
 # Копирование собранного JAR файла из стадии сборки
-COPY --from=build /app/build/libs/rfc-service-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/build/libs/*.jar app.jar
 
 # Изменение владельца файла
 RUN chown spring:spring app.jar

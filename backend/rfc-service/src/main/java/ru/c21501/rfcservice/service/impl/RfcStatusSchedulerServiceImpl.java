@@ -16,7 +16,6 @@ import ru.c21501.rfcservice.openapi.model.RfcStatus;
 import ru.c21501.rfcservice.repository.RfcApprovalRepository;
 import ru.c21501.rfcservice.repository.RfcRepository;
 import ru.c21501.rfcservice.repository.UserRepository;
-import ru.c21501.rfcservice.service.PlankaIntegrationService;
 import ru.c21501.rfcservice.service.RfcStatusSchedulerService;
 
 import java.time.OffsetDateTime;
@@ -33,7 +32,6 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
     private final RfcRepository rfcRepository;
     private final RfcApprovalRepository rfcApprovalRepository;
     private final UserRepository userRepository;
-    private final PlankaIntegrationService plankaIntegrationService;
 
     /**
      * Обновляет статусы RFC каждые 3 секунды
@@ -48,13 +46,6 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
 
         for (RfcEntity rfc : allRfcs) {
             try {
-                // Пропускаем RFC с "финальными" статусами (изменены вручную)
-                // Эти статусы могут быть установлены только через Planka или вручную
-                if (rfc.getStatus() == RfcStatus.REJECTED || rfc.getStatus() == RfcStatus.IMPLEMENTED) {
-                    log.debug("Skipping RFC {} with final status: {}", rfc.getId(), rfc.getStatus());
-                    continue;
-                }
-                
                 RfcStatus newStatus = calculateRfcStatus(rfc);
 
                 if (newStatus != rfc.getStatus()) {
@@ -62,16 +53,6 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
                     rfc.setStatus(newStatus);
                     rfc.setUpdateDatetime(OffsetDateTime.now());
                     rfcRepository.save(rfc);
-                    
-                    // Синхронизация с Planka - перемещение карточки в соответствующий список
-                    if (rfc.getPlankaCardId() != null) {
-                        try {
-                            plankaIntegrationService.updateRfcStatusInPlanka(rfc, rfc.getPlankaCardId());
-                            log.info("RFC {} card moved in Planka to status list: {}", rfc.getId(), newStatus);
-                        } catch (Exception e) {
-                            log.warn("Failed to sync RFC {} status to Planka: {}", rfc.getId(), e.getMessage());
-                        }
-                    }
                 }
             } catch (Exception e) {
                 log.error("Error updating status for RFC {}: {}", rfc.getId(), e.getMessage(), e);
@@ -83,13 +64,14 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
 
     /**
      * Вычисляет новый статус RFC на основе состояния подсистем и аппрувов
-     *
+     * <p>
      * Логика:
      * 1. Если хотя бы одна подсистема отклонена (ConfirmationStatus.REJECTED) → REJECTED
-     * 2. Если хотя бы одна подсистема ожидает подтверждения (ConfirmationStatus.PENDING) → UNDER_REVIEW
-     * 3. Если все RFC_APPROVER согласовали И не все подсистемы выполнены → APPROVED
+     * 2. Если хотя бы одна подсистема ожидает подтверждения (ConfirmationStatus.PENDING) → NEW
+     * 3. Если все RFC_APPROVER согласовали И все подсистемы ожидают выполнения → APPROVED
      * 4. Если все RFC_APPROVER согласовали И все подсистемы выполнены → IMPLEMENTED
-     * 5. Иначе → NEW
+     * 5. Если все RFC_APPROVER согласовали И не все подсистемы выполнены/ожидают выполнения → IN_PROGRESS
+     * 6. Иначе → UNDER_REVIEW
      */
     private RfcStatus calculateRfcStatus(RfcEntity rfc) {
         List<RfcAffectedSubsystemEntity> subsystems = rfc.getAffectedSubsystems();
@@ -127,21 +109,29 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
                     );
 
             if (allApproversApproved) {
+                // Правило 3: Все аппруверы согласовали И все подсистемы ожидают выполнения → APPROVED
+                boolean allSubsystemInPending = subsystems.stream()
+                        .allMatch(sub -> sub.getExecutionStatus() == ExecutionStatus.PENDING);
+
+                if (allSubsystemInPending) {
+                    return RfcStatus.APPROVED;
+                }
+
                 // Проверяем статус выполнения всех подсистем
                 boolean allSubsystemsDone = subsystems.stream()
                         .allMatch(sub -> sub.getExecutionStatus() == ExecutionStatus.DONE);
 
-                // Правило 4: Все аппруверы согласовали И все подсистемы выполнены → IMPLEMENTED
+                // Правило 5: Все аппруверы согласовали И все подсистемы выполнены → IMPLEMENTED
                 if (allSubsystemsDone) {
                     return RfcStatus.IMPLEMENTED;
                 }
 
-                // Правило 3: Все аппруверы согласовали И не все подсистемы выполнены → APPROVED
-                return RfcStatus.APPROVED;
+                // Правило 4: Все аппруверы согласовали И не все подсистемы выполнены/ожидают выполнения → IN_PROGRESS
+                return RfcStatus.IN_PROGRESS;
             }
         }
 
-        // Правило 5: Иначе → UNDER_REVIEW
+        // Правило 6: Иначе → UNDER_REVIEW
         return RfcStatus.UNDER_REVIEW;
     }
 }

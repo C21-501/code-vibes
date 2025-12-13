@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface RfcRepository extends JpaRepository<RfcEntity, Long>, JpaSpecificationExecutor<RfcEntity> {
     
     /**
-     * Найти RFC по ID карточки в Planka
+     * Найти RFC по Planka Card ID
      */
     Optional<RfcEntity> findByPlankaCardId(String plankaCardId);
 }

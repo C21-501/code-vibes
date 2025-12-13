@@ -1106,6 +1106,12 @@ paths:
         schema:
           format: int64
           type: integer
+      - description: Фильтр по названию RFC (частичное совпадение)
+        in: query
+        name: title
+        required: false
+        schema:
+          type: string
       responses:
         "200":
           content:
@@ -1474,6 +1480,74 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: Internal Server Error
       summary: Получить список согласований для RFC
+      tags:
+      - RFC
+  /rfc/{id}/history:
+    get:
+      description: |
+        Возвращает хронологический список всех изменений RFC:
+        - Изменения полей (title, description, status и т.д.)
+        - Изменения файлов (добавление/удаление)
+        - Изменения подсистем (добавление/удаление)
+        - Изменения статусов подсистем (confirmation/execution)
+      operationId: getRfcHistory
+      parameters:
+      - description: ID RFC
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+      - description: Номер страницы (начиная с 0)
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 0
+          minimum: 0
+          type: integer
+      - description: Размер страницы
+        in: query
+        name: size
+        required: false
+        schema:
+          default: 20
+          maximum: 100
+          minimum: 1
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RfcHistoryResponse"
+          description: История изменений RFC
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: Internal Server Error
+      summary: Получить историю изменений RFC
       tags:
       - RFC
   /rfc/{rfcId}/subsystem/{subsystemId}/confirmation:
@@ -2551,6 +2625,7 @@ components:
       - NEW
       - UNDER_REVIEW
       - APPROVED
+      - IN_PROGRESS
       - IMPLEMENTED
       - REJECTED
       type: string
@@ -2868,6 +2943,77 @@ components:
       required:
       - approvals
       - rfcId
+      type: object
+    RfcHistoryResponse:
+      allOf:
+      - $ref: "#/components/schemas/PageResponse"
+      - properties:
+          content:
+            items:
+              $ref: "#/components/schemas/RfcHistoryEvent"
+            type: array
+        required:
+        - content
+        type: object
+      example:
+        number: 5
+        size: 1
+        last: true
+        totalPages: 6
+        first: true
+        content:
+        - changedBy:
+            name: name
+            id: 5
+          eventType: eventType
+          timestamp: 2000-01-23T04:56:07.000+00:00
+        - changedBy:
+            name: name
+            id: 5
+          eventType: eventType
+          timestamp: 2000-01-23T04:56:07.000+00:00
+        totalElements: 0
+    RfcHistoryEvent:
+      description: Базовое событие истории
+      discriminator:
+        propertyName: eventType
+      example:
+        changedBy:
+          name: name
+          id: 5
+        eventType: eventType
+        timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        eventType:
+          description: Тип события
+          type: string
+        timestamp:
+          description: Время события
+          format: date-time
+          type: string
+        changedBy:
+          $ref: "#/components/schemas/HistoryUser"
+      required:
+      - changedBy
+      - eventType
+      - timestamp
+      type: object
+    HistoryUser:
+      description: "Пользователь, совершивший изменение"
+      example:
+        name: name
+        id: 5
+      properties:
+        id:
+          description: ID пользователя
+          format: int64
+          type: integer
+        name:
+          description: Имя пользователя
+          type: string
+      required:
+      - id
+      - name
       type: object
     AttachmentResponse:
       description: Данные прикрепленного файла

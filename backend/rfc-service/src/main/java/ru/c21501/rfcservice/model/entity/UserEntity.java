@@ -90,11 +90,4 @@ public class UserEntity {
     @UpdateTimestamp
     @Column(name = "update_datetime", nullable = false)
     private OffsetDateTime updateDatetime;
-
-    /**
-     * Получить полное имя пользователя
-     */
-    public String getFullName() {
-        return firstName + " " + lastName;
-    }
 }

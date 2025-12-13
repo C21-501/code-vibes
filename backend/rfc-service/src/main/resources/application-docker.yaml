@@ -5,8 +5,11 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://keycloak:8080/realms/cab-realm/protocol/openid-connect/certs
-          issuer-uri: http://localhost:8081/realms/cab-realm
+          issuer-uri: http://keycloak:8080/realms/cab-realm
 
 keycloak:
   auth-server-url: http://keycloak:8080
+  realm: cab-realm
+  resource: cab-backend
+  credentials:
+    secret: backend-secret-123

@@ -54,18 +54,3 @@ app:
 logging:
   level:
     root: INFO
-
-# Planka Integration Configuration
-planka:
-  enabled: ${PLANKA_ENABLED:false}
-  url: ${PLANKA_URL:http://localhost:3000}
-  api-token: ${PLANKA_API_TOKEN:}
-  webhook-secret: ${PLANKA_WEBHOOK_SECRET:}
-  project-id: ${PLANKA_PROJECT_ID:}
-  board-id: ${PLANKA_BOARD_ID:}
-  auto-sync: ${PLANKA_AUTO_SYNC:true}
-  list-name-new: ${PLANKA_LIST_NEW:Новые}
-  list-name-under-review: ${PLANKA_LIST_UNDER_REVIEW:На рассмотрении}
-  list-name-approved: ${PLANKA_LIST_APPROVED:Утверждено}
-  list-name-implemented: ${PLANKA_LIST_IMPLEMENTED:Выполнено}
-  list-name-rejected: ${PLANKA_LIST_REJECTED:Отклонено}
