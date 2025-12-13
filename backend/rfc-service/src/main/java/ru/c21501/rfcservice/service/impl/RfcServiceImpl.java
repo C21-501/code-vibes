@@ -14,6 +14,7 @@ import ru.c21501.rfcservice.model.entity.*;
 import ru.c21501.rfcservice.model.enums.HistoryOperationType;
 import ru.c21501.rfcservice.openapi.model.*;
 import ru.c21501.rfcservice.repository.*;
+import ru.c21501.rfcservice.service.PlankaIntegrationService;
 import ru.c21501.rfcservice.service.RfcService;
 import ru.c21501.rfcservice.specification.RfcSpecification;
 
@@ -36,6 +37,7 @@ public class RfcServiceImpl implements RfcService {
     private final AttachmentRepository attachmentRepository;
     private final SubsystemRepository subsystemRepository;
     private final UserRepository userRepository;
+    private final PlankaIntegrationService plankaIntegrationService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -93,6 +95,13 @@ public class RfcServiceImpl implements RfcService {
         // Принудительно обновляем entity из БД для получения актуального состояния
         entityManager.flush();
         entityManager.refresh(rfc);
+
+        // 7. Синхронизация с Planka
+        try {
+            plankaIntegrationService.syncRfcToPlanka(rfc);
+        } catch (Exception e) {
+            log.warn("Failed to sync RFC to Planka: {}", e.getMessage());
+        }
 
         log.info("RFC created successfully: id={}", rfc.getId());
         return rfc;
