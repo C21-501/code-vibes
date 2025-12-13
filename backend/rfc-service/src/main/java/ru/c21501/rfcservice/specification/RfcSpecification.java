@@ -82,24 +82,6 @@ public class RfcSpecification {
     }
 
     /**
-     * Спецификация для фильтрации по названию
-     *
-     * @param title название RFC
-     * @return спецификация
-     */
-    public static Specification<RfcEntity> hasTitleLike(String title) {
-        return (root, query, criteriaBuilder) -> {
-            if (title == null || title.isEmpty()) {
-                return criteriaBuilder.conjunction();
-            }
-            return criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("title")),
-                    "%" + title.toLowerCase() + "%"
-            );
-        };
-    }
-
-    /**
      * Создает спецификацию для фильтрации RFC по заданным параметрам
      * Все фильтры применяются через AND
      *

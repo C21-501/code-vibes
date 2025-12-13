@@ -48,6 +48,12 @@ public class RfcEntity {
     @JoinColumn(name = "requester_id", nullable = false)
     private UserEntity requester;
 
+    /**
+     * ID карточки в Planka (для интеграции)
+     */
+    @Column(name = "planka_card_id", length = 255)
+    private String plankaCardId;
+
     @Column(name = "deleted_datetime")
     private OffsetDateTime deletedDatetime;
 

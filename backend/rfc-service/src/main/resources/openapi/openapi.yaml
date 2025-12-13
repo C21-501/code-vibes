@@ -42,8 +42,6 @@ paths:
     $ref: './api/rfc/RfcUnapprove.yaml'
   /rfc/{id}/approvals:
     $ref: './api/rfc/RfcApprovals.yaml'
-  /rfc/{id}/history:
-    $ref: './api/rfc/RfcHistory.yaml'
   /rfc/{rfcId}/subsystem/{subsystemId}/confirmation:
     $ref: './api/rfc/RfcSubsystemConfirmation.yaml'
   /rfc/{rfcId}/subsystem/{subsystemId}/execution:

@@ -36,12 +36,6 @@ get:
       schema:
         type: integer
         format: int64
-    - name: title
-      in: query
-      description: Фильтр по названию RFC (частичное совпадение)
-      required: false
-      schema:
-        type: string
   responses:
     '200':
       description: Успешный возврат списка RFC

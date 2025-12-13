@@ -14,6 +14,7 @@ import ru.c21501.rfcservice.model.entity.*;
 import ru.c21501.rfcservice.model.enums.HistoryOperationType;
 import ru.c21501.rfcservice.openapi.model.*;
 import ru.c21501.rfcservice.repository.*;
+import ru.c21501.rfcservice.service.PlankaIntegrationService;
 import ru.c21501.rfcservice.service.RfcService;
 import ru.c21501.rfcservice.specification.RfcSpecification;
 
@@ -36,6 +37,7 @@ public class RfcServiceImpl implements RfcService {
     private final AttachmentRepository attachmentRepository;
     private final SubsystemRepository subsystemRepository;
     private final UserRepository userRepository;
+    private final PlankaIntegrationService plankaIntegrationService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -43,9 +45,8 @@ public class RfcServiceImpl implements RfcService {
     @Override
     @Transactional
     public RfcEntity createRfc(RfcRequest request, UserEntity requester) {
-
         log.info("Creating RFC: title={}, requester={}", request.getTitle(), requester.getUsername());
-        //throw new RuntimeException("Тестовая ошибка: сервер временно недоступен. Попробуйте позже.");
+
         // 1. Проверяем и обрабатываем attachments
         List<AttachmentEntity> attachments = new ArrayList<>();
         if (request.getAttachmentIds() != null && !request.getAttachmentIds().isEmpty()) {
@@ -93,6 +94,13 @@ public class RfcServiceImpl implements RfcService {
         // Принудительно обновляем entity из БД для получения актуального состояния
         entityManager.flush();
         entityManager.refresh(rfc);
+
+        // 7. Синхронизируем RFC с Planka (создаем карточку)
+        try {
+            plankaIntegrationService.syncRfcToPlanka(rfc);
+        } catch (Exception e) {
+            log.warn("Failed to sync RFC to Planka: rfcId={}, error={}", rfc.getId(), e.getMessage());
+        }
 
         log.info("RFC created successfully: id={}", rfc.getId());
         return rfc;
@@ -158,6 +166,17 @@ public class RfcServiceImpl implements RfcService {
         // Принудительно обновляем entity из БД
         entityManager.refresh(rfc);
 
+        // 7. Синхронизируем RFC с Planka (обновляем карточку)
+        try {
+            if (rfc.getPlankaCardId() != null) {
+                plankaIntegrationService.updatePlankaCardForRfc(rfc, rfc.getPlankaCardId());
+            } else {
+                plankaIntegrationService.syncRfcToPlanka(rfc);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to sync RFC update to Planka: rfcId={}, error={}", rfc.getId(), e.getMessage());
+        }
+
         log.info("RFC updated successfully: id={}", rfc.getId());
         return rfc;
     }
@@ -173,9 +192,8 @@ public class RfcServiceImpl implements RfcService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<RfcEntity> getRfcs(String status, String urgency, Long requesterId, String title, Pageable pageable) {
-        log.debug("Getting RFCs: status={}, urgency={}, requesterId={}, title={}",
-                status, urgency, requesterId, title);
+    public Page<RfcEntity> getRfcs(String status, String urgency, Long requesterId, Pageable pageable) {
+        log.debug("Getting RFCs: status={}, urgency={}, requesterId={}", status, urgency, requesterId);
 
         Specification<RfcEntity> spec = RfcSpecification.isNotDeleted();
 
@@ -187,9 +205,6 @@ public class RfcServiceImpl implements RfcService {
         }
         if (requesterId != null) {
             spec = spec.and(RfcSpecification.hasRequesterId(requesterId));
-        }
-        if (title != null && !title.trim().isEmpty()) {
-            spec = spec.and(RfcSpecification.hasTitleLike(title.trim()));
         }
 
         return rfcRepository.findAll(spec, pageable);

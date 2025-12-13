@@ -38,4 +38,7 @@
     <!-- RFC approval table -->
     <include file="013-create-rfc-approval-table.xml" relativeToChangelogFile="true"/>
 
+    <!-- Add planka_card_id to RFC for Planka integration -->
+    <include file="014-add-planka-card-id-to-rfc.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>
