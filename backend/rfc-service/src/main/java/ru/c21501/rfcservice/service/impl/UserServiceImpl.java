@@ -17,6 +17,7 @@ import ru.c21501.rfcservice.repository.UserRepository;
 import ru.c21501.rfcservice.service.UserService;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Реализация сервиса для работы с пользователями
@@ -214,5 +215,134 @@ public class UserServiceImpl implements UserService {
         }
 
         return users;
+    }
+
+    @Override
+    @Transactional
+    public void syncUsersFromKeycloak() {
+        log.info("Starting synchronization of users from Keycloak");
+
+        try {
+            // Получаем всех пользователей из Keycloak
+            List<KeycloakUserDto> keycloakUsers = keycloakClient.getAllUsers();
+            log.info("Found {} users in Keycloak", keycloakUsers.size());
+
+            int created = 0;
+            int updated = 0;
+            int skipped = 0;
+
+            for (KeycloakUserDto keycloakUser : keycloakUsers) {
+                try {
+                    // Пропускаем пользователей без ID или username
+                    if (keycloakUser.getId() == null || keycloakUser.getUsername() == null) {
+                        log.warn("Skipping user without ID or username: {}", keycloakUser);
+                        skipped++;
+                        continue;
+                    }
+
+                    // Проверяем, существует ли пользователь в БД
+                    Optional<UserEntity> existingUser = userRepository.findByKeycloakId(keycloakUser.getId());
+
+                    if (existingUser.isPresent()) {
+                        // Обновляем существующего пользователя
+                        UserEntity user = existingUser.get();
+                        boolean needsUpdate = false;
+
+                        // Обновляем firstName, если изменился
+                        if (keycloakUser.getFirstName() != null && !keycloakUser.getFirstName().equals(user.getFirstName())) {
+                            user.setFirstName(keycloakUser.getFirstName());
+                            needsUpdate = true;
+                        }
+
+                        // Обновляем lastName, если изменился
+                        if (keycloakUser.getLastName() != null && !keycloakUser.getLastName().equals(user.getLastName())) {
+                            user.setLastName(keycloakUser.getLastName());
+                            needsUpdate = true;
+                        }
+
+                        // Синхронизируем роль пользователя из Keycloak
+                        ru.c21501.rfcservice.model.enums.UserRole syncedRole = syncUserRoleFromKeycloak(keycloakUser.getId());
+                        if (syncedRole != null && !syncedRole.equals(user.getRole())) {
+                            user.setRole(syncedRole);
+                            needsUpdate = true;
+                        }
+
+                        if (needsUpdate) {
+                            userRepository.save(user);
+                            log.debug("Updated user: {} ({})", user.getUsername(), user.getKeycloakId());
+                            updated++;
+                        } else {
+                            log.debug("No changes for user: {} ({})", user.getUsername(), user.getKeycloakId());
+                            skipped++;
+                        }
+                    } else {
+                        // Создаем нового пользователя
+                        // Проверяем, что есть необходимые данные
+                        if (keycloakUser.getFirstName() == null || keycloakUser.getLastName() == null) {
+                            log.warn("Skipping user without firstName or lastName: {}", keycloakUser.getUsername());
+                            skipped++;
+                            continue;
+                        }
+
+                        // Получаем роль пользователя из Keycloak
+                        ru.c21501.rfcservice.model.enums.UserRole role = syncUserRoleFromKeycloak(keycloakUser.getId());
+                        if (role == null) {
+                            // Если роль не найдена, используем USER по умолчанию
+                            role = ru.c21501.rfcservice.model.enums.UserRole.USER;
+                            log.debug("No role found for user {}, using default role: USER", keycloakUser.getUsername());
+                        }
+
+                        UserEntity newUser = UserEntity.builder()
+                                .username(keycloakUser.getUsername())
+                                .firstName(keycloakUser.getFirstName())
+                                .lastName(keycloakUser.getLastName())
+                                .keycloakId(keycloakUser.getId())
+                                .role(role)
+                                .build();
+
+                        userRepository.save(newUser);
+                        log.debug("Created new user: {} ({})", newUser.getUsername(), newUser.getKeycloakId());
+                        created++;
+                    }
+                } catch (Exception e) {
+                    log.error("Error syncing user {}: {}", keycloakUser.getUsername(), e.getMessage(), e);
+                    skipped++;
+                }
+            }
+
+            log.info("User synchronization completed. Created: {}, Updated: {}, Skipped: {}", created, updated, skipped);
+        } catch (Exception e) {
+            log.error("Error during user synchronization from Keycloak: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to synchronize users from Keycloak", e);
+        }
+    }
+
+    /**
+     * Синхронизирует роль пользователя из Keycloak
+     * Получает роли пользователя из Keycloak и возвращает первую подходящую роль из системы
+     *
+     * @param keycloakUserId ID пользователя в Keycloak
+     * @return роль пользователя или null, если роль не найдена
+     */
+    private ru.c21501.rfcservice.model.enums.UserRole syncUserRoleFromKeycloak(String keycloakUserId) {
+        try {
+            List<KeycloakRoleDto> keycloakRoles = keycloakClient.getUserRealmRoles(keycloakUserId);
+
+            // Ищем первую подходящую роль из системы в порядке приоритета
+            for (ru.c21501.rfcservice.model.enums.UserRole systemRole : ru.c21501.rfcservice.model.enums.UserRole.values()) {
+                for (KeycloakRoleDto keycloakRole : keycloakRoles) {
+                    if (systemRole.name().equalsIgnoreCase(keycloakRole.getName())) {
+                        return systemRole;
+                    }
+                }
+            }
+
+            log.debug("No matching system role found for user {} with Keycloak roles: {}",
+                    keycloakUserId, keycloakRoles.stream().map(KeycloakRoleDto::getName).toList());
+            return null;
+        } catch (Exception e) {
+            log.error("Error getting roles for user {}: {}", keycloakUserId, e.getMessage());
+            return null;
+        }
     }
 }

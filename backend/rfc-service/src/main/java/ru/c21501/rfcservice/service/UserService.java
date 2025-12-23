@@ -50,4 +50,10 @@ public interface UserService {
      * @return страница пользователей
      */
     Page<UserEntity> getUsers(String searchString, Pageable pageable);
+
+    /**
+     * Синхронизирует пользователей из Keycloak в локальную БД
+     * Создает новых пользователей и обновляет существующих
+     */
+    void syncUsersFromKeycloak();
 }

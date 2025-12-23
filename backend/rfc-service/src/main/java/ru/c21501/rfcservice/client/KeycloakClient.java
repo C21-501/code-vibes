@@ -506,6 +506,59 @@ public class KeycloakClient {
     }
 
     /**
+     * Получает всех пользователей из Keycloak
+     *
+     * @return список пользователей
+     */
+    public List<KeycloakUserDto> getAllUsers() {
+        log.info("Getting all users from Keycloak");
+
+        String accessToken = getAdminAccessToken();
+        String url = String.format("%s/admin/realms/%s/users", baseUrl, realm);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<KeycloakUserDto[]> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    request,
+                    KeycloakUserDto[].class
+            );
+
+            List<KeycloakUserDto> users = response.getBody() != null
+                    ? List.of(response.getBody())
+                    : List.of();
+
+            log.info("Retrieved {} users from Keycloak", users.size());
+            return users;
+
+        } catch (HttpClientErrorException e) {
+            log.error("Client error getting users from Keycloak (status: {}): {}",
+                    e.getStatusCode(), e.getResponseBodyAsString());
+            throw new KeycloakApiException(
+                    "Не удалось получить пользователей из Keycloak",
+                    e.getStatusCode().value(),
+                    e.getResponseBodyAsString()
+            );
+        } catch (HttpServerErrorException e) {
+            log.error("Server error getting users from Keycloak (status: {}): {}",
+                    e.getStatusCode(), e.getResponseBodyAsString());
+            throw new KeycloakApiException(
+                    "Ошибка сервера Keycloak при получении пользователей",
+                    e.getStatusCode().value(),
+                    e.getResponseBodyAsString()
+            );
+        } catch (Exception e) {
+            log.error("Unexpected error getting users from Keycloak: {}", e.getMessage(), e);
+            throw new KeycloakApiException("Failed to get users from Keycloak", 500, null, e);
+        }
+    }
+
+    /**
      * Аутентифицирует пользователя в Keycloak и получает токены
      *
      * @param username имя пользователя
