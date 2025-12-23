@@ -8,6 +8,7 @@ import { attachmentApi } from '../../../shared/api/attachmentApi';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import Toast from '../../../shared/components/Toast';
 import SingleUserSearchSelect from './SingleUserSearchSelect';
+import { convertUTCToLocalDateTime, convertLocalToUTCDateTime } from '../utils/rfcUtils';
 import './CreateRfcModal.css';
 
 const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
@@ -37,8 +38,8 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
       setFormData({
         title: rfc.title || '',
         description: rfc.description || '',
-        implementationDate: rfc.implementationDate ?
-          new Date(rfc.implementationDate).toISOString().slice(0, 16) : '',
+        implementationDate: rfc.implementationDate ? 
+          convertUTCToLocalDateTime(rfc.implementationDate) : '',
         urgency: rfc.urgency || 'PLANNED',
         affectedSystems: rfc.affectedSystems ? rfc.affectedSystems.map(system => ({
           systemId: system.systemId.toString(),
@@ -298,11 +299,25 @@ const EditRfcModal = ({ isOpen, onClose, onSubmit, rfc }) => {
         }
       }
 
+  // Отладка: логируем даты до преобразования
+      console.log('=== DEBUG DATE CONVERSION ===');
+      console.log('Original RFC UTC date:', rfc?.implementationDate);
+      console.log('Form date (input value):', formData.implementationDate);
+
+      const convertedDate = convertLocalToUTCDateTime(formData.implementationDate);
+      console.log('Converted to UTC:', convertedDate);
+
+      // Проверяем, что даты совпадают
+      const originalDate = new Date(rfc?.implementationDate);
+      const newDate = new Date(convertedDate);
+      console.log('Dates match?', originalDate.getTime() === newDate.getTime());
+      console.log('============================');
+
       // Подготовка данных для отправки
       const rfcData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
-        implementationDate: new Date(formData.implementationDate).toISOString(),
+        implementationDate: convertLocalToUTCDateTime(formData.implementationDate),
         urgency: formData.urgency,
         affectedSystems: formData.affectedSystems.map(system => ({
           systemId: parseInt(system.systemId),

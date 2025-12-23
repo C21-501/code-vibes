@@ -7,6 +7,7 @@ import { attachmentApi } from '../../../shared/api/attachmentApi';
 import SingleUserSearchSelect from './SingleUserSearchSelect';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import Toast from '../../../shared/components/Toast';
+import { convertLocalToUTCDateTime } from '../utils/rfcUtils';
 
 const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -189,7 +190,7 @@ const CreateRfcModal = ({ isOpen, onClose, onSubmit }) => {
     const apiData = {
       title: formData.title,
       description: formData.description || null,
-      implementationDate: formData.implementationDate + ':00.000Z',
+      implementationDate: convertLocalToUTCDateTime(formData.implementationDate),
       urgency: formData.urgency,
       affectedSystems: formData.affectedSystems.map(system => ({
         systemId: parseInt(system.systemId),
