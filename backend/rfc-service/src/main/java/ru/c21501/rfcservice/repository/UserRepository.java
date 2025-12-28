@@ -56,4 +56,28 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
             "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :searchString, '%')) OR " +
             "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :searchString, '%'))")
     Page<UserEntity> searchUsers(@Param("searchString") String searchString, Pageable pageable);
+
+    /**
+     * Поиск пользователя по username
+     *
+     * @param username имя пользователя
+     * @return Optional с пользователем или пустой Optional
+     */
+    Optional<UserEntity> findByUsername(String username);
+
+    /**
+     * Поиск пользователя по email
+     *
+     * @param email email пользователя
+     * @return Optional с пользователем или пустой Optional
+     */
+    Optional<UserEntity> findByEmail(String email);
+
+    /**
+     * Поиск пользователя по ID в Planka (для синхронизации SSO/OIDC)
+     *
+     * @param plankaUserId ID пользователя в Planka
+     * @return Optional с пользователем или пустой Optional
+     */
+    Optional<UserEntity> findByPlankaUserId(String plankaUserId);
 }

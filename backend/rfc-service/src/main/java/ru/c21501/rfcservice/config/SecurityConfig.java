@@ -30,12 +30,29 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authz -> authz
+                        .requestMatchers("/api/webhook/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/openapi/api/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 );
+
+        return http.build();
+    }
+    
+    /**
+     * Отдельная security chain для webhook endpoints - без JWT проверки
+     */
+    @Bean
+    @org.springframework.core.annotation.Order(1)
+    public SecurityFilterChain webhookFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/webhook/**")
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(authz -> authz.anyRequest().permitAll());
 
         return http.build();
     }

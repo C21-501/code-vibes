@@ -16,9 +16,11 @@ import ru.c21501.rfcservice.openapi.model.RfcStatus;
 import ru.c21501.rfcservice.repository.RfcApprovalRepository;
 import ru.c21501.rfcservice.repository.RfcRepository;
 import ru.c21501.rfcservice.repository.UserRepository;
+import ru.c21501.rfcservice.service.PlankaIntegrationService;
 import ru.c21501.rfcservice.service.RfcStatusSchedulerService;
 
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -29,9 +31,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService {
 
+    /**
+     * Время в минутах, в течение которого статус, изменённый из Planka, защищён от перезаписи
+     */
+    private static final long PLANKA_STATUS_PROTECTION_MINUTES = 5;
+
     private final RfcRepository rfcRepository;
     private final RfcApprovalRepository rfcApprovalRepository;
     private final UserRepository userRepository;
+    private final PlankaIntegrationService plankaIntegrationService;
 
     /**
      * Обновляет статусы RFC каждые 3 секунды
@@ -46,13 +54,29 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
 
         for (RfcEntity rfc : allRfcs) {
             try {
+                // Пропускаем RFC если статус был недавно изменён из Planka
+                if (isStatusProtectedByPlanka(rfc)) {
+                    log.debug("Skipping RFC {} - status protected by Planka (changed at {})", 
+                            rfc.getId(), rfc.getPlankaStatusChangedAt());
+                    continue;
+                }
+                
                 RfcStatus newStatus = calculateRfcStatus(rfc);
 
                 if (newStatus != rfc.getStatus()) {
                     log.info("Updating RFC {} status from {} to {}", rfc.getId(), rfc.getStatus(), newStatus);
                     rfc.setStatus(newStatus);
                     rfc.setUpdateDatetime(OffsetDateTime.now());
+                    // Сбрасываем Planka метку при обновлении статуса scheduler'ом
+                    rfc.setPlankaStatusChangedAt(null);
                     rfcRepository.save(rfc);
+                    
+                    // Синхронизируем с Planka
+                    try {
+                        plankaIntegrationService.syncRfcToPlanka(rfc);
+                    } catch (Exception e) {
+                        log.warn("Failed to sync RFC {} to Planka: {}", rfc.getId(), e.getMessage());
+                    }
                 }
             } catch (Exception e) {
                 log.error("Error updating status for RFC {}: {}", rfc.getId(), e.getMessage(), e);
@@ -133,5 +157,19 @@ public class RfcStatusSchedulerServiceImpl implements RfcStatusSchedulerService 
 
         // Правило 6: Иначе → UNDER_REVIEW
         return RfcStatus.UNDER_REVIEW;
+    }
+
+    /**
+     * Проверяет, защищён ли статус RFC от перезаписи scheduler'ом.
+     * Статус защищён если он был изменён из Planka в течение последних PLANKA_STATUS_PROTECTION_MINUTES минут.
+     */
+    private boolean isStatusProtectedByPlanka(RfcEntity rfc) {
+        OffsetDateTime plankaChangedAt = rfc.getPlankaStatusChangedAt();
+        if (plankaChangedAt == null) {
+            return false;
+        }
+        
+        long minutesSinceChange = ChronoUnit.MINUTES.between(plankaChangedAt, OffsetDateTime.now());
+        return minutesSinceChange < PLANKA_STATUS_PROTECTION_MINUTES;
     }
 }

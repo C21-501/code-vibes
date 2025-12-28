@@ -38,4 +38,12 @@
     <!-- RFC approval table -->
     <include file="013-create-rfc-approval-table.xml" relativeToChangelogFile="true"/>
 
+    <!-- Planka integration -->
+    <include file="014-add-planka-card-id-to-rfc.xml" relativeToChangelogFile="true"/>
+    <include file="015-add-planka-status-changed-at.xml" relativeToChangelogFile="true"/>
+    <include file="016-add-planka-user-id-to-users.xml" relativeToChangelogFile="true"/>
+
+    <!-- Add STATUS_CHANGE operation for Planka card moves -->
+    <include file="017-add-status-change-operation.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>

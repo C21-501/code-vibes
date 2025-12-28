@@ -97,6 +97,33 @@ components:
             - subsystemsAdded
             - subsystemsRemoved
 
+    RfcStatusChangedEvent:
+      allOf:
+        - $ref: '#/components/schemas/RfcHistoryEvent'
+        - type: object
+          properties:
+            eventType:
+              type: string
+              enum: [RFC_STATUS_CHANGED]
+            oldStatus:
+              type: string
+              nullable: true
+              description: Старый статус RFC
+            newStatus:
+              type: string
+              description: Новый статус RFC
+            source:
+              type: string
+              enum: [PLANKA, SYSTEM, USER]
+              description: Источник изменения статуса
+            comment:
+              type: string
+              nullable: true
+              description: Комментарий к изменению (OIDC/SSO info)
+          required:
+            - newStatus
+            - source
+
     SubsystemStatusChangedEvent:
       allOf:
         - $ref: '#/components/schemas/RfcHistoryEvent'
