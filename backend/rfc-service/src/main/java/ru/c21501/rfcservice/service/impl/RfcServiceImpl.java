@@ -167,6 +167,13 @@ public class RfcServiceImpl implements RfcService {
         // Принудительно обновляем entity из БД
         entityManager.refresh(rfc);
 
+        // 7. Синхронизация с Planka
+        try {
+            plankaIntegrationService.syncRfcToPlanka(rfc);
+        } catch (Exception e) {
+            log.warn("Failed to sync RFC to Planka: {}", e.getMessage());
+        }
+
         log.info("RFC updated successfully: id={}", rfc.getId());
         return rfc;
     }
@@ -210,6 +217,16 @@ public class RfcServiceImpl implements RfcService {
         log.info("Deleting RFC: id={}", id);
 
         RfcEntity rfc = getRfcById(id);
+
+        // Удаляем карточку из Planka
+        if (rfc.getPlankaCardId() != null) {
+            try {
+                plankaIntegrationService.deletePlankaCard(rfc.getPlankaCardId());
+                log.info("Planka card deleted: plankaCardId={}", rfc.getPlankaCardId());
+            } catch (Exception e) {
+                log.warn("Failed to delete Planka card: {}", e.getMessage());
+            }
+        }
 
         // Soft delete - устанавливаем дату удаления
         rfc.setDeletedDatetime(OffsetDateTime.now());

@@ -27,9 +27,19 @@ export default function RfcAuditTable({ events }) {
       'RFC_FIELDS_CHANGED': 'Изменение полей',
       'RFC_ATTACHMENTS_CHANGED': 'Изменение файлов',
       'RFC_SUBSYSTEMS_CHANGED': 'Изменение подсистем',
-      'SUBSYSTEM_STATUS_CHANGED': 'Изменение статуса подсистемы'
+      'SUBSYSTEM_STATUS_CHANGED': 'Изменение статуса подсистемы',
+      'RFC_STATUS_CHANGED': 'Изменение статуса RFC'
     };
     return labels[eventType] || eventType;
+  };
+
+  const getSourceLabel = (source) => {
+    const labels = {
+      'PLANKA': 'Planka',
+      'SYSTEM': 'Система',
+      'USER': 'Пользователь'
+    };
+    return labels[source] || source;
   };
 
   const renderEventDetails = (event) => {
@@ -139,6 +149,23 @@ export default function RfcAuditTable({ events }) {
                 ? `${event.oldStatus} → ${event.newStatus}`
                 : `→ ${event.newStatus}`}
             </div>
+          </div>
+        );
+
+      case 'RFC_STATUS_CHANGED':
+        return (
+          <div className="event-details">
+            <div className="event-status-change">
+              <strong>Статус:</strong>{' '}
+              {event.oldStatus !== null && event.oldStatus !== undefined
+                ? <span>{event.oldStatus} → <strong>{event.newStatus}</strong></span>
+                : <span>→ <strong>{event.newStatus}</strong></span>}
+            </div>
+            {event.source && (
+              <div className="event-source">
+                <strong>Источник:</strong> {getSourceLabel(event.source)}
+              </div>
+            )}
           </div>
         );
 

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="017-add-status-change-operation" author="system">
+        <comment>Add STATUS_CHANGE operation type for tracking Planka card moves</comment>
+        
+        <!-- Drop old constraint -->
+        <sql>
+            ALTER TABLE rfc_history DROP CONSTRAINT IF EXISTS chk_rfc_history_operation;
+        </sql>
+        
+        <!-- Add new constraint with STATUS_CHANGE -->
+        <sql>
+            ALTER TABLE rfc_history ADD CONSTRAINT chk_rfc_history_operation
+                CHECK (operation IN ('CREATE', 'UPDATE', 'DELETE', 'STATUS_CHANGE'));
+        </sql>
+        
+        <!-- Update comment -->
+        <sql>
+            COMMENT ON COLUMN rfc_history.operation IS 'Тип операции: CREATE, UPDATE, DELETE, STATUS_CHANGE (изменение статуса через Planka)';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
+

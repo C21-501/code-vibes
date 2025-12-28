@@ -9,6 +9,7 @@ import ru.c21501.rfcservice.dto.response.history.AttachmentInfo;
 import ru.c21501.rfcservice.dto.response.history.FieldChange;
 import ru.c21501.rfcservice.dto.response.history.RfcAttachmentsChangedEvent;
 import ru.c21501.rfcservice.dto.response.history.RfcFieldsChangedEvent;
+import ru.c21501.rfcservice.dto.response.history.RfcStatusChangedEvent;
 import ru.c21501.rfcservice.dto.response.history.RfcSubsystemsChangedEvent;
 import ru.c21501.rfcservice.dto.response.history.SubsystemInfo;
 import ru.c21501.rfcservice.dto.response.history.SubsystemStatusChangedEvent;
@@ -132,6 +133,9 @@ public class RfcHistoryServiceImpl implements RfcHistoryService {
             if (current.getOperation() == HistoryOperationType.CREATE) {
                 // При создании - все поля новые
                 events.add(createRfcFieldsChangedEvent(current, null, changedBy));
+            } else if (current.getOperation() == HistoryOperationType.STATUS_CHANGE) {
+                // При изменении статуса через Planka - создаем событие изменения статуса
+                events.add(createStatusChangeEvent(current, previous, changedBy));
             } else {
                 // При обновлении - вычисляем diff
                 if (previous != null) {
@@ -161,6 +165,43 @@ public class RfcHistoryServiceImpl implements RfcHistoryService {
         }
 
         return events;
+    }
+
+    /**
+     * Создать событие для STATUS_CHANGE операции (перемещение карточки в Planka)
+     */
+    private RfcStatusChangedEvent createStatusChangeEvent(RfcHistoryEntity current,
+                                                          RfcHistoryEntity previous,
+                                                          HistoryUser changedBy) {
+        // Находим предыдущий статус
+        String oldStatus = previous != null ? previous.getStatus().toString() : null;
+        String newStatus = current.getStatus().toString();
+
+        // Определяем источник изменения (по описанию)
+        RfcStatusChangedEvent.SourceEnum source = RfcStatusChangedEvent.SourceEnum.PLANKA;
+        String comment = null;
+        
+        if (current.getDescription() != null && !current.getDescription().isBlank()) {
+            comment = current.getDescription();
+            // Парсим старый и новый статус из описания если там есть "Статус изменен с X на Y"
+            java.util.regex.Matcher matcher = java.util.regex.Pattern
+                    .compile("Статус изменен с (\\w+) на (\\w+)")
+                    .matcher(current.getDescription());
+            if (matcher.find()) {
+                oldStatus = matcher.group(1);
+                newStatus = matcher.group(2);
+            }
+        }
+
+        return new RfcStatusChangedEvent(
+                "RFC_STATUS_CHANGED",
+                current.getCreateDatetime(),
+                changedBy,
+                oldStatus,
+                newStatus,
+                source,
+                comment
+        );
     }
 
     /**

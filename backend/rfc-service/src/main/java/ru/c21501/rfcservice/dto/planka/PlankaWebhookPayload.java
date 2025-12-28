@@ -34,11 +34,37 @@ public class PlankaWebhookPayload {
      * Данные события
      */
     private WebhookData data;
+    
+    /**
+     * Предыдущие данные (для сравнения изменений)
+     */
+    private WebhookData prevData;
+    
+    /**
+     * Пользователь, выполнивший действие (из Planka OIDC/SSO)
+     * Это поле приходит на ВЕРХНЕМ уровне webhook от Planka!
+     */
+    private MovedByUser user;
 
     /**
      * Источник события
      */
     private String source;
+    
+    /**
+     * Получить пользователя из webhook (приоритет: user -> data.user)
+     */
+    public MovedByUser getEffectiveUser() {
+        // 1. Верхний уровень - главный источник от Planka
+        if (user != null) {
+            return user;
+        }
+        // 2. Fallback на data если есть
+        if (data != null) {
+            return data.getEffectiveUser();
+        }
+        return null;
+    }
 
     @Data
     @Builder
@@ -154,6 +180,51 @@ public class PlankaWebhookPayload {
          * Информация о пользователе, который переместил карточку
          */
         private MovedByUser movedBy;
+        
+        /**
+         * Информация о пользователе из Planka (альтернативное поле)
+         */
+        private MovedByUser user;
+
+        /**
+         * Получить информацию о пользователе (приоритет: movedBy -> user -> item.user)
+         */
+        @SuppressWarnings("unchecked")
+        public MovedByUser getEffectiveUser() {
+            // 1. Приоритет: movedBy
+            if (movedBy != null) {
+                return movedBy;
+            }
+            
+            // 2. Альтернатива: user
+            if (user != null) {
+                return user;
+            }
+            
+            // 3. Извлекаем из item.user если есть
+            if (item != null && item.get("user") != null) {
+                Object userObj = item.get("user");
+                if (userObj instanceof Map) {
+                    Map<String, Object> userMap = (Map<String, Object>) userObj;
+                    return MovedByUser.builder()
+                            .id(userMap.get("id") != null ? userMap.get("id").toString() : null)
+                            .username(userMap.get("username") != null ? userMap.get("username").toString() : null)
+                            .name(userMap.get("name") != null ? userMap.get("name").toString() : null)
+                            .email(userMap.get("email") != null ? userMap.get("email").toString() : null)
+                            .build();
+                }
+            }
+            
+            // 4. Fallback: создаём из userId/userName если есть
+            if (userId != null || userName != null) {
+                return MovedByUser.builder()
+                        .id(userId)
+                        .name(userName)
+                        .build();
+            }
+            
+            return null;
+        }
 
         /**
          * Дата дедлайна

@@ -17,5 +17,10 @@ public enum HistoryOperationType {
     /**
      * Удаление
      */
-    DELETE
+    DELETE,
+
+    /**
+     * Изменение статуса (перемещение карточки в Planka)
+     */
+    STATUS_CHANGE
 }

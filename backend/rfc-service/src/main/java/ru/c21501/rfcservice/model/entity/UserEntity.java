@@ -78,6 +78,18 @@ public class UserEntity {
     private String keycloakId;
 
     /**
+     * ID пользователя в Planka (для синхронизации SSO)
+     */
+    @Column(name = "planka_user_id", unique = true, length = 255)
+    private String plankaUserId;
+
+    /**
+     * Email пользователя (синхронизируется с Keycloak)
+     */
+    @Column(name = "email", unique = true, length = 255)
+    private String email;
+
+    /**
      * Дата и время создания записи
      */
     @CreationTimestamp

@@ -28,7 +28,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8081/realms/cab-realm
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost:8081/realms/cab-realm}
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:}
 
   servlet:
     multipart:
@@ -64,3 +65,4 @@ planka:
   project-id: ${PLANKA_PROJECT_ID:}
   board-id: ${PLANKA_BOARD_ID:}
   auto-sync: ${PLANKA_AUTO_SYNC:true}
+  user-sync: ${PLANKA_USER_SYNC:true}

@@ -25,10 +25,44 @@ public class WebhookController {
     public ResponseEntity<Void> handlePlankaWebhook(
             @RequestHeader(value = "X-Webhook-Secret", required = false) String webhookSecret,
             @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-Planka-User-Id", required = false) String plankaUserId,
+            @RequestHeader(value = "X-Planka-Username", required = false) String plankaUsername,
+            @RequestHeader(value = "X-Planka-User-Email", required = false) String plankaEmail,
             @RequestBody PlankaWebhookPayload payload
     ) {
+        var data = payload.getData();
+        
+        // Получаем пользователя с верхнего уровня payload (где Planka передаёт его)
+        var effectiveUser = payload.getEffectiveUser();
+        
         log.info("Received webhook from Planka: event={}, cardId={}", 
-                payload.getEvent(), payload.getData() != null ? payload.getData().getCardId() : null);
+                payload.getEvent(), data != null ? data.getCardId() : null);
+        
+        // Логирование заголовков
+        log.info("Webhook headers - Authorization: {}, X-Planka-User-Id: {}, X-Planka-Username: {}, X-Planka-User-Email: {}", 
+                authHeader != null ? authHeader.substring(0, Math.min(20, authHeader.length())) + "..." : null,
+                plankaUserId, plankaUsername, plankaEmail);
+        
+        // Детальное логирование пользователя с верхнего уровня (SSO user от Planka)
+        log.info("Webhook top-level user from Planka SSO: {}", payload.getUser());
+        
+        // Детальное логирование всех данных для отладки SSO
+        if (data != null) {
+            log.info("Webhook raw data - userId: {}, userName: {}, movedBy: {}, user: {}", 
+                    data.getUserId(), data.getUserName(), data.getMovedBy(), data.getUser());
+            if (data.getItem() != null) {
+                log.debug("Webhook item data: {}", data.getItem());
+            }
+        }
+        
+        // Детальное логирование пользователя для OIDC/SSO отладки
+        if (effectiveUser != null) {
+            log.info("Webhook effective user (SSO): id={}, username={}, email={}, name={}", 
+                    effectiveUser.getId(), effectiveUser.getUsername(), 
+                    effectiveUser.getEmail(), effectiveUser.getName());
+        } else {
+            log.warn("Webhook received without user info - OIDC tracking will use fallback");
+        }
         
         // Извлекаем токен из Authorization header если X-Webhook-Secret не указан
         String effectiveSecret = webhookSecret;
@@ -61,6 +95,7 @@ public class WebhookController {
         
         // Детальное логирование с информацией о пользователе
         log.info("=== RFC CARD MOVED IN PLANKA ===");
+        log.info("Payload: {}", payload.getData().toString());
         log.info("Card ID: {}", data != null ? data.getCardId() : "unknown");
         log.info("Card Name: {}", data != null ? data.getName() : "unknown");
         log.info("From List: {} -> To List: {}", 

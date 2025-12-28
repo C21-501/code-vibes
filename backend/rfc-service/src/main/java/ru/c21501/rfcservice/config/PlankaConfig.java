@@ -48,6 +48,11 @@ public class PlankaConfig {
     private boolean autoSync = true;
 
     /**
+     * Автоматически синхронизировать пользователей с Planka при создании
+     */
+    private boolean userSync = true;
+
+    /**
      * Список названий для статуса NEW
      */
     private String listNameNew = "Новые";
