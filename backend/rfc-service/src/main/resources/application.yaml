@@ -51,6 +51,9 @@ app:
     storage-path: /tmp/uploads
     max-file-size: 5MB
     max-request-size: 6MB
+  scheduler:
+    user-sync:
+      cron: "*/5 * * * * *"  # Каждые 5 секунд
 
 logging:
   level:

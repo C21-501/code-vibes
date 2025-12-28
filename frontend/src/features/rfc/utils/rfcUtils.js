@@ -55,6 +55,40 @@ export const RFC_ACTION = {
 };
 
 /**
+ * Конвертирует UTC дату в локальную для input[type="datetime-local"]
+ * Input datetime-local всегда работает с локальным временем
+ */
+export const convertUTCToLocalDateTime = (utcDateString) => {
+  if (!utcDateString) return '';
+  
+  try {
+    const date = new Date(utcDateString);
+    // Корректируем на смещение часового пояса для правильного отображения в input
+    // Input покажет то же самое локальное время, которое соответствует UTC времени
+    return new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+      .toISOString()
+      .slice(0, 16);
+  } catch (error) {
+    console.error('Error converting UTC to local datetime:', error);
+    return '';
+  }
+};
+
+export const convertLocalToUTCDateTime = (localDateString) => {
+  if (!localDateString) return null;
+
+  try {
+    // Прибавляем смещение часового пояса, чтобы преобразовать локальное время обратно в UTC
+    const date = new Date(localDateString + ':00.000Z');
+    return new Date(date.getTime() + (date.getTimezoneOffset() * 60000))
+      .toISOString();
+  } catch (error) {
+    console.error('Error converting local to UTC datetime:', error);
+    return null;
+  }
+};
+
+/**
  * Форматирует дату в читаемый формат
  */
 export const formatDate = (dateString) => {
